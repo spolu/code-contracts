@@ -59,9 +59,9 @@ Code contracts enable:
 directive defines one code contract. How a documentation comment attaches to a declaration is
 defined by the adapter for that source language.
 
-Code contracts that are not attached to a declaration live in a file named `CONTRACTS.cc`. They
-apply to all code contained in the directory where that file lives and its descendant directories.
-Code in a nested directory inherits contracts from every `CONTRACTS.cc` file in its chain of parent
+Code contracts that are not attached to a declaration live in a file named `CONTRACTS`. They apply
+to all code contained in the directory where that file lives and its descendant directories. Code in
+a nested directory inherits contracts from every `CONTRACTS` file in its chain of parent
 directories. Their typical use case is expressing directory-scoped coding rules, such as
 architectural boundaries, dependency constraints, or security practices.
 
@@ -98,19 +98,19 @@ keys are extensible; `author` and `label` are initially well-known, and `label` 
 once. `prose_line` is any line that does not begin with an `@cc` directive.
 
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
-directive in a `CONTRACTS.cc` file, or the end of that file. It may contain any text and span any
+directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any
 number of lines. The core format does not prescribe vocabulary, sentence shape, modality, or a
-requirements notation. Authoring skills and analysis tools may recommend conventions such as EARS
-or BCP 14 without changing what constitutes a valid code contract.
+requirements notation. Authoring skills and analysis tools may recommend conventions such as EARS or
+BCP 14 without changing what constitutes a valid code contract.
 
 A documentation comment contains one `@cc` directive. Multiple consecutive contract comments may
 attach to the same declaration, as in the example above. Contract IDs are unique and stable within
 the declaration to which they are attached; the same ID may be used on a different declaration.
-Contracts in a `CONTRACTS.cc` file are not attached to a declaration, and their IDs are unique and
-stable within that file and across all parent `CONTRACTS.cc` files. A nested `CONTRACTS.cc` cannot
-reuse an ID inherited from a parent, while `CONTRACTS.cc` files in sibling directory trees may use
-the same ID.
+Contracts in a `CONTRACTS` file are not attached to a declaration, and their IDs are unique and
+stable within that file and across all parent `CONTRACTS` files. A nested `CONTRACTS` cannot reuse
+an ID inherited from a parent, while `CONTRACTS` files in sibling directory trees may use the same
+ID.
 
 The identity of an attached contract is the language-specific identity of its declaration plus its
-contract ID. The identity of a directory contract is the repository-relative path of its
-`CONTRACTS.cc` file plus its contract ID.
+contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
+file plus its contract ID.
