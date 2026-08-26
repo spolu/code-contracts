@@ -2,9 +2,9 @@
 
 - [ ] `cc-check check <file-like>`
        Check that the @cc directive are compliant to the grammar
-- [x] `cc-check callers <file-line-like>` (TypeScript prototype)
-- [x] `cc-check references <file-line-like>` (TypeScript prototype)
-- [ ] `cc-check list <file-line-or-range-like>`
+- [x] `cc-check callers <location-like>` (TypeScript prototype)
+- [x] `cc-check references <location-like>` (TypeScript prototype)
+- [ ] `cc-check list <range-like>`
        Lists all contracts related to the position pointed (local declaration, potential parent
        declaration (eg a class), and directory contracts). The range-like argument is optional and
        defaults to the whole file.

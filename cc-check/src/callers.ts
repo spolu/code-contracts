@@ -1,6 +1,6 @@
 import { relative } from "node:path";
 
-import { parseFileLineLike } from "./file-location.js";
+import { parseLocationLike } from "./file-location.js";
 import type {
   Caller,
   LanguageServerFactory,
@@ -45,7 +45,7 @@ export async function runCallersCommand(
   const workingDirectory = options.workingDirectory ?? process.cwd();
   const writeLine = options.writeLine ?? console.log;
   const startServer = options.startServer ?? startLanguageServer;
-  const position = parseFileLineLike(input, workingDirectory);
+  const position = parseLocationLike(input, workingDirectory);
   const server = await startServer(position);
 
   try {

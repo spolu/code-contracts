@@ -23,9 +23,9 @@ npm run check
 
 ```text
 cc-check check <file-like>
-cc-check callers <file-line-like>
-cc-check references <file-line-like>
-cc-check list <file-line-or-range-like>
+cc-check callers <location-like>
+cc-check references <location-like>
+cc-check list <range-like>
 ```
 
 ## Callers

@@ -24,7 +24,7 @@ function addCheckCommand(program: Command): void {
 
 /**
  * @cc [author:spolu,label:product] callers-command
- * `cc-check callers <file-line-like>` lists direct call sites to the call-hierarchy-capable
+ * `cc-check callers <location-like>` lists direct call sites to the call-hierarchy-capable
  * declaration identified by the source location, using a fresh language-server process for each
  * invocation.
  */
@@ -32,26 +32,26 @@ function addCallersCommand(program: Command): void {
   program
     .command("callers")
     .description("List callers of the declaration at a source location")
-    .argument("<file-line-like>", "Source file and line, optionally column")
+    .argument("<location-like>", "Source file and line, optionally column")
     .action(runCallersCommand);
 }
 
 /**
  * @cc [author:spolu,label:product] references-command
- * `cc-check references <file-line-like>` lists every statically recognized usage of the declaration
+ * `cc-check references <location-like>` lists every statically recognized usage of the declaration
  * identified by the source location, excluding the declaration itself.
  */
 function addReferencesCommand(program: Command): void {
   program
     .command("references")
     .description("List references to the declaration at a source location")
-    .argument("<file-line-like>", "Source file and line, optionally column")
+    .argument("<location-like>", "Source file and line, optionally column")
     .action(runReferencesCommand);
 }
 
 /**
  * @cc [author:spolu,label:product] list-command
- * `cc-check list <file-line-or-range-like>` lists the contracts attached to local and enclosing
+ * `cc-check list <range-like>` lists the contracts attached to local and enclosing
  * declarations and the directory contracts that apply to the selected source location or range.
  * When no line or range is provided, the selection is the whole file.
  */
@@ -59,7 +59,7 @@ function addListCommand(program: Command): void {
   program
     .command("list")
     .description("List contracts related to a source location or range")
-    .argument("<file-line-or-range-like>", "Source file and optional line or range")
+    .argument("<range-like>", "Source file and optional line or range")
     .action(() => notImplemented("list"));
 }
 
@@ -67,9 +67,14 @@ function addListCommand(program: Command): void {
  * @cc [author:spolu,label:product] command-surface
  * The CLI exposes:
  * - `check <file-like>`
- * - `callers <file-line-like>`
- * - `references <file-line-like>`
- * - `list <file-line-or-range-like>`
+ * - `callers <location-like>`
+ * - `references <location-like>`
+ * - `list <range-like>`
+ *
+ * @cc [author:spolu,label:product] relationship-target-resolution
+ * For line-only locations, `callers` and `references` first resolve the innermost enclosing
+ * declaration and use that declaration as the target of the relationship query. When a column is
+ * provided, they use the symbol at that exact position instead.
  */
 export function createProgram(): Command {
   const program = new Command()
