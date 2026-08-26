@@ -1,6 +1,7 @@
 import { Command } from "commander";
 
 import { runCallersCommand } from "./callers.js";
+import { runListCommand } from "./list.js";
 import { runReferencesCommand } from "./references.js";
 
 const VERSION = "0.0.0";
@@ -51,16 +52,21 @@ function addReferencesCommand(program: Command): void {
 
 /**
  * @cc [author:spolu,label:product] list-command
- * `cc-check list <range-like>` lists the contracts attached to local and enclosing
- * declarations and the directory contracts that apply to the selected source location or range.
- * When no line or range is provided, the selection is the whole file.
+ * `cc-check list <location-like>` lists contracts attached to the declaration containing the
+ * location and its enclosing declarations. It includes applicable directory contracts by default;
+ * `--no-global` excludes them.
  */
 function addListCommand(program: Command): void {
   program
     .command("list")
-    .description("List contracts related to a source location or range")
-    .argument("<range-like>", "Source file and optional line or range")
-    .action(() => notImplemented("list"));
+    .description("List contracts applicable to a source location")
+    .argument("<location-like>", "Source file and line, optionally column")
+    .option("--no-global", "Exclude contracts from CONTRACTS files")
+    .action((input: string, options: { global: boolean }) =>
+      runListCommand(input, {
+        includeGlobal: options.global,
+      }),
+    );
 }
 
 /**
@@ -69,8 +75,9 @@ function addListCommand(program: Command): void {
  * - `check <file-like>`
  * - `callers <location-like>`
  * - `references <location-like>`
- * - `list <range-like>`
- *
+ * - `list <location-like>`
+ */
+/**
  * @cc [author:spolu,label:product] relationship-target-resolution
  * For line-only locations, `callers` and `references` first resolve the innermost enclosing
  * declaration and use that declaration as the target of the relationship query. When a column is

@@ -2,7 +2,7 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`callers` and `references` have TypeScript prototype implementations. `check` and `list` are
+`callers`, `references`, and `list` have TypeScript prototype implementations. `check` is
 scaffolded but not yet implemented.
 
 ## Requirements
@@ -25,7 +25,7 @@ npm run check
 cc-check check <file-like>
 cc-check callers <location-like>
 cc-check references <location-like>
-cc-check list <range-like>
+cc-check list <location-like>
 ```
 
 ## Callers
@@ -63,3 +63,19 @@ src/user.ts:28:14
 
 For both commands, a line-only location targets the innermost enclosing declaration. Supplying a
 column instead targets the symbol at that exact position.
+
+## List
+
+`list` prints every contract applicable to a TypeScript source location. It discovers `CONTRACTS`
+files from the repository root through the source file's directory, then adds contracts attached to
+the declaration containing the location and its syntactic declaration ancestors:
+
+```sh
+npm run dev -- list src/example.ts:42
+npm run dev -- list --no-global src/example.ts:42:10
+```
+
+Directory contracts are included by default; `--no-global` returns only declaration-attached
+contracts. Results are ordered from broadest to most specific scope. Unlike `callers` and
+`references`, `list` uses the location only for source containment and does not follow the symbol at
+an exact column to its definition.

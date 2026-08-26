@@ -1,8 +1,7 @@
 /**
  * @cc [author:spolu,label:architecture] source-position-coordinates
  * Source positions use absolute file paths and one-based lines and columns. A missing column
- * targets the innermost enclosing declaration; a provided column targets the symbol at that exact
- * position.
+ * denotes the whole source line; consumers define how they resolve that line to a target.
  */
 export interface SourcePosition {
   filePath: string;
@@ -52,6 +51,12 @@ export interface Caller {
  * @cc [author:spolu,label:product] references-interface-semantics
  * `references` returns every statically recognized usage location for the selected declaration,
  * excluding the declaration itself. Results are deduplicated and sorted by source location.
+ */
+/**
+ * @cc [author:spolu,label:architecture] relationship-position-resolution
+ * For `callers` and `references`, a line-only position resolves to the innermost enclosing
+ * declaration before the relationship query. A position with a column targets the symbol at that
+ * exact position.
  */
 export interface LanguageServer {
   callers(position: SourcePosition): Promise<Caller[]>;

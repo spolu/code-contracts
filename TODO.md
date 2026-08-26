@@ -4,10 +4,9 @@
        Check that the @cc directive are compliant to the grammar
 - [x] `cc-check callers <location-like>` (TypeScript prototype)
 - [x] `cc-check references <location-like>` (TypeScript prototype)
-- [ ] `cc-check list <range-like>`
-       Lists all contracts related to the position pointed (local declaration, potential parent
-       declaration (eg a class), and directory contracts). The range-like argument is optional and
-       defaults to the whole file.
+- [x] `cc-check list <location-like>` (TypeScript prototype)
+       Lists all contracts related to the pointed location (local declaration, potential parent
+       declaration (eg a class), and directory contracts).
  
 ## Skill
 
