@@ -1,4 +1,17 @@
-## Future more precise syntax inspiration
+## cc-check
+
+- [ ] cc-check
+ 
+## Skill
+
+- [ ] @cc definition and usage directives
+- [ ] cc-check usage
+
+## DeepSWE eval
+
+- [ ] setup new agent with cc-check on top of mini-swe-agent to ablate presence of the skill
+
+## Syntax inspiration
 
  - See JML https://www.openjml.org/tutorial/Syntax (syntax for logical conditions)
  - See Doxygen https://www.doxygen.nl/manual/requirements.html (@requirement)
@@ -10,3 +23,4 @@
    requirement files)
  - See Sphinx-Needs: https://sphinx-needs.readthedocs.io/en/stable/index.html (doc as code and
    requirement)
+

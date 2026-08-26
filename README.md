@@ -1,9 +1,7 @@
 # Code Contracts
 
 A simple open format for specifying structured assumptions and requirements about code to support
-faster agent-driven software development.
-
-"Specification as code"
+faster and better agent-driven software development.
 
 ```typescript
 /** 
@@ -53,26 +51,25 @@ Code contracts enable:
 - Generative code analysis and verification that improves agent performance.
 - Maintenance at scale of invariants, product contracts, and security assumptions at code level.
 
-## Grammar
+## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each
-directive defines one code contract. How a documentation comment attaches to a declaration is
-defined by the adapter for that source language.
+directive defines one code contract. Contracts are generally colocated with or within functions,
+classes or methods definitions.
 
 Code contracts that are not attached to a declaration live in a file named `CONTRACTS`. They apply
-to all code contained in the directory where that file lives and its descendant directories. Code in
-a nested directory inherits contracts from every `CONTRACTS` file in its chain of parent
-directories. Their typical use case is expressing directory-scoped coding rules, such as
-architectural boundaries, dependency constraints, or security practices.
+to all code contained in the directory where that file lives and its descendant directories. Their
+typical use case is expressing directory-scoped coding rules, such as architectural boundaries,
+dependency constraints, or security practices.
 
-For example:
+`CONTRACTS` file example:
 
 ```text
-@cc [author:spolu,label:architecture] database-access
-Code in this directory accesses the database only through repository interfaces.
+@cc [author:spolu,label:architecture] database-access-thru-resources
+Database accesses must happen exclusively through `Resource`-like interfaces.
 
-@cc [author:spolu,label:security] secret-logging
-Code in this directory does not log credentials, tokens, or other secrets.
+@cc [author:spolu,label:security] no-sensitive-data-logging
+Credentials, tokens, secrets and user data must not be logged.
 ```
 
 The grammar uses ISO-style EBNF. `SP` is one or more spaces and `NL` is a line break. Comment
@@ -100,16 +97,13 @@ once. `prose_line` is any line that does not begin with an `@cc` directive.
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
 directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any
 number of lines. The core format does not prescribe vocabulary, sentence shape, modality, or a
-requirements notation. Authoring skills and analysis tools may recommend conventions such as EARS or
-BCP 14 without changing what constitutes a valid code contract.
+requirements notation but markdown format is generally expected. 
 
 A documentation comment contains one `@cc` directive. Multiple consecutive contract comments may
-attach to the same declaration, as in the example above. Contract IDs are unique and stable within
-the declaration to which they are attached; the same ID may be used on a different declaration.
-Contracts in a `CONTRACTS` file are not attached to a declaration, and their IDs are unique and
-stable within that file and across all parent `CONTRACTS` files. A nested `CONTRACTS` cannot reuse
-an ID inherited from a parent, while `CONTRACTS` files in sibling directory trees may use the same
-ID.
+attach to the same declaration. Contract IDs are unique and stable within the declaration to which
+they are attached; the same ID may be used on a different declaration.  Contracts in a `CONTRACTS`
+file are not attached to a declaration, and their IDs are unique and stable within that file and
+across all parent `CONTRACTS` files. 
 
 The identity of an attached contract is the language-specific identity of its declaration plus its
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
