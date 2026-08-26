@@ -1,5 +1,8 @@
 import { Command } from "commander";
 
+import { runCallersCommand } from "./callers.js";
+import { runReferencesCommand } from "./references.js";
+
 const VERSION = "0.0.0";
 
 const notImplemented = (commandName: string): never => {
@@ -21,15 +24,29 @@ function addCheckCommand(program: Command): void {
 
 /**
  * @cc [author:spolu,label:product] callers-command
- * `cc-check callers <file-line-like>` lists the callers or users of the declaration identified by
- * the source location.
+ * `cc-check callers <file-line-like>` lists direct call sites to the call-hierarchy-capable
+ * declaration identified by the source location, using a fresh language-server process for each
+ * invocation.
  */
 function addCallersCommand(program: Command): void {
   program
     .command("callers")
     .description("List callers of the declaration at a source location")
-    .argument("<file-line-like>", "Source file and line")
-    .action(() => notImplemented("callers"));
+    .argument("<file-line-like>", "Source file and line, optionally column")
+    .action(runCallersCommand);
+}
+
+/**
+ * @cc [author:spolu,label:product] references-command
+ * `cc-check references <file-line-like>` lists every statically recognized usage of the declaration
+ * identified by the source location, excluding the declaration itself.
+ */
+function addReferencesCommand(program: Command): void {
+  program
+    .command("references")
+    .description("List references to the declaration at a source location")
+    .argument("<file-line-like>", "Source file and line, optionally column")
+    .action(runReferencesCommand);
 }
 
 /**
@@ -51,6 +68,7 @@ function addListCommand(program: Command): void {
  * The CLI exposes:
  * - `check <file-like>`
  * - `callers <file-line-like>`
+ * - `references <file-line-like>`
  * - `list <file-line-or-range-like>`
  */
 export function createProgram(): Command {
@@ -61,6 +79,7 @@ export function createProgram(): Command {
 
   addCheckCommand(program);
   addCallersCommand(program);
+  addReferencesCommand(program);
   addListCommand(program);
 
   return program;
