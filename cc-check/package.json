@@ -1,0 +1,32 @@
+{
+  "name": "cc-check",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Command-line tooling for code contracts",
+  "type": "module",
+  "bin": {
+    "cc-check": "./dist/cc-check.js"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "check": "npm run typecheck && npm run lint && npm run build",
+    "dev": "tsx src/cc-check.ts",
+    "lint": "eslint --cache --cache-location .eslintcache src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24.16.0",
+    "npm": ">=11.11.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "eslint": "^10.9.1",
+    "tsx": "^4.23.12",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.68.0"
+  },
+  "packageManager": "npm@11.11.0"
+}

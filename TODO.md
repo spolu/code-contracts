@@ -1,6 +1,12 @@
 ## cc-check
 
-- [ ] cc-check
+- [ ] `cc-check check <file-like>`
+       Check that the @cc directive are compliant to the grammar
+- [ ] `cc-check callers <file-line-like>`
+- [ ] `cc-check list <file-line-or-range-like>`
+       Lists all contracts related to the position pointed (local declaration, potential parent
+       declaration (eg a class), and directory contracts). The range-like argument is optional and
+       defaults to the whole file.
  
 ## Skill
 
@@ -23,4 +29,3 @@
    requirement files)
  - See Sphinx-Needs: https://sphinx-needs.readthedocs.io/en/stable/index.html (doc as code and
    requirement)
-

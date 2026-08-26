@@ -1,0 +1,10 @@
+@cc [author:spolu,label:architecture] language-specific-boundary
+Language-specific integrations are limited to resolving source locations and symbols and extracting
+contracts attached to declarations. Directory contract discovery, relationship traversal, and
+presentation remain language-independent.
+
+@cc [author:spolu,label:coding] quality-gates
+Changes keep type checking, linting, and the production build passing.
+
+@cc [author:spolu,label:coding] no-tests-yet
+Do not add automated tests or a test-runner dependency for now.

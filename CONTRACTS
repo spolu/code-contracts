@@ -1,2 +1,7 @@
 @cc [author:spolu,label:coding] commit-message-title
-Commit messages include a short descriptive sentence or title.
+Commit messages start with a short descriptive sentence or title. An optional body provides context
+that is useful beyond the title.
+
+@cc [author:spolu,label:coding] pull-request-format
+Pull requests have a short descriptive sentence or title and a concise body summarizing the changes
+and how they were validated.
