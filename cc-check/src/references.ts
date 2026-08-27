@@ -1,10 +1,7 @@
 import { relative } from "node:path";
 
 import { parseLocationLike } from "./file-location.js";
-import type {
-  LanguageServerFactory,
-  SourceRange,
-} from "./language-server.js";
+import type { LanguageServerFactory, SourceRange } from "./language-server.js";
 import { startLanguageServer } from "./language-servers/index.js";
 
 export interface ReferencesCommandOptions {

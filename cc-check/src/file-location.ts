@@ -30,8 +30,6 @@ export function parseLocationLike(
   return {
     filePath: resolve(workingDirectory, filePath),
     line: Number.parseInt(line, 10),
-    ...(column === undefined
-      ? {}
-      : { column: Number.parseInt(column, 10) }),
+    ...(column === undefined ? {} : { column: Number.parseInt(column, 10) }),
   };
 }

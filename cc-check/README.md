@@ -16,6 +16,7 @@ scaffolded but not yet implemented.
 nvm use
 npm install
 npm run dev -- --help
+npm run format
 npm run check
 ```
 

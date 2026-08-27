@@ -61,7 +61,8 @@ const locateContract = (
  * @cc [author:spolu,label:product] directory-contract-discovery
  * Directory contracts are read from every `CONTRACTS` file between the repository root and the
  * target file's directory, inclusive. Files and contracts are returned from the broadest scope to
- * the most specific scope, preserving contract order within each file.
+ * the most specific scope, preserving contract order within each file. Discovery rejects targets
+ * without an ancestor containing `.git` because directory contract identity is repository-relative.
  */
 export async function discoverDirectoryContracts(
   filePath: string,

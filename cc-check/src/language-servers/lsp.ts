@@ -134,14 +134,15 @@ const normalizeCallers = (calls: CallHierarchyIncomingCall[]): Caller[] => {
     .sort((left, right) => compareRanges(left.declaration, right.declaration));
 };
 
-const normalizeReferences = (locations: Location[]): SourceRange[] => [
-  ...new Map(
-    locations.map((location) => {
-      const range = toSourceRange(location.uri, location.range);
-      return [rangeKey(range), range];
-    }),
-  ).values(),
-].sort(compareRanges);
+const normalizeReferences = (locations: Location[]): SourceRange[] =>
+  [
+    ...new Map(
+      locations.map((location) => {
+        const range = toSourceRange(location.uri, location.range);
+        return [rangeKey(range), range];
+      }),
+    ).values(),
+  ].sort(compareRanges);
 
 const definitionRanges = (
   definition: Location | Location[] | LocationLink[] | null,
@@ -440,10 +441,9 @@ class StdioLanguageServer implements LanguageServer {
     const incoming = await Promise.all(
       items.map((item) =>
         withTimeout(
-          this.#connection.sendRequest(
-            CallHierarchyIncomingCallsRequest.type,
-            { item },
-          ),
+          this.#connection.sendRequest(CallHierarchyIncomingCallsRequest.type, {
+            item,
+          }),
           REQUEST_TIMEOUT_MS,
           "incoming calls request",
         ),
@@ -548,6 +548,8 @@ export async function startStdioLanguageServer(
     const context = server.errorContext();
     await server.dispose();
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(context ? `${message}\n${context}` : message, { cause: error });
+    throw new Error(context ? `${message}\n${context}` : message, {
+      cause: error,
+    });
   }
 }

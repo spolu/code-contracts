@@ -1,9 +1,7 @@
 import type { SourceRange } from "./language-server.js";
 
 const TOKEN_SOURCE = String.raw`[^\s,:\[\]]+`;
-const ATTRIBUTE_PATTERN = new RegExp(
-  `^(${TOKEN_SOURCE}):(${TOKEN_SOURCE})$`,
-);
+const ATTRIBUTE_PATTERN = new RegExp(`^(${TOKEN_SOURCE}):(${TOKEN_SOURCE})$`);
 const DIRECTIVE_PATTERN = new RegExp(
   `^@cc +(?:\\[(${TOKEN_SOURCE}:${TOKEN_SOURCE}(?:,${TOKEN_SOURCE}:${TOKEN_SOURCE})*)\\] +)?(${TOKEN_SOURCE})$`,
 );
@@ -24,8 +22,10 @@ export interface ParsedContract {
   endColumn: number;
 }
 
-export interface CodeContract
-  extends Omit<ParsedContract, "startLine" | "endLine" | "endColumn"> {
+export interface CodeContract extends Omit<
+  ParsedContract,
+  "startLine" | "endLine" | "endColumn"
+> {
   source: SourceRange;
 }
 
@@ -64,14 +64,18 @@ const parseDirective = (
  * @cc [author:spolu,label:architecture] shared-contract-parser
  * `CONTRACTS` files and language-specific documentation-comment extractors use the same parser for
  * the core `@cc` directive and prose grammar. The parser preserves attribute order and repeated
- * metadata keys.
+ * metadata keys and rejects malformed directives or empty prose instead of returning partial
+ * results.
  */
 export function parseContracts(
   source: string,
   sourceName: string,
   lineOffset = 0,
 ): ParsedContract[] {
-  const lines = source.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
+  const lines = source
+    .replaceAll("\r\n", "\n")
+    .replaceAll("\r", "\n")
+    .split("\n");
   const contracts: ParsedContract[] = [];
   let lineIndex = 0;
 

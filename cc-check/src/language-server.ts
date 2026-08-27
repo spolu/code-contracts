@@ -45,7 +45,7 @@ export interface Caller {
 /**
  * @cc [author:spolu,label:architecture] language-server-lifecycle
  * `dispose` is idempotent and releases every process and protocol resource owned by the session.
- * No operation is valid after disposal.
+ * `callers` and `references` are invalid after disposal.
  */
 /**
  * @cc [author:spolu,label:product] references-interface-semantics

@@ -64,7 +64,8 @@ const writeContract = (
  * @cc [author:spolu,label:product] list-output
  * The list command prints applicable contracts from broadest to most specific: repository-root to
  * nearest-directory contracts, followed by outermost to innermost declaration contracts. Each
- * block includes the contract's source location and scope followed by its directive and prose.
+ * block includes the contract's source location and scope followed by its directive and prose. It
+ * prints nothing when no contracts apply.
  */
 /**
  * @cc [author:spolu,label:product] list-global-option

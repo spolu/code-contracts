@@ -17,10 +17,7 @@ export interface CallersCommandOptions {
 const displayPath = (filePath: string, workingDirectory: string): string =>
   relative(workingDirectory, filePath) || filePath;
 
-const formatLocation = (
-  range: SourceRange,
-  workingDirectory: string,
-): string =>
+const formatLocation = (range: SourceRange, workingDirectory: string): string =>
   `${displayPath(range.filePath, workingDirectory)}:${range.start.line}:${range.start.column}`;
 
 const callerLocations = (caller: Caller): SourceRange[] =>
@@ -52,7 +49,9 @@ export async function runCallersCommand(
     const callers = await server.callers(position);
     for (const caller of callers) {
       for (const location of callerLocations(caller)) {
-        writeLine(`${formatLocation(location, workingDirectory)}\t${caller.name}`);
+        writeLine(
+          `${formatLocation(location, workingDirectory)}\t${caller.name}`,
+        );
       }
     }
   } finally {

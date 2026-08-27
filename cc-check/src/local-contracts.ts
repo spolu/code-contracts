@@ -17,6 +17,7 @@ export interface DeclarationContracts {
  * A language-specific local extractor returns contracts attached to the declaration containing the
  * source location and its syntactic declaration ancestors, ordered outermost to innermost. It does
  * not follow definitions, callers, references, inheritance, or other semantic relationships.
+ * Declarations without contracts are omitted, and an empty result means no local contracts apply.
  */
 export interface LocalContractExtractor {
   declarationsAt(position: SourcePosition): Promise<DeclarationContracts[]>;

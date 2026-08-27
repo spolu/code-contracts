@@ -12,7 +12,8 @@ const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 /**
  * @cc [author:spolu,label:architecture] local-extractor-selection
  * Language selection for declaration-attached contracts is isolated in this factory. The list
- * command and directory discovery depend only on the language-neutral local extractor interface.
+ * command depends only on the language-neutral local extractor interface, while directory contract
+ * discovery remains separate and language-independent.
  */
 export const startLocalContractExtractor: LocalContractExtractorFactory = (
   position: SourcePosition,

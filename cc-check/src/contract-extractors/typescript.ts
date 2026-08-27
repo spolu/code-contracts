@@ -146,7 +146,11 @@ const contractComments = (
     }
 
     const commentStart = sourceFile.getLineAndCharacterOfPosition(comment.pos);
-    const parsed = parseContracts(normalized, sourceFile.fileName, commentStart.line);
+    const parsed = parseContracts(
+      normalized,
+      sourceFile.fileName,
+      commentStart.line,
+    );
     if (parsed.length !== 1) {
       throw new Error(
         `Documentation comment at ${sourceFile.fileName}:${commentStart.line + 1} must contain exactly one @cc directive.`,
@@ -203,7 +207,9 @@ const containsPosition = (
   target: { line: number; offset?: number },
 ): boolean => {
   if (target.offset !== undefined) {
-    return node.getFullStart() <= target.offset && target.offset < node.getEnd();
+    return (
+      node.getFullStart() <= target.offset && target.offset < node.getEnd()
+    );
   }
 
   const start = sourceFile.getLineAndCharacterOfPosition(node.getFullStart());
@@ -220,7 +226,10 @@ const declarationPath = (
   const candidates: DeclarationCandidate[] = [];
 
   const visit = (node: ts.Node, depth: number): void => {
-    if (isContractDeclaration(node) && containsPosition(node, sourceFile, target)) {
+    if (
+      isContractDeclaration(node) &&
+      containsPosition(node, sourceFile, target)
+    ) {
       candidates.push({ node, depth });
     }
     ts.forEachChild(node, (child) => visit(child, depth + 1));
@@ -255,29 +264,31 @@ const toDeclaration = (
 ): ContractDeclaration => ({
   name: declarationName(node, sourceFile),
   kind: declarationKind(node),
-  range: toSourceRange(
-    sourceFile,
-    node.getStart(sourceFile),
-    node.getEnd(),
-  ),
+  range: toSourceRange(sourceFile, node.getStart(sourceFile), node.getEnd()),
 });
 
 /**
  * @cc [author:spolu,label:architecture] typescript-syntax-only-extraction
  * TypeScript local contract extraction parses the target source file directly and does not start
- * or query a language server. Documentation comments attach through TypeScript syntax trivia.
+ * or query a language server. `@cc` comments attach to the next supported TypeScript declaration.
+ * Multiple consecutive documentation comments attach to the same declaration; an intervening
+ * non-documentation comment breaks the sequence.
  */
 class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   /**
    * @cc [author:spolu,label:product] typescript-local-contract-scope
-   * TypeScript local contract discovery uses source containment only. It returns `@cc`
-   * documentation comments attached to the innermost declaration containing the location and each
-   * syntactic declaration ancestor, including a containing class for a method location.
+   * TypeScript local contract discovery uses source containment only and never performs definition
+   * resolution. It returns `@cc` documentation comments attached to the innermost declaration
+   * containing the location and each syntactic declaration ancestor, including a containing class
+   * for a method location. A line-only location uses the whole line for containment; a column
+   * narrows containment to that exact source position.
    */
   async declarationsAt(
     position: SourcePosition,
   ): Promise<DeclarationContracts[]> {
-    const scriptKind = SCRIPT_KINDS.get(extname(position.filePath).toLowerCase());
+    const scriptKind = SCRIPT_KINDS.get(
+      extname(position.filePath).toLowerCase(),
+    );
     if (scriptKind === undefined) {
       throw new Error(`Unsupported source file type: ${position.filePath}`);
     }
@@ -300,5 +311,6 @@ class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   }
 }
 
-export const startTypeScriptLocalContractExtractor = (): Promise<LocalContractExtractor> =>
-  Promise.resolve(new TypeScriptLocalContractExtractor());
+export const startTypeScriptLocalContractExtractor =
+  (): Promise<LocalContractExtractor> =>
+    Promise.resolve(new TypeScriptLocalContractExtractor());

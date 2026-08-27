@@ -31,20 +31,18 @@ const findProjectRoot = (filePath: string): string => {
     directory = dirname(directory);
   }
 
-  throw new Error(
-    `No tsconfig.json or jsconfig.json found for ${filePath}.`,
-  );
+  throw new Error(`No tsconfig.json or jsconfig.json found for ${filePath}.`);
 };
 
 /**
  * @cc [author:spolu,label:architecture] typescript-project-root
  * The TypeScript adapter uses the nearest ancestor containing `tsconfig.json` or `jsconfig.json`
  * as the LSP workspace and rejects files without one rather than returning incomplete inferred-
- * project callers.
+ * project relationship results.
  */
 /**
  * @cc [author:spolu,label:product] typescript-prototype-scope
- * The TypeScript prototype supports `.ts`, `.tsx`, `.mts`, and `.cts` source files.
+ * The TypeScript language-server prototype supports `.ts`, `.tsx`, `.mts`, and `.cts` source files.
  */
 /**
  * @cc [author:spolu,label:architecture] typescript-semantic-server
@@ -61,7 +59,8 @@ export async function startTypeScriptLanguageServer(
     );
   }
 
-  const packagePath = require.resolve("typescript-language-server/package.json");
+  const packagePath =
+    require.resolve("typescript-language-server/package.json");
   const serverPath = join(dirname(packagePath), "lib", "cli.mjs");
 
   return startStdioLanguageServer({
