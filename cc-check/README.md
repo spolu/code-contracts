@@ -2,8 +2,7 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`check` and `list` support TypeScript, Python, and Go. `callers` and `references` support TypeScript,
-Python, Rust, and Go.
+`check`, `list`, `callers`, and `references` support TypeScript, Python, Rust, and Go.
 
 ## Requirements
 
@@ -41,11 +40,11 @@ cc-check list <file-like|location-like>
 [contracts grammar](../README.md#specification-and-grammar). With a file argument, it checks every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
 docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
-file, or every contract in a `CONTRACTS` file. Without an argument, it recursively checks all
-supported files under the current directory, excluding `.git`, `node_modules`, `vendor`, `.venv`,
-`venv`, and `__pycache__`. A source documentation comment or docstring must contain exactly one
-directive; documentation without `@cc` is ignored. Python source support includes `.py` and `.pyi`
-files; Go source support includes `.go` files.
+file, every `@cc` Rust doc comment, or every contract in a `CONTRACTS` file. Without an argument, it
+recursively checks all supported files under the current directory, excluding `.git`,
+`node_modules`, `vendor`, `.venv`, `venv`, and `__pycache__`. A source documentation comment or
+docstring must contain exactly one directive; documentation without `@cc` is ignored. Python source
+support includes `.py` and `.pyi` files; Go and Rust support `.go` and `.rs` files, respectively.
 
 ```sh
 npm run dev -- check src/example.ts
@@ -106,7 +105,7 @@ column instead targets the symbol at that exact position.
 
 ## List
 
-`list` accepts a TypeScript, Python, or Go source file or source location. For a file, it prints
+`list` accepts a TypeScript, Python, Rust, or Go source file or source location. For a file, it prints
 contracts attached to every supported declaration in source order. For a location, it prints
 contracts attached to the declaration containing that location and its applicable declaration
 ancestors. Both forms discover `CONTRACTS` files from the repository root through the source file's
@@ -134,4 +133,7 @@ an exact column to its definition. Python contracts attach through the first tri
 in a class or function body; module docstrings are checked but have no declaration scope to list.
 Both `.py` and `.pyi` files are supported. Go contracts attach from the immediately preceding
 line-comment group or block comment without an intervening blank line. A method also inherits its
-receiver type's contracts when that type is declared in the same file.
+receiver type's contracts when that type is declared in the same file. Rust outer doc comments
+attach to supported items and named members across ordinary attributes; inner doc comments are
+checked but are not listed. An impl inherits its same-scope declared type's contracts using a
+syntax-only name match.

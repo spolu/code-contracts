@@ -13,6 +13,11 @@ import {
   isPythonSourceFile,
   startPythonLocalContractExtractor,
 } from "./python.js";
+import {
+  extractRustContractDocuments,
+  isRustSourceFile,
+  startRustLocalContractExtractor,
+} from "./rust.js";
 import { extractTypeScriptContractDocuments } from "./typescript-documentation.js";
 import { typeScriptScriptKind } from "./typescript-documentation.js";
 import { startTypeScriptLocalContractExtractor } from "./typescript.js";
@@ -35,13 +40,17 @@ export const startLocalContractExtractor: LocalContractExtractorFactory = (
   if (isGoSourceFile(filePath)) {
     return startGoLocalContractExtractor();
   }
+  if (isRustSourceFile(filePath)) {
+    return startRustLocalContractExtractor();
+  }
   return Promise.reject(new Error(`Unsupported source file type: ${filePath}`));
 };
 
 export const isSupportedContractSource = (filePath: string): boolean =>
   typeScriptScriptKind(filePath) !== undefined ||
   isPythonSourceFile(filePath) ||
-  isGoSourceFile(filePath);
+  isGoSourceFile(filePath) ||
+  isRustSourceFile(filePath);
 
 export const extractSourceContractDocuments = (
   filePath: string,
@@ -55,6 +64,9 @@ export const extractSourceContractDocuments = (
   }
   if (isGoSourceFile(filePath)) {
     return extractGoContractDocuments(filePath, source);
+  }
+  if (isRustSourceFile(filePath)) {
+    return extractRustContractDocuments(filePath, source);
   }
   throw new Error(`Unsupported source file type: ${filePath}`);
 };
