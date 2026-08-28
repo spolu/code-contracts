@@ -1,6 +1,6 @@
 ---
 name: code-contracts
-description: Use and enforce @cc code contracts across a codebase to improve code quality and human-agent collaboration. Apply when a repository contains CONTRACTS files or @cc directives, or when adding, updating, checking, or reviewing code contracts and the code they govern.
+description: Define, use, and enforce @cc code contracts across a codebase.
 ---
 
 # Code Contracts
