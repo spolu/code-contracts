@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
 
 import ts from "typescript";
 
@@ -10,13 +9,11 @@ import type {
   DeclarationContracts,
   LocalContractExtractor,
 } from "../local-contracts.js";
-
-const SCRIPT_KINDS = new Map<string, ts.ScriptKind>([
-  [".ts", ts.ScriptKind.TS],
-  [".tsx", ts.ScriptKind.TSX],
-  [".mts", ts.ScriptKind.TS],
-  [".cts", ts.ScriptKind.TS],
-]);
+import {
+  hasPotentialContractDirective,
+  normalizeDocumentationComment,
+  typeScriptScriptKind,
+} from "./typescript-documentation.js";
 
 interface DeclarationCandidate {
   node: ts.Node;
@@ -102,21 +99,6 @@ const toSourceRange = (
   };
 };
 
-const normalizeDocumentationComment = (comment: string): string => {
-  const body = comment.slice(3, -2);
-  return body
-    .replaceAll("\r\n", "\n")
-    .replaceAll("\r", "\n")
-    .split("\n")
-    .map((line, index) => {
-      if (index === 0) {
-        return line.startsWith(" ") ? line.slice(1) : line;
-      }
-      return line.replace(/^[ \t]*\* ?/, "");
-    })
-    .join("\n");
-};
-
 const contractComments = (
   node: ts.Node,
   sourceFile: ts.SourceFile,
@@ -141,7 +123,7 @@ const contractComments = (
   for (const comment of comments) {
     const rawComment = source.slice(comment.pos, comment.end);
     const normalized = normalizeDocumentationComment(rawComment);
-    if (!normalized.split("\n").some((line) => /^@cc(?: |$)/.test(line))) {
+    if (!hasPotentialContractDirective(normalized)) {
       continue;
     }
 
@@ -286,9 +268,7 @@ class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   async declarationsAt(
     position: SourcePosition,
   ): Promise<DeclarationContracts[]> {
-    const scriptKind = SCRIPT_KINDS.get(
-      extname(position.filePath).toLowerCase(),
-    );
+    const scriptKind = typeScriptScriptKind(position.filePath);
     if (scriptKind === undefined) {
       throw new Error(`Unsupported source file type: ${position.filePath}`);
     }

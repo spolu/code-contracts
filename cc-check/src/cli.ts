@@ -1,14 +1,11 @@
 import { Command } from "commander";
 
 import { runCallersCommand } from "./callers.js";
+import { runCheckCommand } from "./check.js";
 import { runListCommand } from "./list.js";
 import { runReferencesCommand } from "./references.js";
 
 const VERSION = "0.0.0";
-
-const notImplemented = (commandName: string): never => {
-  throw new Error(`cc-check ${commandName} is not implemented yet.`);
-};
 
 /**
  * @cc [author:spolu,label:product] check-command
@@ -20,7 +17,7 @@ function addCheckCommand(program: Command): void {
     .command("check")
     .description("Check @cc directives against the code contract grammar")
     .argument("<file-like>", "Source file")
-    .action(() => notImplemented("check"));
+    .action(runCheckCommand);
 }
 
 /**

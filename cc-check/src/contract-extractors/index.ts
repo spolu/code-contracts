@@ -1,13 +1,10 @@
-import { extname } from "node:path";
-
 import type { SourcePosition } from "../language-server.js";
 import type {
   LocalContractExtractor,
   LocalContractExtractorFactory,
 } from "../local-contracts.js";
+import { typeScriptScriptKind } from "./typescript-documentation.js";
 import { startTypeScriptLocalContractExtractor } from "./typescript.js";
-
-const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 
 /**
  * @cc [author:spolu,label:architecture] local-extractor-selection
@@ -18,7 +15,7 @@ const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 export const startLocalContractExtractor: LocalContractExtractorFactory = (
   position: SourcePosition,
 ): Promise<LocalContractExtractor> => {
-  if (TYPESCRIPT_EXTENSIONS.has(extname(position.filePath).toLowerCase())) {
+  if (typeScriptScriptKind(position.filePath) !== undefined) {
     return startTypeScriptLocalContractExtractor();
   }
   return Promise.reject(
