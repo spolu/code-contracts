@@ -23,6 +23,8 @@
     "npm": ">=11.11.0"
   },
   "dependencies": {
+    "@lezer/common": "^1.5.2",
+    "@lezer/python": "^1.1.19",
     "commander": "^15.0.0",
     "pyright": "^1.1.413",
     "typescript": "^6.0.3",

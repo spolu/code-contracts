@@ -21,6 +21,14 @@ try {
     join(fixtureDirectory, "malformed-contracts.txt"),
     join(temporaryDirectory, "CONTRACTS"),
   );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-python-source.txt"),
+    join(temporaryDirectory, "malformed.py"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-python-module.txt"),
+    join(temporaryDirectory, "malformed-module.py"),
+  );
 
   const cases = [
     {
@@ -49,6 +57,24 @@ try {
       stderr: "cc-check: CONTRACTS:1:1: error: Invalid @cc directive\n",
     },
     {
+      name: "check rejects malformed Python contracts",
+      arguments: ["check", "malformed.py"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.py:3:5: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
+      name: "check validates Python module docstrings",
+      arguments: ["check", "malformed-module.py"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed-module.py:2:1: error: Contract "module-missing-prose" has no prose body\n',
+    },
+    {
       name: "list prints every contract in a source file",
       arguments: ["list", "--no-global", "test/fixtures/contracts.ts"],
       status: 0,
@@ -73,6 +99,30 @@ try {
       arguments: ["list", "--no-global", "test/fixtures/no-contracts.ts"],
       status: 0,
       stdout: "",
+      stderr: "",
+    },
+    {
+      name: "list prints every contract in a Python file",
+      arguments: ["list", "--no-global", "test/fixtures/python/contracts.py"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "python/list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes Python contracts to a source location",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/python/contracts.py:11",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "python/list-location-output.txt"),
+        "utf8",
+      ),
       stderr: "",
     },
     {

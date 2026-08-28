@@ -6,21 +6,26 @@ import {
   parseContracts,
   type ParsedContract,
 } from "./contract.js";
+import type { ContractDocument } from "./contract-extractors/contract-document.js";
 import {
-  extractTypeScriptContractDocuments,
-  typeScriptScriptKind,
-  type TypeScriptContractDocument,
-} from "./contract-extractors/typescript-documentation.js";
+  extractSourceContractDocuments,
+  isSupportedContractSource,
+} from "./contract-extractors/index.js";
 
 export interface CheckCommandOptions {
   workingDirectory?: string;
 }
 
-const SKIPPED_DIRECTORIES = new Set([".git", "node_modules"]);
+const SKIPPED_DIRECTORIES = new Set([
+  ".git",
+  ".venv",
+  "__pycache__",
+  "node_modules",
+  "venv",
+]);
 
 const isCheckFile = (filePath: string): boolean =>
-  basename(filePath) === "CONTRACTS" ||
-  typeScriptScriptKind(filePath) !== undefined;
+  basename(filePath) === "CONTRACTS" || isSupportedContractSource(filePath);
 
 const discoverCheckFiles = async (directory: string): Promise<string[]> => {
   const files: string[] = [];
@@ -43,9 +48,9 @@ const discoverCheckFiles = async (directory: string): Promise<string[]> => {
   return files;
 };
 
-const documentationCommentError = (
+const sourceDocumentCardinalityError = (
   filePath: string,
-  document: TypeScriptContractDocument,
+  document: ContractDocument,
   contracts: ParsedContract[],
 ): ContractParseError | undefined => {
   if (contracts.length === 1) {
@@ -54,7 +59,7 @@ const documentationCommentError = (
 
   const line = contracts[1]?.startLine ?? document.lineOffset + 1;
   return sourceContractError(
-    "Documentation comments must contain exactly one @cc directive",
+    "Source documentation must contain exactly one @cc directive",
     filePath,
     line,
     document,
@@ -65,7 +70,7 @@ const sourceContractError = (
   description: string,
   filePath: string,
   line: number,
-  document: TypeScriptContractDocument,
+  document: ContractDocument,
   normalizedColumn = 1,
 ): ContractParseError => {
   const documentLine = line - document.lineOffset - 1;
@@ -78,20 +83,24 @@ const sourceContractError = (
   );
 };
 
-const checkTypeScriptSource = (
+const checkSource = (
   filePath: string,
   source: string,
 ): ContractParseError[] => {
   const errors: ContractParseError[] = [];
 
-  for (const document of extractTypeScriptContractDocuments(filePath, source)) {
+  for (const document of extractSourceContractDocuments(filePath, source)) {
     try {
       const contracts = parseContracts(
         document.source,
         filePath,
         document.lineOffset,
       );
-      const error = documentationCommentError(filePath, document, contracts);
+      const error = sourceDocumentCardinalityError(
+        filePath,
+        document,
+        contracts,
+      );
       if (error) {
         errors.push(error);
       }
@@ -139,15 +148,15 @@ const checkFile = async (filePath: string): Promise<ContractParseError[]> => {
     }
   }
 
-  return checkTypeScriptSource(filePath, source);
+  return checkSource(filePath, source);
 };
 
 /**
  * @cc [author:spolu,label:product] check-file-scope
- * `check [file-like]` validates the targeted `CONTRACTS` or supported TypeScript file. Without a
- * file, it recursively checks every supported file under the current directory, excluding `.git`
- * and `node_modules`. Source comments must contain exactly one directive; comments without `@cc`
- * are ignored, and unsupported targeted file types are rejected.
+ * `check [file-like]` validates the targeted `CONTRACTS` or supported source file. Without a file,
+ * it recursively checks every supported file under the current directory, excluding `.git`,
+ * `node_modules`, `.venv`, `venv`, and `__pycache__`. Source documentation must contain exactly one
+ * directive; documentation without `@cc` is ignored, and unsupported file types are rejected.
  */
 /**
  * @cc [author:spolu,label:product] check-result
@@ -166,7 +175,7 @@ export async function runCheckCommand(
 
   if (input !== undefined && !isCheckFile(filePaths[0] ?? "")) {
     throw new Error(
-      `Unsupported file "${input}". Expected a CONTRACTS or TypeScript source file.`,
+      `Unsupported file "${input}". Expected a CONTRACTS or supported source file.`,
     );
   }
 

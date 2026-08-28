@@ -2,18 +2,17 @@ import { extname } from "node:path";
 
 import ts from "typescript";
 
+import {
+  hasPotentialContractDirective,
+  type ContractDocument,
+} from "./contract-document.js";
+
 const SCRIPT_KINDS = new Map<string, ts.ScriptKind>([
   [".ts", ts.ScriptKind.TS],
   [".tsx", ts.ScriptKind.TSX],
   [".mts", ts.ScriptKind.TS],
   [".cts", ts.ScriptKind.TS],
 ]);
-
-export interface TypeScriptContractDocument {
-  source: string;
-  lineOffset: number;
-  sourceColumns: number[];
-}
 
 export const typeScriptScriptKind = (
   filePath: string,
@@ -48,9 +47,6 @@ const normalizeDocumentationCommentLines = (
 export const normalizeDocumentationComment = (comment: string): string =>
   normalizeDocumentationCommentLines(comment).source;
 
-export const hasPotentialContractDirective = (source: string): boolean =>
-  source.split("\n").some((line) => /^@cc(?![\p{L}\p{N}_])/u.test(line));
-
 /**
  * @cc [author:spolu,label:architecture] typescript-contract-document-extraction
  * TypeScript file checks scan every `/**` documentation comment containing a potential `@cc`
@@ -60,7 +56,7 @@ export const hasPotentialContractDirective = (source: string): boolean =>
 export function extractTypeScriptContractDocuments(
   filePath: string,
   source: string,
-): TypeScriptContractDocument[] {
+): ContractDocument[] {
   const scriptKind = typeScriptScriptKind(filePath);
   if (scriptKind === undefined) {
     throw new Error(`Unsupported source file type: ${filePath}`);
@@ -83,7 +79,7 @@ export function extractTypeScriptContractDocuments(
     true,
     scriptKind,
   );
-  const documents: TypeScriptContractDocument[] = [];
+  const documents: ContractDocument[] = [];
 
   for (
     let token = scanner.scan();

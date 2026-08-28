@@ -2,8 +2,8 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`check` and `list` have TypeScript prototype implementations. `callers` and `references` support
-TypeScript, Python, and Rust.
+`check` and `list` support TypeScript and Python. `callers` and `references` support TypeScript,
+Python, and Rust.
 
 ## Requirements
 
@@ -38,10 +38,12 @@ cc-check list <file-like|location-like>
 
 `check` validates contracts against the
 [contracts grammar](../README.md#specification-and-grammar). With a file argument, it checks every
-`@cc` JSDoc-style `/** ... */` comment in a TypeScript source file or every contract in a `CONTRACTS`
-file. Without an argument, it recursively checks all supported files under the current directory,
-excluding `.git` and `node_modules`. A source documentation comment must contain exactly one
-directive. Comments without `@cc` are ignored.
+`@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
+docstring in a Python source file, or every contract in a `CONTRACTS` file. Without an argument, it
+recursively checks all supported files under the current directory, excluding `.git`, `node_modules`,
+`.venv`, `venv`, and `__pycache__`. A source documentation comment or docstring must contain exactly
+one directive; documentation without `@cc` is ignored. Python source support includes `.py` and
+`.pyi` files.
 
 ```sh
 npm run dev -- check src/example.ts
@@ -101,10 +103,10 @@ column instead targets the symbol at that exact position.
 
 ## List
 
-`list` accepts a TypeScript source file or source location. For a file, it prints contracts attached
-to every supported declaration in source order. For a location, it prints contracts attached to the
-declaration containing that location and its syntactic declaration ancestors. Both forms discover
-`CONTRACTS` files from the repository root through the source file's directory:
+`list` accepts a TypeScript or Python source file or source location. For a file, it prints contracts
+attached to every supported declaration in source order. For a location, it prints contracts
+attached to the declaration containing that location and its syntactic declaration ancestors. Both
+forms discover `CONTRACTS` files from the repository root through the source file's directory:
 
 ```sh
 npm run dev -- list src/example.ts
@@ -124,4 +126,6 @@ npm run dev -- list --no-global src/example.ts:42:10
 Directory contracts are included by default; `--no-global` returns only declaration-attached
 contracts. Results are ordered from broadest to most specific scope. Unlike `callers` and
 `references`, `list` uses the location only for source containment and does not follow the symbol at
-an exact column to its definition.
+an exact column to its definition. Python contracts attach through the first triple-quoted docstring
+in a class or function body; module docstrings are checked but have no declaration scope to list.
+Both `.py` and `.pyi` files are supported.

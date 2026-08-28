@@ -1,0 +1,4 @@
+def missing_prose() -> None:
+    """
+    @cc [author:spolu] missing-prose
+    """
