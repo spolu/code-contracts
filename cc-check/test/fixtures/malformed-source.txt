@@ -1,0 +1,4 @@
+/**
+ * @cc missing-prose
+ */
+export const malformedContract = true;

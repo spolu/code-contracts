@@ -1,0 +1,97 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const cliPath = join(projectDirectory, "dist/cc-check.js");
+const fixtureDirectory = join(projectDirectory, "test/fixtures");
+const temporaryDirectory = mkdtempSync(join(tmpdir(), "cc-check-integration-"));
+
+try {
+  copyFileSync(
+    join(fixtureDirectory, "malformed-source.txt"),
+    join(temporaryDirectory, "malformed.ts"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-contracts.txt"),
+    join(temporaryDirectory, "CONTRACTS"),
+  );
+
+  const cases = [
+    {
+      name: "check accepts a compliant directory",
+      arguments: ["check"],
+      workingDirectory: fixtureDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "check rejects malformed source contracts",
+      arguments: ["check", "malformed.ts"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.ts:2:4: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
+      name: "check rejects malformed CONTRACTS files",
+      arguments: ["check", "CONTRACTS"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr: "cc-check: CONTRACTS:1:1: error: Invalid @cc directive\n",
+    },
+    {
+      name: "list prints every contract in a source file",
+      arguments: ["list", "--no-global", "test/fixtures/contracts.ts"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes contracts to a source location",
+      arguments: ["list", "--no-global", "test/fixtures/contracts.ts:10"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list prints nothing when a file has no contracts",
+      arguments: ["list", "--no-global", "test/fixtures/no-contracts.ts"],
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+  ];
+
+  for (const testCase of cases) {
+    const result = spawnSync(
+      process.execPath,
+      [cliPath, ...testCase.arguments],
+      {
+        cwd: testCase.workingDirectory ?? projectDirectory,
+        encoding: "utf8",
+      },
+    );
+
+    assert.equal(result.error, undefined, testCase.name);
+    assert.equal(result.signal, null, testCase.name);
+    assert.equal(result.status, testCase.status, testCase.name);
+    assert.equal(result.stdout, testCase.stdout, testCase.name);
+    assert.equal(result.stderr, testCase.stderr, testCase.name);
+    console.log(`✓ ${testCase.name}`);
+  }
+} finally {
+  rmSync(temporaryDirectory, { recursive: true, force: true });
+}

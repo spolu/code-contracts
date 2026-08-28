@@ -16,8 +16,12 @@ nvm use
 npm install
 npm run dev -- --help
 npm run format
+npm test
 npm run check
 ```
+
+`npm test` builds the CLI and runs its integration cases against smoke fixture files using only
+Node.js built-ins.
 
 ## Command surface
 

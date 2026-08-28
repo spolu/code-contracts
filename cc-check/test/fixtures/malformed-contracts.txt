@@ -1,0 +1,2 @@
+@cc [author:spolu label:product] malformed-metadata
+Malformed metadata is rejected.

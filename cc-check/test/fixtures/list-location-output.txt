@@ -1,0 +1,11 @@
+=> test/fixtures/contracts.ts <=
+
+◆ invoice-fixture:1
+  scope:declaration class `Invoice` · author:spolu · label:product
+
+  > Represents an invoice used by the CLI integration tests.
+
+◆ invoice-payment-fixture:6
+  scope:declaration method `pay` · author:spolu · label:product
+
+  > Provides a method used to exercise nested contract listing.
