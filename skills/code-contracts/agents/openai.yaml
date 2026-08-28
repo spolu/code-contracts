@@ -1,4 +1,4 @@
 interface:
   display_name: "Code Contracts"
-  short_description: "Write and verify concise code contracts"
+  short_description: "Enforce code contracts for quality and collaboration"
   default_prompt: "Use $code-contracts to write and verify the contracts governing this code change."
