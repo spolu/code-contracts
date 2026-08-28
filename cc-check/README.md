@@ -3,13 +3,14 @@
 Command-line tooling for discovering and checking code contracts.
 
 `check` and `list` support TypeScript and Python. `callers` and `references` support TypeScript,
-Python, and Rust.
+Python, Rust, and Go.
 
 ## Requirements
 
 - Node.js 24.16 or newer
 - npm 11.11 or newer
 - `rust-analyzer` on `PATH` for Rust callers and references
+- `gopls` on `PATH` for Go callers and references
 
 ## Development
 
@@ -23,7 +24,7 @@ npm run check
 ```
 
 `npm test` builds the CLI and runs its integration cases against smoke fixture files using only
-Node.js built-ins. Rust relationship cases run when `rust-analyzer` is available.
+Node.js built-ins. Rust and Go relationship cases run when their language servers are available.
 
 ## Command surface
 
@@ -63,7 +64,7 @@ meets a contract, or whether contract IDs are unique.
 
 ## Callers
 
-For TypeScript, Python, or Rust files, pass a declaration's file and one-based line. A one-based
+For TypeScript, Python, Rust, or Go files, pass a declaration's file and one-based line. A one-based
 column is optional:
 
 ```sh
@@ -73,8 +74,9 @@ npm run dev -- callers src/example.ts:42:10
 
 TypeScript files must be under a `tsconfig.json` or `jsconfig.json`; Python files must be under a
 `pyrightconfig.json` or `pyproject.toml`; Rust files must be under a `Cargo.toml` or
-`rust-project.json`. The prototype supports `.ts`, `.tsx`, `.mts`, `.cts`, `.py`, `.pyi`, and `.rs`
-files. It prints one direct call site per line:
+`rust-project.json`; Go files must be under a `go.work` or `go.mod`. The prototype supports `.ts`,
+`.tsx`, `.mts`, `.cts`, `.py`, `.pyi`, `.rs`, and `.go` files. It prints one direct call site per
+line:
 
 ```text
 src/caller.ts:18:5\tcallerName
@@ -82,7 +84,7 @@ src/caller.ts:18:5\tcallerName
 
 Each invocation starts a new language-server process and shuts it down before exiting; servers are
 not cached between invocations. TypeScript uses `typescript-language-server`, Python uses the
-bundled Pyright server, and Rust uses `rust-analyzer` from `PATH`.
+bundled Pyright server, Rust uses `rust-analyzer` from `PATH`, and Go uses `gopls` from `PATH`.
 
 ## References
 

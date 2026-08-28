@@ -11,6 +11,8 @@ const fixtureDirectory = join(projectDirectory, "test/fixtures");
 const temporaryDirectory = mkdtempSync(join(tmpdir(), "cc-check-integration-"));
 const rustAnalyzerAvailable =
   spawnSync("rust-analyzer", ["--version"], { stdio: "ignore" }).status === 0;
+const goplsAvailable =
+  spawnSync("gopls", ["version"], { stdio: "ignore" }).status === 0;
 
 try {
   copyFileSync(
@@ -155,6 +157,24 @@ try {
             status: 0,
             stdout:
               "test/fixtures/rust/src/lib.rs:3:18\ntest/fixtures/rust/src/lib.rs:6:5\n",
+            stderr: "",
+          },
+        ]
+      : []),
+    ...(goplsAvailable
+      ? [
+          {
+            name: "callers queries Go through gopls",
+            arguments: ["callers", "test/fixtures/go/library.go:3"],
+            status: 0,
+            stdout: "test/fixtures/go/usage.go:4:9\tcaller\n",
+            stderr: "",
+          },
+          {
+            name: "references queries Go through gopls",
+            arguments: ["references", "test/fixtures/go/library.go:3"],
+            status: 0,
+            stdout: "test/fixtures/go/usage.go:4:9\n",
             stderr: "",
           },
         ]
