@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { basename, relative, resolve } from "node:path";
+import { readdir, readFile } from "node:fs/promises";
+import { basename, join, relative, resolve } from "node:path";
 
 import {
   ContractParseError,
@@ -15,6 +15,33 @@ import {
 export interface CheckCommandOptions {
   workingDirectory?: string;
 }
+
+const SKIPPED_DIRECTORIES = new Set([".git", "node_modules"]);
+
+const isCheckFile = (filePath: string): boolean =>
+  basename(filePath) === "CONTRACTS" ||
+  typeScriptScriptKind(filePath) !== undefined;
+
+const discoverCheckFiles = async (directory: string): Promise<string[]> => {
+  const files: string[] = [];
+  const entries = await readdir(directory, { withFileTypes: true });
+  entries.sort(({ name: left }, { name: right }) =>
+    left < right ? -1 : left > right ? 1 : 0,
+  );
+
+  for (const entry of entries) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      if (!SKIPPED_DIRECTORIES.has(entry.name)) {
+        files.push(...(await discoverCheckFiles(entryPath)));
+      }
+    } else if (entry.isFile() && isCheckFile(entryPath)) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+};
 
 const documentationCommentError = (
   filePath: string,
@@ -97,12 +124,30 @@ const formatDiagnostic = (
 ): string =>
   `${displayPath(error.sourceName, workingDirectory)}:${error.line}:${error.column}: error: ${error.description}`;
 
+const checkFile = async (filePath: string): Promise<ContractParseError[]> => {
+  const source = await readFile(filePath, "utf8");
+
+  if (basename(filePath) === "CONTRACTS") {
+    try {
+      parseContracts(source, filePath);
+      return [];
+    } catch (error) {
+      if (!(error instanceof ContractParseError)) {
+        throw error;
+      }
+      return [error];
+    }
+  }
+
+  return checkTypeScriptSource(filePath, source);
+};
+
 /**
  * @cc [author:spolu,label:product] check-file-scope
- * `check` validates a `CONTRACTS` file as one contract document or every JSDoc-style documentation
- * comment with a potential `@cc` directive in a supported TypeScript file. Source comments must
- * contain exactly one directive; comments without `@cc` are ignored, and unsupported file types are
- * rejected.
+ * `check [file-like]` validates the targeted `CONTRACTS` or supported TypeScript file. Without a
+ * file, it recursively checks every supported file under the current directory, excluding `.git`
+ * and `node_modules`. Source comments must contain exactly one directive; comments without `@cc`
+ * are ignored, and unsupported targeted file types are rejected.
  */
 /**
  * @cc [author:spolu,label:product] check-result
@@ -110,30 +155,22 @@ const formatDiagnostic = (
  * `<path>:<line>:<column>: error: <description>` diagnostics and a non-zero exit status.
  */
 export async function runCheckCommand(
-  input: string,
+  input?: string,
   options: CheckCommandOptions = {},
 ): Promise<void> {
   const workingDirectory = options.workingDirectory ?? process.cwd();
-  const filePath = resolve(workingDirectory, input);
-  const source = await readFile(filePath, "utf8");
-  let errors: ContractParseError[] = [];
+  const filePaths =
+    input === undefined
+      ? await discoverCheckFiles(workingDirectory)
+      : [resolve(workingDirectory, input)];
 
-  if (basename(filePath) === "CONTRACTS") {
-    try {
-      parseContracts(source, filePath);
-    } catch (error) {
-      if (!(error instanceof ContractParseError)) {
-        throw error;
-      }
-      errors = [error];
-    }
-  } else if (typeScriptScriptKind(filePath) !== undefined) {
-    errors = checkTypeScriptSource(filePath, source);
-  } else {
+  if (input !== undefined && !isCheckFile(filePaths[0] ?? "")) {
     throw new Error(
       `Unsupported file "${input}". Expected a CONTRACTS or TypeScript source file.`,
     );
   }
+
+  const errors = (await Promise.all(filePaths.map(checkFile))).flat();
 
   if (errors.length > 0) {
     throw new Error(

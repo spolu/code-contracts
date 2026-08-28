@@ -22,7 +22,7 @@ npm run check
 ## Command surface
 
 ```text
-cc-check check <file-like>
+cc-check check [file-like]
 cc-check callers <location-like>
 cc-check references <location-like>
 cc-check list <location-like>
@@ -30,14 +30,17 @@ cc-check list <location-like>
 
 ## Check
 
-`check` validates every `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, or every
-contract in a `CONTRACTS` file, against the [contracts grammar](../README.md#specification-and-grammar).
-A source documentation comment must contain exactly one directive. Comments without `@cc` are
-ignored.
+`check` validates contracts against the
+[contracts grammar](../README.md#specification-and-grammar). With a file argument, it checks every
+`@cc` JSDoc-style `/** ... */` comment in a TypeScript source file or every contract in a `CONTRACTS`
+file. Without an argument, it recursively checks all supported files under the current directory,
+excluding `.git` and `node_modules`. A source documentation comment must contain exactly one
+directive. Comments without `@cc` are ignored.
 
 ```sh
 npm run dev -- check src/example.ts
 npm run dev -- check CONTRACTS
+npm run dev -- check
 ```
 
 A compliant file produces no output. Invalid grammar produces source-located diagnostics and a
