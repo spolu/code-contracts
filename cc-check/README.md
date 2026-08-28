@@ -2,8 +2,7 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`callers`, `references`, and `list` have TypeScript prototype implementations. `check` is
-scaffolded but not yet implemented.
+`check`, `callers`, `references`, and `list` have TypeScript prototype implementations.
 
 ## Requirements
 
@@ -28,6 +27,28 @@ cc-check callers <location-like>
 cc-check references <location-like>
 cc-check list <location-like>
 ```
+
+## Check
+
+`check` validates every `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, or every
+contract in a `CONTRACTS` file, against the [contracts grammar](../README.md#specification-and-grammar).
+A source documentation comment must contain exactly one directive. Comments without `@cc` are
+ignored.
+
+```sh
+npm run dev -- check src/example.ts
+npm run dev -- check CONTRACTS
+```
+
+A compliant file produces no output. Invalid grammar produces source-located diagnostics and a
+non-zero exit status:
+
+```text
+cc-check: src/example.ts:12:1: error: Invalid @cc directive
+```
+
+`check` validates grammar only. It does not assess whether prose is true, whether implementation
+meets a contract, or whether contract IDs are unique.
 
 ## Callers
 

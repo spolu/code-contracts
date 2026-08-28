@@ -29,6 +29,27 @@ export interface CodeContract extends Omit<
   source: SourceRange;
 }
 
+export class ContractParseError extends Error {
+  readonly description: string;
+  readonly sourceName: string;
+  readonly line: number;
+  readonly column: number;
+
+  constructor(
+    description: string,
+    sourceName: string,
+    line: number,
+    column = 1,
+  ) {
+    super(`${description} at ${sourceName}:${line}:${column}.`);
+    this.name = "ContractParseError";
+    this.description = description;
+    this.sourceName = sourceName;
+    this.line = line;
+    this.column = column;
+  }
+}
+
 const parseDirective = (
   directive: string,
   sourceName: string,
@@ -36,12 +57,12 @@ const parseDirective = (
 ): Pick<ParsedContract, "id" | "attributes" | "directive"> => {
   const match = DIRECTIVE_PATTERN.exec(directive);
   if (!match) {
-    throw new Error(`Invalid @cc directive at ${sourceName}:${line}.`);
+    throw new ContractParseError("Invalid @cc directive", sourceName, line);
   }
 
   const [, metadata, id] = match;
   if (!id) {
-    throw new Error(`Invalid @cc directive at ${sourceName}:${line}.`);
+    throw new ContractParseError("Invalid @cc directive", sourceName, line);
   }
 
   const attributes = (metadata ?? "").split(",").flatMap((attribute) => {
@@ -51,7 +72,7 @@ const parseDirective = (
 
     const attributeMatch = ATTRIBUTE_PATTERN.exec(attribute);
     if (!attributeMatch?.[1] || !attributeMatch[2]) {
-      throw new Error(`Invalid @cc metadata at ${sourceName}:${line}.`);
+      throw new ContractParseError("Invalid @cc metadata", sourceName, line);
     }
 
     return [{ key: attributeMatch[1], value: attributeMatch[2] }];
@@ -86,8 +107,10 @@ export function parseContracts(
   while (lineIndex < lines.length) {
     const directive = lines[lineIndex];
     if (directive === undefined || !DIRECTIVE_START_PATTERN.test(directive)) {
-      throw new Error(
-        `Expected an @cc directive at ${sourceName}:${lineOffset + lineIndex + 1}.`,
+      throw new ContractParseError(
+        "Expected an @cc directive",
+        sourceName,
+        lineOffset + lineIndex + 1,
       );
     }
 
@@ -111,16 +134,20 @@ export function parseContracts(
     }
 
     if (proseEnd < proseStart) {
-      throw new Error(
-        `Contract "${parsedDirective.id}" at ${sourceName}:${lineOffset + lineIndex + 1} has no prose body.`,
+      throw new ContractParseError(
+        `Contract "${parsedDirective.id}" has no prose body`,
+        sourceName,
+        lineOffset + lineIndex + 1,
       );
     }
 
     const proseLines = lines.slice(proseStart, proseEnd + 1);
     const prose = proseLines.join("\n");
     if (prose.trim().length === 0) {
-      throw new Error(
-        `Contract "${parsedDirective.id}" at ${sourceName}:${lineOffset + lineIndex + 1} has no prose body.`,
+      throw new ContractParseError(
+        `Contract "${parsedDirective.id}" has no prose body`,
+        sourceName,
+        lineOffset + lineIndex + 1,
       );
     }
 
