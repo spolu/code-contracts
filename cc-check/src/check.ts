@@ -21,6 +21,7 @@ const SKIPPED_DIRECTORIES = new Set([
   ".venv",
   "__pycache__",
   "node_modules",
+  "vendor",
   "venv",
 ]);
 
@@ -154,9 +155,10 @@ const checkFile = async (filePath: string): Promise<ContractParseError[]> => {
 /**
  * @cc [author:spolu,label:product] check-file-scope
  * `check [file-like]` validates the targeted `CONTRACTS` or supported source file. Without a file,
- * it recursively checks every supported file under the current directory, excluding `.git`,
- * `node_modules`, `.venv`, `venv`, and `__pycache__`. Source documentation must contain exactly one
- * directive; documentation without `@cc` is ignored, and unsupported file types are rejected.
+ * it recursively checks every supported file under the current directory, excluding common
+ * repository metadata, dependency, environment, and cache directories. Source documentation must
+ * contain exactly one directive; documentation without `@cc` is ignored, and unsupported file
+ * types are rejected.
  */
 /**
  * @cc [author:spolu,label:product] check-result

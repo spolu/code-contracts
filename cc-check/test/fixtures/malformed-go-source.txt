@@ -1,0 +1,4 @@
+package malformed
+
+// @cc [author:spolu] missing-prose
+func missing() {}

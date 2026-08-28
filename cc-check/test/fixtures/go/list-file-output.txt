@@ -1,0 +1,36 @@
+=> test/fixtures/go/contracts.go <=
+
+◆ go-invoice-fixture:3
+  scope:declaration type `Invoice` · author:spolu · label:product
+
+  > Represents a Go invoice used by the CLI integration tests.
+
+◆ go-amount-fixture:6
+  scope:declaration field `Amount` · author:spolu · label:product
+
+  > Provides a field used to exercise nested Go contract listing.
+
+◆ go-payment-fixture:11
+  scope:declaration method `Pay` · author:spolu · label:product
+
+  > Provides a method used to exercise receiver contract listing.
+
+◆ go-payment-result-fixture:15
+  scope:declaration method `Pay` · author:spolu · label:product
+
+  > Leaves the invoice in its expected paid state.
+
+◆ go-report-fixture:21
+  scope:declaration function `reportInvoices` · author:spolu · label:product
+
+  > Provides a separate Go declaration for whole-file listing.
+
+◆ go-default-amount-fixture:26
+  scope:declaration constant `DefaultAmount` · author:spolu · label:product
+
+  > Defines a constant inside a grouped declaration.
+
+◆ go-payer-signature-fixture:32
+  scope:declaration method-signature `Pay` · author:spolu · label:product
+
+  > Defines a contract on an interface method.
