@@ -2,7 +2,7 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`check` and `list` support TypeScript and Python. `callers` and `references` support TypeScript,
+`check` and `list` support TypeScript, Python, and Go. `callers` and `references` support TypeScript,
 Python, Rust, and Go.
 
 ## Requirements
@@ -40,11 +40,12 @@ cc-check list <file-like|location-like>
 `check` validates contracts against the
 [contracts grammar](../README.md#specification-and-grammar). With a file argument, it checks every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
-docstring in a Python source file, or every contract in a `CONTRACTS` file. Without an argument, it
-recursively checks all supported files under the current directory, excluding `.git`, `node_modules`,
-`.venv`, `venv`, and `__pycache__`. A source documentation comment or docstring must contain exactly
-one directive; documentation without `@cc` is ignored. Python source support includes `.py` and
-`.pyi` files.
+docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
+file, or every contract in a `CONTRACTS` file. Without an argument, it recursively checks all
+supported files under the current directory, excluding `.git`, `node_modules`, `vendor`, `.venv`,
+`venv`, and `__pycache__`. A source documentation comment or docstring must contain exactly one
+directive; documentation without `@cc` is ignored. Python source support includes `.py` and `.pyi`
+files; Go source support includes `.go` files.
 
 ```sh
 npm run dev -- check src/example.ts
@@ -105,10 +106,11 @@ column instead targets the symbol at that exact position.
 
 ## List
 
-`list` accepts a TypeScript or Python source file or source location. For a file, it prints contracts
-attached to every supported declaration in source order. For a location, it prints contracts
-attached to the declaration containing that location and its syntactic declaration ancestors. Both
-forms discover `CONTRACTS` files from the repository root through the source file's directory:
+`list` accepts a TypeScript, Python, or Go source file or source location. For a file, it prints
+contracts attached to every supported declaration in source order. For a location, it prints
+contracts attached to the declaration containing that location and its applicable declaration
+ancestors. Both forms discover `CONTRACTS` files from the repository root through the source file's
+directory:
 
 ```sh
 npm run dev -- list src/example.ts
@@ -130,4 +132,6 @@ contracts. Results are ordered from broadest to most specific scope. Unlike `cal
 `references`, `list` uses the location only for source containment and does not follow the symbol at
 an exact column to its definition. Python contracts attach through the first triple-quoted docstring
 in a class or function body; module docstrings are checked but have no declaration scope to list.
-Both `.py` and `.pyi` files are supported.
+Both `.py` and `.pyi` files are supported. Go contracts attach from the immediately preceding
+line-comment group or block comment without an intervening blank line. A method also inherits its
+receiver type's contracts when that type is declared in the same file.

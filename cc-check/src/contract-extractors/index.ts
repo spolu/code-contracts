@@ -4,6 +4,11 @@ import type {
 } from "../local-contracts.js";
 import type { ContractDocument } from "./contract-document.js";
 import {
+  extractGoContractDocuments,
+  isGoSourceFile,
+  startGoLocalContractExtractor,
+} from "./go.js";
+import {
   extractPythonContractDocuments,
   isPythonSourceFile,
   startPythonLocalContractExtractor,
@@ -27,11 +32,16 @@ export const startLocalContractExtractor: LocalContractExtractorFactory = (
   if (isPythonSourceFile(filePath)) {
     return startPythonLocalContractExtractor();
   }
+  if (isGoSourceFile(filePath)) {
+    return startGoLocalContractExtractor();
+  }
   return Promise.reject(new Error(`Unsupported source file type: ${filePath}`));
 };
 
 export const isSupportedContractSource = (filePath: string): boolean =>
-  typeScriptScriptKind(filePath) !== undefined || isPythonSourceFile(filePath);
+  typeScriptScriptKind(filePath) !== undefined ||
+  isPythonSourceFile(filePath) ||
+  isGoSourceFile(filePath);
 
 export const extractSourceContractDocuments = (
   filePath: string,
@@ -42,6 +52,9 @@ export const extractSourceContractDocuments = (
   }
   if (isPythonSourceFile(filePath)) {
     return extractPythonContractDocuments(filePath, source);
+  }
+  if (isGoSourceFile(filePath)) {
+    return extractGoContractDocuments(filePath, source);
   }
   throw new Error(`Unsupported source file type: ${filePath}`);
 };

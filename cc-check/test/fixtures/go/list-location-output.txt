@@ -1,0 +1,16 @@
+=> test/fixtures/go/contracts.go <=
+
+◆ go-invoice-fixture:3
+  scope:declaration type `Invoice` · author:spolu · label:product
+
+  > Represents a Go invoice used by the CLI integration tests.
+
+◆ go-payment-fixture:11
+  scope:declaration method `Pay` · author:spolu · label:product
+
+  > Provides a method used to exercise receiver contract listing.
+
+◆ go-payment-result-fixture:15
+  scope:declaration method `Pay` · author:spolu · label:product
+
+  > Leaves the invoice in its expected paid state.

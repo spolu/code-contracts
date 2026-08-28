@@ -31,6 +31,10 @@ try {
     join(fixtureDirectory, "malformed-python-module.txt"),
     join(temporaryDirectory, "malformed-module.py"),
   );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-go-source.txt"),
+    join(temporaryDirectory, "malformed.go"),
+  );
 
   const cases = [
     {
@@ -75,6 +79,15 @@ try {
       stdout: "",
       stderr:
         'cc-check: malformed-module.py:2:1: error: Contract "module-missing-prose" has no prose body\n',
+    },
+    {
+      name: "check rejects malformed Go contracts",
+      arguments: ["check", "malformed.go"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.go:3:4: error: Contract "missing-prose" has no prose body\n',
     },
     {
       name: "list prints every contract in a source file",
@@ -123,6 +136,26 @@ try {
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "python/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list prints every contract in a Go file",
+      arguments: ["list", "--no-global", "test/fixtures/go/contracts.go"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "go/list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes Go contracts to a source location",
+      arguments: ["list", "--no-global", "test/fixtures/go/contracts.go:19"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "go/list-location-output.txt"),
         "utf8",
       ),
       stderr: "",
