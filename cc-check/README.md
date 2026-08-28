@@ -25,7 +25,7 @@ npm run check
 cc-check check [file-like]
 cc-check callers <location-like>
 cc-check references <location-like>
-cc-check list <location-like>
+cc-check list <file-like|location-like>
 ```
 
 ## Check
@@ -91,11 +91,13 @@ column instead targets the symbol at that exact position.
 
 ## List
 
-`list` prints every contract applicable to a TypeScript source location. It discovers `CONTRACTS`
-files from the repository root through the source file's directory, then adds contracts attached to
-the declaration containing the location and its syntactic declaration ancestors:
+`list` accepts a TypeScript source file or source location. For a file, it prints contracts attached
+to every supported declaration in source order. For a location, it prints contracts attached to the
+declaration containing that location and its syntactic declaration ancestors. Both forms discover
+`CONTRACTS` files from the repository root through the source file's directory:
 
 ```sh
+npm run dev -- list src/example.ts
 npm run dev -- list src/example.ts:42
 npm run dev -- list --no-global src/example.ts:42:10
 ```

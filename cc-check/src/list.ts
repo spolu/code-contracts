@@ -6,7 +6,7 @@ import {
   discoverDirectoryContracts,
   type DirectoryContract,
 } from "./directory-contracts.js";
-import { parseLocationLike } from "./file-location.js";
+import { parseFileOrLocationLike } from "./file-location.js";
 import type {
   DeclarationContracts,
   LocalContractExtractorFactory,
@@ -87,9 +87,10 @@ const groupBySourceFile = (
 
 /**
  * @cc [author:spolu,label:product] list-output
- * The list command groups applicable contracts under `=> <relative-file> <=`, ordered from broadest
- * directory scope to innermost declaration. Each entry shows `◆ <id>:<line>`, scope and metadata,
- * then quoted prose; it omits the `@cc` directive and prints nothing when no contracts apply.
+ * The list command groups applicable contracts under `=> <relative-file> <=`, with directory
+ * scopes first and local declarations ordered by containment for a location or by source for a
+ * whole file. Each entry shows `◆ <id>:<line>`, scope and metadata, then quoted prose; it omits the
+ * `@cc` directive and prints nothing when no contracts apply.
  */
 /**
  * @cc [author:spolu,label:product] list-global-option
@@ -104,14 +105,16 @@ export async function runListCommand(
   const writeLine = options.writeLine ?? console.log;
   const startExtractor = options.startExtractor ?? startLocalContractExtractor;
   const discoverGlobal = options.discoverGlobal ?? discoverDirectoryContracts;
-  const position = parseLocationLike(input, workingDirectory);
-  const extractor = await startExtractor(position);
+  const target = parseFileOrLocationLike(input, workingDirectory);
+  const extractor = await startExtractor(target.filePath);
 
   const [directories, declarations] = await Promise.all([
     options.includeGlobal === false
       ? Promise.resolve([])
-      : discoverGlobal(position.filePath),
-    extractor.declarationsAt(position),
+      : discoverGlobal(target.filePath),
+    target.position
+      ? extractor.declarationsAt(target.position)
+      : extractor.declarationsInFile(target.filePath),
   ]);
   const contracts = [
     ...globalContracts(directories),

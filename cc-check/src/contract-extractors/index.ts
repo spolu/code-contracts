@@ -1,4 +1,3 @@
-import type { SourcePosition } from "../language-server.js";
 import type {
   LocalContractExtractor,
   LocalContractExtractorFactory,
@@ -13,12 +12,10 @@ import { startTypeScriptLocalContractExtractor } from "./typescript.js";
  * discovery remains separate and language-independent.
  */
 export const startLocalContractExtractor: LocalContractExtractorFactory = (
-  position: SourcePosition,
+  filePath: string,
 ): Promise<LocalContractExtractor> => {
-  if (typeScriptScriptKind(position.filePath) !== undefined) {
+  if (typeScriptScriptKind(filePath) !== undefined) {
     return startTypeScriptLocalContractExtractor();
   }
-  return Promise.reject(
-    new Error(`Unsupported source file type: ${position.filePath}`),
-  );
+  return Promise.reject(new Error(`Unsupported source file type: ${filePath}`));
 };

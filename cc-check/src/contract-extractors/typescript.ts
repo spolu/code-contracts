@@ -249,6 +249,50 @@ const toDeclaration = (
   range: toSourceRange(sourceFile, node.getStart(sourceFile), node.getEnd()),
 });
 
+const declarationsInFile = (
+  sourceFile: ts.SourceFile,
+  source: string,
+): DeclarationContracts[] => {
+  const declarations: DeclarationContracts[] = [];
+
+  const visit = (node: ts.Node): void => {
+    if (isContractDeclaration(node)) {
+      const contracts = contractComments(node, sourceFile, source);
+      if (contracts.length > 0) {
+        declarations.push({
+          declaration: toDeclaration(node, sourceFile),
+          contracts,
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+
+  return declarations;
+};
+
+const parseTypeScriptFile = async (
+  filePath: string,
+): Promise<{ source: string; sourceFile: ts.SourceFile }> => {
+  const scriptKind = typeScriptScriptKind(filePath);
+  if (scriptKind === undefined) {
+    throw new Error(`Unsupported source file type: ${filePath}`);
+  }
+
+  const source = await readFile(filePath, "utf8");
+  return {
+    source,
+    sourceFile: ts.createSourceFile(
+      filePath,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind,
+    ),
+  };
+};
+
 /**
  * @cc [author:spolu,label:architecture] typescript-syntax-only-extraction
  * TypeScript local contract extraction parses the target source file directly and does not start
@@ -268,19 +312,7 @@ class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   async declarationsAt(
     position: SourcePosition,
   ): Promise<DeclarationContracts[]> {
-    const scriptKind = typeScriptScriptKind(position.filePath);
-    if (scriptKind === undefined) {
-      throw new Error(`Unsupported source file type: ${position.filePath}`);
-    }
-
-    const source = await readFile(position.filePath, "utf8");
-    const sourceFile = ts.createSourceFile(
-      position.filePath,
-      source,
-      ts.ScriptTarget.Latest,
-      true,
-      scriptKind,
-    );
+    const { source, sourceFile } = await parseTypeScriptFile(position.filePath);
 
     return declarationPath(sourceFile, source, position).flatMap(({ node }) => {
       const contracts = contractComments(node, sourceFile, source);
@@ -288,6 +320,16 @@ class TypeScriptLocalContractExtractor implements LocalContractExtractor {
         ? []
         : [{ declaration: toDeclaration(node, sourceFile), contracts }];
     });
+  }
+
+  /**
+   * @cc [author:spolu,label:product] typescript-file-contract-scope
+   * File-wide TypeScript discovery returns contracts attached to every supported declaration in
+   * source order, including declarations nested within classes and other declarations.
+   */
+  async declarationsInFile(filePath: string): Promise<DeclarationContracts[]> {
+    const { source, sourceFile } = await parseTypeScriptFile(filePath);
+    return declarationsInFile(sourceFile, source);
   }
 }
 
