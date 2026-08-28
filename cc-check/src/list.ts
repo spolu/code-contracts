@@ -38,34 +38,58 @@ const localContracts = (
   declarations.flatMap(({ declaration, contracts }) =>
     contracts.map((contract) => ({
       contract,
-      scope: `declaration ${declaration.kind}${declaration.name ? ` ${declaration.name}` : ""}`,
+      scope: `declaration ${declaration.kind}${declaration.name ? ` \`${declaration.name}\`` : ""}`,
     })),
   );
 
 const globalContracts = (contracts: DirectoryContract[]): DisplayContract[] =>
   contracts.map(({ contract }) => ({ contract, scope: "directory" }));
 
+const writeSourceHeader = (
+  filePath: string,
+  writeLine: (line: string) => void,
+): void => {
+  writeLine(`=> ${filePath} <=`);
+  writeLine("");
+};
+
 const writeContract = (
   entry: DisplayContract,
-  workingDirectory: string,
   writeLine: (line: string) => void,
 ): void => {
   const { contract } = entry;
-  writeLine(
-    `${displayPath(contract.source.filePath, workingDirectory)}:${contract.source.start.line}:${contract.source.start.column}\t${entry.scope}`,
-  );
-  writeLine(contract.directive);
+  writeLine(`◆ ${contract.id}:${contract.source.start.line}`);
+  const details = [
+    `scope:${entry.scope}`,
+    ...contract.attributes.map(
+      (attribute) => `${attribute.key}:${attribute.value}`,
+    ),
+  ];
+  writeLine(`  ${details.join(" · ")}`);
+  writeLine("");
   for (const line of contract.prose.split("\n")) {
-    writeLine(line);
+    writeLine(line.length === 0 ? "" : `  > ${line}`);
   }
+};
+
+const groupBySourceFile = (
+  contracts: DisplayContract[],
+): Map<string, DisplayContract[]> => {
+  const groups = new Map<string, DisplayContract[]>();
+  for (const contract of contracts) {
+    const filePath = contract.contract.source.filePath;
+    const group = groups.get(filePath) ?? [];
+    group.push(contract);
+    groups.set(filePath, group);
+  }
+  return groups;
 };
 
 /**
  * @cc [author:spolu,label:product] list-output
- * The list command prints applicable contracts from broadest to most specific: repository-root to
- * nearest-directory contracts, followed by outermost to innermost declaration contracts. Each
- * block includes the contract's source location and scope followed by its directive and prose. It
- * prints nothing when no contracts apply.
+ * The list command groups applicable contracts under `=> <relative-file> <=`, ordered from broadest
+ * directory scope to innermost declaration. Each entry shows `◆ <id>:<line>`, scope and metadata,
+ * then quoted prose; it omits the `@cc` directive and prints nothing when no contracts apply.
  */
 /**
  * @cc [author:spolu,label:product] list-global-option
@@ -94,10 +118,16 @@ export async function runListCommand(
     ...localContracts(declarations),
   ];
 
-  contracts.forEach((contract, index) => {
-    if (index > 0) {
+  [...groupBySourceFile(contracts)].forEach(([filePath, group], groupIndex) => {
+    if (groupIndex > 0) {
       writeLine("");
     }
-    writeContract(contract, workingDirectory, writeLine);
+    writeSourceHeader(displayPath(filePath, workingDirectory), writeLine);
+    group.forEach((contract, contractIndex) => {
+      if (contractIndex > 0) {
+        writeLine("");
+      }
+      writeContract(contract, writeLine);
+    });
   });
 }

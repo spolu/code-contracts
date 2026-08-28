@@ -76,6 +76,15 @@ npm run dev -- list src/example.ts:42
 npm run dev -- list --no-global src/example.ts:42:10
 ```
 
+```text
+=> src/example.ts <=
+
+◆ balance-post:12
+  scope:declaration function `payInvoice` · author:spolu · label:product
+
+  > `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
+```
+
 Directory contracts are included by default; `--no-global` returns only declaration-attached
 contracts. Results are ordered from broadest to most specific scope. Unlike `callers` and
 `references`, `list` uses the location only for source containment and does not follow the symbol at
