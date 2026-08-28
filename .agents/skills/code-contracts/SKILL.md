@@ -5,31 +5,10 @@ description: Define, use, and enforce @cc code contracts across a codebase.
 
 # Code Contracts
 
-Use code contracts as concise, reviewable obligations that stay close to the code they govern. The
-goal is not more documentation. The goal is a high-bandwidth specification layer that humans and
-agents can compare with implementation while keeping contract/code alignment trustworthy.
-
-## Discover applicable contracts
-
-Before changing or reviewing code, identify the contracts that govern the target:
-
-```text
-cc-check list path/to/file.ts:42
-cc-check list path/to/file.ts
-```
-
-- Use a location for the contracts applying to one declaration and its applicable parents.
-- Use a file for every declaration-attached contract in that file.
-- Keep directory contracts enabled. `CONTRACTS` files from repository root through the target
-  directory apply by default.
-- Use `--no-global` only when intentionally isolating local contracts, never as the basis for a
-  compliance conclusion.
-- If `cc-check` is unavailable, inspect the target's documentation comments and every parent
-  `CONTRACTS` file manually. State that automated discovery was not run; do not silently skip the
-  step.
-
-Treat all applicable local and directory contracts as simultaneous obligations. Surface conflicting,
-obsolete, or impossible contracts instead of choosing one silently.
+Code contracts are concise, reviewable, structured assumptions and requirements that stay close to
+the code they govern to support faster and better agent-driven software development. They serve as
+a high-bandwidth localized specification and trust layer that humans and agents can use to
+collaborate and reason about code changes.
 
 ## Write effective contracts
 
@@ -69,6 +48,28 @@ Write contract prose so a reviewer can compare it directly with code:
 
 For example, replace “Handles invalid amounts appropriately” with “`createInvoice` rejects a
 non-positive amount with `InvalidAmountError` and does not persist the invoice.”
+
+## Discover applicable contracts
+
+Before changing or reviewing code, identify the contracts that govern the target:
+
+```text
+cc-check list path/to/file.ts:42
+cc-check list path/to/file.ts
+```
+
+- Use a location for the contracts applying to one declaration and its applicable parents.
+- Use a file for every declaration-attached contract in that file.
+- Keep directory contracts enabled. `CONTRACTS` files from repository root through the target
+  directory apply by default.
+- Use `--no-global` only when intentionally isolating local contracts, never as the basis for a
+  compliance conclusion.
+- If `cc-check` is unavailable, inspect the target's documentation comments and every parent
+  `CONTRACTS` file manually. State that automated discovery was not run; do not silently skip the
+  step.
+
+Treat all applicable local and directory contracts as simultaneous obligations. Surface conflicting,
+obsolete, or impossible contracts instead of choosing one silently.
 
 ## Work against contracts
 
