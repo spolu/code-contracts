@@ -9,11 +9,13 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "check": "npm run format:check && npm run typecheck && npm run lint && npm run build",
+    "check": "npm run format:check && npm run typecheck && npm run lint && npm run test:integration",
     "dev": "tsx src/cc-check.ts",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
     "lint": "eslint --cache --cache-location .eslintcache src/",
+    "test": "npm run test:integration",
+    "test:integration": "npm run build && node test/integration.mjs",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

@@ -4,7 +4,9 @@ contracts attached to declarations. Directory contract discovery, relationship t
 presentation remain language-independent.
 
 @cc [author:spolu,label:coding] quality-gates
-Changes keep formatting, type checking, linting, and the production build passing.
+Changes keep formatting, type checking, linting, the production build, and integration tests
+passing.
 
-@cc [author:spolu,label:coding] no-tests-yet
-Do not add automated tests or a test-runner dependency for now.
+@cc [author:spolu,label:coding] integration-tests-only
+Automated tests run only as built CLI integrations against smoke fixtures. Do not add unit tests or
+a test-runner dependency.
