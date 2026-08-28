@@ -5,8 +5,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   CallHierarchyIncomingCallsRequest,
   CallHierarchyPrepareRequest,
+  ConfigurationRequest,
   createProtocolConnection,
   DefinitionRequest,
+  DidChangeConfigurationNotification,
   DidCloseTextDocumentNotification,
   DidOpenTextDocumentNotification,
   DocumentSymbolRequest,
@@ -45,6 +47,8 @@ export interface StdioLanguageServerOptions {
   args: string[];
   initializationOptions?: Record<string, unknown>;
   languageId: string;
+  preloadFilePaths?: string[];
+  settings?: Record<string, unknown>;
   workspaceRoot: string;
 }
 
@@ -68,6 +72,24 @@ const withTimeout = async <T>(
       clearTimeout(timeout);
     }
   }
+};
+
+const configurationValue = (
+  settings: Record<string, unknown>,
+  section: string | undefined,
+): unknown => {
+  if (!section) {
+    return settings;
+  }
+
+  let value: unknown = settings;
+  for (const key of section.split(".")) {
+    if (typeof value !== "object" || value === null || !(key in value)) {
+      return null;
+    }
+    value = (value as Record<string, unknown>)[key];
+  }
+  return value;
 };
 
 const toSourceRange = (uri: string, range: Range): SourceRange => ({
@@ -291,6 +313,8 @@ class StdioLanguageServer implements LanguageServer {
   readonly #connection: ProtocolConnection;
   readonly #initializationOptions: Record<string, unknown> | undefined;
   readonly #languageId: string;
+  readonly #preloadFilePaths: string[];
+  readonly #settings: Record<string, unknown> | undefined;
   readonly #workspaceRoot: string;
   readonly #openDocuments = new Set<string>();
   #disposed = false;
@@ -305,6 +329,8 @@ class StdioLanguageServer implements LanguageServer {
     this.#connection = connection;
     this.#initializationOptions = options.initializationOptions;
     this.#languageId = options.languageId;
+    this.#preloadFilePaths = options.preloadFilePaths ?? [];
+    this.#settings = options.settings;
     this.#workspaceRoot = options.workspaceRoot;
 
     child.stderr.setEncoding("utf8");
@@ -315,6 +341,13 @@ class StdioLanguageServer implements LanguageServer {
 
   async initialize(): Promise<void> {
     const workspaceUri = pathToFileURL(this.#workspaceRoot).href;
+    if (this.#settings) {
+      this.#connection.onRequest(ConfigurationRequest.type, (params) =>
+        params.items.map((item) =>
+          configurationValue(this.#settings ?? {}, item.section),
+        ),
+      );
+    }
     const params: InitializeParams = {
       processId: process.pid,
       clientInfo: {
@@ -328,6 +361,9 @@ class StdioLanguageServer implements LanguageServer {
         },
       ],
       capabilities: {
+        workspace: {
+          configuration: this.#settings !== undefined,
+        },
         general: {
           positionEncodings: [PositionEncodingKind.UTF16],
         },
@@ -370,6 +406,12 @@ class StdioLanguageServer implements LanguageServer {
     }
 
     await this.#connection.sendNotification(InitializedNotification.type, {});
+    if (this.#settings) {
+      await this.#connection.sendNotification(
+        DidChangeConfigurationNotification.type,
+        { settings: this.#settings },
+      );
+    }
   }
 
   async #targetPosition(position: SourcePosition): Promise<{
@@ -380,20 +422,10 @@ class StdioLanguageServer implements LanguageServer {
       throw new Error("Language server session has been disposed.");
     }
 
-    const source = await readFile(position.filePath, "utf8");
-    const uri = pathToFileURL(position.filePath).href;
-    await this.#connection.sendNotification(
-      DidOpenTextDocumentNotification.type,
-      {
-        textDocument: {
-          uri,
-          languageId: this.#languageId,
-          version: 1,
-          text: source,
-        },
-      },
-    );
-    this.#openDocuments.add(uri);
+    for (const filePath of this.#preloadFilePaths) {
+      await this.#openDocument(filePath);
+    }
+    const { source, uri } = await this.#openDocument(position.filePath);
 
     if (position.column !== undefined) {
       return { position: exactPosition(position, source), uri };
@@ -418,6 +450,30 @@ class StdioLanguageServer implements LanguageServer {
     }
 
     return { position: declaration, uri };
+  }
+
+  async #openDocument(filePath: string): Promise<{
+    source: string;
+    uri: string;
+  }> {
+    const source = await readFile(filePath, "utf8");
+    const uri = pathToFileURL(filePath).href;
+    if (this.#openDocuments.has(uri)) {
+      return { source, uri };
+    }
+    await this.#connection.sendNotification(
+      DidOpenTextDocumentNotification.type,
+      {
+        textDocument: {
+          uri,
+          languageId: this.#languageId,
+          version: 1,
+          text: source,
+        },
+      },
+    );
+    this.#openDocuments.add(uri);
+    return { source, uri };
   }
 
   async callers(position: SourcePosition): Promise<Caller[]> {
@@ -528,7 +584,8 @@ class StdioLanguageServer implements LanguageServer {
 /**
  * @cc [author:spolu,label:architecture] stdio-lsp-lifecycle
  * Starting a stdio language server performs the LSP initialize handshake before returning. Failed
- * initialization terminates the child process and does not return a partial session.
+ * process startup or initialization terminates the child process and does not return a partial
+ * session.
  */
 export async function startStdioLanguageServer(
   options: StdioLanguageServerOptions,
@@ -537,12 +594,22 @@ export async function startStdioLanguageServer(
     cwd: options.workspaceRoot,
     stdio: ["pipe", "pipe", "pipe"],
   });
+  const spawnFailure = new Promise<never>((_resolve, reject) => {
+    child.once("error", (error) => {
+      reject(
+        new Error(
+          `Failed to start language server "${options.command}": ${error.message}`,
+          { cause: error },
+        ),
+      );
+    });
+  });
   const connection = createProtocolConnection(child.stdout, child.stdin);
   connection.listen();
   const server = new StdioLanguageServer(child, connection, options);
 
   try {
-    await server.initialize();
+    await Promise.race([server.initialize(), spawnFailure]);
     return server;
   } catch (error) {
     const context = server.errorContext();

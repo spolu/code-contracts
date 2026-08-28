@@ -1,9 +1,21 @@
+import { extname } from "node:path";
+
 import type {
   LanguageServer,
   LanguageServerFactory,
   SourcePosition,
 } from "../language-server.js";
+import { startPythonLanguageServer } from "./python.js";
 import { startTypeScriptLanguageServer } from "./typescript.js";
+
+const LANGUAGE_SERVERS = new Map([
+  [".ts", startTypeScriptLanguageServer],
+  [".tsx", startTypeScriptLanguageServer],
+  [".mts", startTypeScriptLanguageServer],
+  [".cts", startTypeScriptLanguageServer],
+  [".py", startPythonLanguageServer],
+  [".pyi", startPythonLanguageServer],
+]);
 
 /**
  * @cc [author:spolu,label:architecture] language-adapter-selection
@@ -12,4 +24,12 @@ import { startTypeScriptLanguageServer } from "./typescript.js";
  */
 export const startLanguageServer: LanguageServerFactory = async (
   position: SourcePosition,
-): Promise<LanguageServer> => startTypeScriptLanguageServer(position);
+): Promise<LanguageServer> => {
+  const start = LANGUAGE_SERVERS.get(extname(position.filePath).toLowerCase());
+  if (!start) {
+    throw new Error(
+      `Unsupported source file "${position.filePath}". Callers and references support TypeScript and Python.`,
+    );
+  }
+  return start(position);
+};

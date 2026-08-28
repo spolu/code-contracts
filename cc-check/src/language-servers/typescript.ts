@@ -1,9 +1,9 @@
-import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, extname, join, parse } from "node:path";
+import { dirname, extname, join } from "node:path";
 
 import type { LanguageServer, SourcePosition } from "../language-server.js";
 import { startStdioLanguageServer } from "./lsp.js";
+import { findProjectRoot } from "./project-root.js";
 
 const require = createRequire(import.meta.url);
 
@@ -13,26 +13,6 @@ const LANGUAGE_IDS = new Map([
   [".cts", "typescript"],
   [".tsx", "typescriptreact"],
 ]);
-
-const findProjectRoot = (filePath: string): string => {
-  let directory = dirname(filePath);
-  const root = parse(directory).root;
-
-  while (true) {
-    if (
-      existsSync(join(directory, "tsconfig.json")) ||
-      existsSync(join(directory, "jsconfig.json"))
-    ) {
-      return directory;
-    }
-    if (directory === root) {
-      break;
-    }
-    directory = dirname(directory);
-  }
-
-  throw new Error(`No tsconfig.json or jsconfig.json found for ${filePath}.`);
-};
 
 /**
  * @cc [author:spolu,label:architecture] typescript-project-root
@@ -73,6 +53,9 @@ export async function startTypeScriptLanguageServer(
       },
     },
     languageId,
-    workspaceRoot: findProjectRoot(position.filePath),
+    workspaceRoot: findProjectRoot(position.filePath, [
+      "tsconfig.json",
+      "jsconfig.json",
+    ]),
   });
 }

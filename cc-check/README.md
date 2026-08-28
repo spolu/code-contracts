@@ -2,7 +2,8 @@
 
 Command-line tooling for discovering and checking code contracts.
 
-`check`, `callers`, `references`, and `list` have TypeScript prototype implementations.
+`check` and `list` have TypeScript prototype implementations. `callers` and `references` support
+TypeScript and Python.
 
 ## Requirements
 
@@ -59,26 +60,29 @@ meets a contract, or whether contract IDs are unique.
 
 ## Callers
 
-For TypeScript files, pass a declaration's file and one-based line. A one-based column is optional:
+For TypeScript or Python files, pass a declaration's file and one-based line. A one-based column is
+optional:
 
 ```sh
 npm run dev -- callers src/example.ts:42
 npm run dev -- callers src/example.ts:42:10
 ```
 
-The source file must be under a `tsconfig.json` or `jsconfig.json`. The prototype supports `.ts`,
-`.tsx`, `.mts`, and `.cts` files. It prints one direct call site per line:
+TypeScript files must be under a `tsconfig.json` or `jsconfig.json`; Python files must be under a
+`pyrightconfig.json` or `pyproject.toml`. The prototype supports `.ts`, `.tsx`, `.mts`, `.cts`,
+`.py`, and `.pyi` files. It prints one direct call site per line:
 
 ```text
 src/caller.ts:18:5\tcallerName
 ```
 
-Each invocation starts a new TypeScript language-server process and shuts it down before exiting;
-servers are not cached between invocations.
+Each invocation starts a new language-server process and shuts it down before exiting; servers are
+not cached between invocations. TypeScript uses `typescript-language-server`, and Python uses the
+bundled Pyright server.
 
 ## References
 
-`references` accepts the same TypeScript source location as `callers` and prints every statically
+`references` accepts the same supported source location as `callers` and prints every statically
 recognized usage except the declaration itself:
 
 ```sh

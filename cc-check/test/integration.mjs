@@ -73,6 +73,21 @@ try {
       stdout: "",
       stderr: "",
     },
+    {
+      name: "callers queries Python through Pyright",
+      arguments: ["callers", "test/fixtures/python/library.py:1"],
+      status: 0,
+      stdout: "test/fixtures/python/usage.py:5:12\tcaller\n",
+      stderr: "",
+    },
+    {
+      name: "references queries Python through Pyright",
+      arguments: ["references", "test/fixtures/python/library.py:1"],
+      status: 0,
+      stdout:
+        "test/fixtures/python/usage.py:1:21\ntest/fixtures/python/usage.py:5:12\n",
+      stderr: "",
+    },
   ];
 
   for (const testCase of cases) {
