@@ -9,6 +9,8 @@ const projectDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = join(projectDirectory, "dist/cc-check.js");
 const fixtureDirectory = join(projectDirectory, "test/fixtures");
 const temporaryDirectory = mkdtempSync(join(tmpdir(), "cc-check-integration-"));
+const rustAnalyzerAvailable =
+  spawnSync("rust-analyzer", ["--version"], { stdio: "ignore" }).status === 0;
 
 try {
   copyFileSync(
@@ -88,6 +90,25 @@ try {
         "test/fixtures/python/usage.py:1:21\ntest/fixtures/python/usage.py:5:12\n",
       stderr: "",
     },
+    ...(rustAnalyzerAvailable
+      ? [
+          {
+            name: "callers queries Rust through rust-analyzer",
+            arguments: ["callers", "test/fixtures/rust/src/library.rs:1"],
+            status: 0,
+            stdout: "test/fixtures/rust/src/lib.rs:6:5\tcaller\n",
+            stderr: "",
+          },
+          {
+            name: "references queries Rust through rust-analyzer",
+            arguments: ["references", "test/fixtures/rust/src/library.rs:1"],
+            status: 0,
+            stdout:
+              "test/fixtures/rust/src/lib.rs:3:18\ntest/fixtures/rust/src/lib.rs:6:5\n",
+            stderr: "",
+          },
+        ]
+      : []),
   ];
 
   for (const testCase of cases) {

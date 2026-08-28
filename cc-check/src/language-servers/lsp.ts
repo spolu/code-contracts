@@ -45,9 +45,14 @@ const STDERR_LIMIT = 16_384;
 export interface StdioLanguageServerOptions {
   command: string;
   args: string[];
+  experimentalCapabilities?: Record<string, unknown>;
   initializationOptions?: Record<string, unknown>;
   languageId: string;
   preloadFilePaths?: string[];
+  readinessNotification?: {
+    isReady: (params: unknown) => boolean;
+    method: string;
+  };
   settings?: Record<string, unknown>;
   workspaceRoot: string;
 }
@@ -311,9 +316,11 @@ const enclosingDeclarationPosition = (
 class StdioLanguageServer implements LanguageServer {
   readonly #child: ChildProcessWithoutNullStreams;
   readonly #connection: ProtocolConnection;
+  readonly #experimentalCapabilities: Record<string, unknown> | undefined;
   readonly #initializationOptions: Record<string, unknown> | undefined;
   readonly #languageId: string;
   readonly #preloadFilePaths: string[];
+  readonly #readinessNotification: StdioLanguageServerOptions["readinessNotification"];
   readonly #settings: Record<string, unknown> | undefined;
   readonly #workspaceRoot: string;
   readonly #openDocuments = new Set<string>();
@@ -327,9 +334,11 @@ class StdioLanguageServer implements LanguageServer {
   ) {
     this.#child = child;
     this.#connection = connection;
+    this.#experimentalCapabilities = options.experimentalCapabilities;
     this.#initializationOptions = options.initializationOptions;
     this.#languageId = options.languageId;
     this.#preloadFilePaths = options.preloadFilePaths ?? [];
+    this.#readinessNotification = options.readinessNotification;
     this.#settings = options.settings;
     this.#workspaceRoot = options.workspaceRoot;
 
@@ -341,6 +350,19 @@ class StdioLanguageServer implements LanguageServer {
 
   async initialize(): Promise<void> {
     const workspaceUri = pathToFileURL(this.#workspaceRoot).href;
+    const readinessNotification = this.#readinessNotification;
+    const readiness = readinessNotification
+      ? new Promise<void>((resolve) => {
+          this.#connection.onNotification(
+            readinessNotification.method,
+            (params: unknown) => {
+              if (readinessNotification.isReady(params)) {
+                resolve();
+              }
+            },
+          );
+        })
+      : undefined;
     if (this.#settings) {
       this.#connection.onRequest(ConfigurationRequest.type, (params) =>
         params.items.map((item) =>
@@ -361,6 +383,7 @@ class StdioLanguageServer implements LanguageServer {
         },
       ],
       capabilities: {
+        experimental: this.#experimentalCapabilities,
         workspace: {
           configuration: this.#settings !== undefined,
         },
@@ -410,6 +433,13 @@ class StdioLanguageServer implements LanguageServer {
       await this.#connection.sendNotification(
         DidChangeConfigurationNotification.type,
         { settings: this.#settings },
+      );
+    }
+    if (readiness) {
+      await withTimeout(
+        readiness,
+        REQUEST_TIMEOUT_MS,
+        "readiness notification",
       );
     }
   }
@@ -584,8 +614,8 @@ class StdioLanguageServer implements LanguageServer {
 /**
  * @cc [author:spolu,label:architecture] stdio-lsp-lifecycle
  * Starting a stdio language server performs the LSP initialize handshake before returning. Failed
- * process startup or initialization terminates the child process and does not return a partial
- * session.
+ * process startup, initialization, or an adapter-declared readiness notification terminates the
+ * child process and does not return a partial session.
  */
 export async function startStdioLanguageServer(
   options: StdioLanguageServerOptions,

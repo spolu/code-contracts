@@ -2,8 +2,8 @@
 
 - [x] `cc-check check [file-like]` (TypeScript prototype)
        Check that the @cc directive are compliant to the grammar
-- [x] `cc-check callers <location-like>` (TypeScript and Python prototypes)
-- [x] `cc-check references <location-like>` (TypeScript and Python prototypes)
+- [x] `cc-check callers <location-like>` (TypeScript, Python, and Rust prototypes)
+- [x] `cc-check references <location-like>` (TypeScript, Python, and Rust prototypes)
 - [x] `cc-check list <file-like|location-like>` (TypeScript prototype)
        Lists all declaration contracts in a file or those related to a pointed location (local
        declaration and potential parent declaration, such as a class), plus directory contracts.

@@ -6,6 +6,7 @@ import type {
   SourcePosition,
 } from "../language-server.js";
 import { startPythonLanguageServer } from "./python.js";
+import { startRustLanguageServer } from "./rust.js";
 import { startTypeScriptLanguageServer } from "./typescript.js";
 
 const LANGUAGE_SERVERS = new Map([
@@ -15,6 +16,7 @@ const LANGUAGE_SERVERS = new Map([
   [".cts", startTypeScriptLanguageServer],
   [".py", startPythonLanguageServer],
   [".pyi", startPythonLanguageServer],
+  [".rs", startRustLanguageServer],
 ]);
 
 /**
@@ -28,7 +30,7 @@ export const startLanguageServer: LanguageServerFactory = async (
   const start = LANGUAGE_SERVERS.get(extname(position.filePath).toLowerCase());
   if (!start) {
     throw new Error(
-      `Unsupported source file "${position.filePath}". Callers and references support TypeScript and Python.`,
+      `Unsupported source file "${position.filePath}". Callers and references support TypeScript, Python, and Rust.`,
     );
   }
   return start(position);
