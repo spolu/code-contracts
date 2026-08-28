@@ -35,6 +35,14 @@ try {
     join(fixtureDirectory, "malformed-go-source.txt"),
     join(temporaryDirectory, "malformed.go"),
   );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-rust-source.txt"),
+    join(temporaryDirectory, "malformed.rs"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "malformed-rust-module.txt"),
+    join(temporaryDirectory, "malformed-module.rs"),
+  );
 
   const cases = [
     {
@@ -88,6 +96,24 @@ try {
       stdout: "",
       stderr:
         'cc-check: malformed.go:3:4: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
+      name: "check rejects malformed Rust contracts",
+      arguments: ["check", "malformed.rs"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.rs:1:5: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
+      name: "check validates Rust inner doc comments",
+      arguments: ["check", "malformed-module.rs"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed-module.rs:1:5: error: Contract "module-missing-prose" has no prose body\n',
     },
     {
       name: "list prints every contract in a source file",
@@ -156,6 +182,30 @@ try {
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "go/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list prints every contract in a Rust file",
+      arguments: ["list", "--no-global", "test/fixtures/rust/src/contracts.rs"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "rust/list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes Rust contracts to a source location",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/rust/src/contracts.rs:21",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "rust/list-location-output.txt"),
         "utf8",
       ),
       stderr: "",

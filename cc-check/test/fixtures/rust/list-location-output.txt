@@ -1,0 +1,16 @@
+=> test/fixtures/rust/src/contracts.rs <=
+
+◆ rust-account-fixture:4
+  scope:declaration struct `Account` · author:spolu · label:product
+
+  > Represents a Rust account used by the CLI integration tests.
+
+◆ rust-account-impl-fixture:14
+  scope:declaration impl `Account` · author:spolu · label:product
+
+  > Defines behavior shared by methods in this account implementation.
+
+◆ rust-payment-fixture:17
+  scope:declaration method `pay` · author:spolu · label:product
+
+  > Provides a method used to exercise implemented-type contract listing.

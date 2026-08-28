@@ -1,0 +1,3 @@
+//! @cc [author:spolu,label:product] module-missing-prose
+
+pub fn valid() {}
