@@ -1,0 +1,11 @@
+=> test/fixtures/python/contracts.py <=
+
+◆ python-invoice-fixture:2
+  scope:declaration class `Invoice` · author:spolu · label:product
+
+  > Represents a Python invoice used by the CLI integration tests.
+
+◆ python-payment-fixture:8
+  scope:declaration method `pay` · author:spolu · label:product
+
+  > Provides a method used to exercise nested Python contract listing.

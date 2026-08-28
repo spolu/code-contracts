@@ -73,7 +73,8 @@ Credentials, tokens, secrets and user data must not be logged.
 ```
 
 The grammar uses ISO-style EBNF. `SP` is one or more spaces and `NL` is a line break. Comment
-delimiters and decorations such as `/**`, `*/`, `///`, and leading `*` are removed before parsing.
+delimiters and decorations such as `/**`, `*/`, `///`, Python docstring triple quotes, and leading
+`*` are removed before parsing.
 
 ```ebnf
 contracts_file

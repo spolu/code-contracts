@@ -9,8 +9,8 @@ import type {
   DeclarationContracts,
   LocalContractExtractor,
 } from "../local-contracts.js";
+import { hasPotentialContractDirective } from "./contract-document.js";
 import {
-  hasPotentialContractDirective,
   normalizeDocumentationComment,
   typeScriptScriptKind,
 } from "./typescript-documentation.js";

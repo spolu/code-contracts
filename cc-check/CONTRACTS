@@ -1,7 +1,7 @@
 @cc [author:spolu,label:architecture] language-specific-boundary
-Language-specific integrations are limited to resolving source locations and symbols and extracting
-contracts attached to declarations. Directory contract discovery, relationship traversal, and
-presentation remain language-independent.
+Language-specific integrations are limited to resolving source locations and symbols, identifying
+source contract documents, and attaching local contracts to declarations. Directory contract
+discovery, relationship traversal, grammar parsing, and presentation remain language-independent.
 
 @cc [author:spolu,label:coding] quality-gates
 Changes keep formatting, type checking, linting, the production build, and integration tests
