@@ -40,18 +40,20 @@ security, or coding constraints.
 Use this core form:
 
 ```text
-@cc [author:owner,label:category] stable-contract-id
-One short, concrete obligation stated in plain prose.
+@cc [author:github-username,label:category] stable-contract-id
+One concise, concrete obligation stated in plain prose.
 ```
 
 Each source documentation block contains exactly one directive. Keep attached IDs unique and stable
 within their declaration. Keep a `CONTRACTS` ID unique and stable within that file and its parent
-`CONTRACTS` files. Preserve established repository metadata conventions.
+`CONTRACTS` files. Set `author` to the current user's GitHub username; use their authenticated GitHub
+identity when available, and ask rather than guessing when it cannot be determined. Preserve
+established repository metadata conventions.
 
 Write contract prose so a reviewer can compare it directly with code:
 
 - Express one durable obligation per contract. Split independent requirements.
-- Prefer one short sentence; add another only when a material exception or failure behavior needs
+- Prefer one concise sentence; add another only when a material exception or failure behavior needs
   stating.
 - Name the subject and the observable behavior, outcome, boundary, or invariant.
 - Use decisive language. Prefer `must`, `never`, or a direct present-tense invariant; use `should`
