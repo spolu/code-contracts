@@ -9,3 +9,9 @@ export class Invoice {
    */
   pay(): void {}
 }
+
+/**
+ * @cc [author:spolu,label:product] invoice-report-fixture
+ * Provides a separate declaration for whole-file listing.
+ */
+export function reportInvoices(): void {}

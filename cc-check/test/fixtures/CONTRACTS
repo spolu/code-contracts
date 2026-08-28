@@ -1,0 +1,2 @@
+@cc [author:spolu,label:coding] fixture-directory-rule
+Integration fixtures remain self-contained and deterministic.
