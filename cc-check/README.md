@@ -3,12 +3,13 @@
 Command-line tooling for discovering and checking code contracts.
 
 `check` and `list` have TypeScript prototype implementations. `callers` and `references` support
-TypeScript and Python.
+TypeScript, Python, and Rust.
 
 ## Requirements
 
 - Node.js 24.16 or newer
 - npm 11.11 or newer
+- `rust-analyzer` on `PATH` for Rust callers and references
 
 ## Development
 
@@ -22,7 +23,7 @@ npm run check
 ```
 
 `npm test` builds the CLI and runs its integration cases against smoke fixture files using only
-Node.js built-ins.
+Node.js built-ins. Rust relationship cases run when `rust-analyzer` is available.
 
 ## Command surface
 
@@ -60,8 +61,8 @@ meets a contract, or whether contract IDs are unique.
 
 ## Callers
 
-For TypeScript or Python files, pass a declaration's file and one-based line. A one-based column is
-optional:
+For TypeScript, Python, or Rust files, pass a declaration's file and one-based line. A one-based
+column is optional:
 
 ```sh
 npm run dev -- callers src/example.ts:42
@@ -69,16 +70,17 @@ npm run dev -- callers src/example.ts:42:10
 ```
 
 TypeScript files must be under a `tsconfig.json` or `jsconfig.json`; Python files must be under a
-`pyrightconfig.json` or `pyproject.toml`. The prototype supports `.ts`, `.tsx`, `.mts`, `.cts`,
-`.py`, and `.pyi` files. It prints one direct call site per line:
+`pyrightconfig.json` or `pyproject.toml`; Rust files must be under a `Cargo.toml` or
+`rust-project.json`. The prototype supports `.ts`, `.tsx`, `.mts`, `.cts`, `.py`, `.pyi`, and `.rs`
+files. It prints one direct call site per line:
 
 ```text
 src/caller.ts:18:5\tcallerName
 ```
 
 Each invocation starts a new language-server process and shuts it down before exiting; servers are
-not cached between invocations. TypeScript uses `typescript-language-server`, and Python uses the
-bundled Pyright server.
+not cached between invocations. TypeScript uses `typescript-language-server`, Python uses the
+bundled Pyright server, and Rust uses `rust-analyzer` from `PATH`.
 
 ## References
 
