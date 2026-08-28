@@ -1,6 +1,6 @@
 ## cc-check
 
-- [x] `cc-check check <file-like>` (TypeScript prototype)
+- [x] `cc-check check [file-like]` (TypeScript prototype)
        Check that the @cc directive are compliant to the grammar
 - [x] `cc-check callers <location-like>` (TypeScript prototype)
 - [x] `cc-check references <location-like>` (TypeScript prototype)

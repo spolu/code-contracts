@@ -9,14 +9,15 @@ const VERSION = "0.0.0";
 
 /**
  * @cc [author:spolu,label:product] check-command
- * `cc-check check <file-like>` reports whether the `@cc` directives in the targeted file comply
- * with the code contract grammar.
+ * `cc-check check [file-like]` reports whether `@cc` directives comply with the code contract
+ * grammar. It checks the targeted file when provided or the current directory recursively when
+ * omitted.
  */
 function addCheckCommand(program: Command): void {
   program
     .command("check")
     .description("Check @cc directives against the code contract grammar")
-    .argument("<file-like>", "Source file")
+    .argument("[file-like]", "Source file; defaults to the current directory")
     .action(runCheckCommand);
 }
 
@@ -69,7 +70,7 @@ function addListCommand(program: Command): void {
 /**
  * @cc [author:spolu,label:product] command-surface
  * The CLI exposes:
- * - `check <file-like>`
+ * - `check [file-like]`
  * - `callers <location-like>`
  * - `references <location-like>`
  * - `list <location-like>`
