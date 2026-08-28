@@ -51,6 +51,12 @@ Code contracts enable:
 - Generative code analysis and verification that improves agent performance.
 - Maintenance at scale of invariants, product contracts, and security assumptions at code level.
 
+## Agent skill
+
+The reusable [code-contracts skill](skills/code-contracts/SKILL.md) guides coding and review agents
+through writing concise contracts, checking them while changing code, and performing a bounded
+semantic audit before commits and pull requests.
+
 ## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each

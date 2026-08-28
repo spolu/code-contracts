@@ -10,8 +10,8 @@
  
 ## Skill
 
-- [ ] @cc definition and usage directives
-- [ ] cc-check usage
+- [x] @cc definition and usage directives
+- [x] cc-check usage
 
 ## DeepSWE eval
 
