@@ -49,15 +49,19 @@ function addReferencesCommand(program: Command): void {
 
 /**
  * @cc [author:spolu,label:product] list-command
- * `cc-check list <location-like>` lists contracts attached to the declaration containing the
- * location and its enclosing declarations. It includes applicable directory contracts by default;
- * `--no-global` excludes them.
+ * `cc-check list <file-like|location-like>` lists every declaration-attached contract in a source
+ * file or contracts attached to the declaration containing a location and its enclosing
+ * declarations. It includes applicable directory contracts by default; `--no-global` excludes
+ * them.
  */
 function addListCommand(program: Command): void {
   program
     .command("list")
-    .description("List contracts applicable to a source location")
-    .argument("<location-like>", "Source file and line, optionally column")
+    .description("List contracts in a source file or at a source location")
+    .argument(
+      "<file-like|location-like>",
+      "Source file, optionally with line and column",
+    )
     .option("--no-global", "Exclude contracts from CONTRACTS files")
     .action((input: string, options: { global: boolean }) =>
       runListCommand(input, {
@@ -72,7 +76,7 @@ function addListCommand(program: Command): void {
  * - `check <file-like>`
  * - `callers <location-like>`
  * - `references <location-like>`
- * - `list <location-like>`
+ * - `list <file-like|location-like>`
  */
 /**
  * @cc [author:spolu,label:product] relationship-target-resolution
