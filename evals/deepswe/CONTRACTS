@@ -1,0 +1,20 @@
+@cc [author:spolu,label:evaluation] matched-arm-parity
+For each scored task and attempt, `control` and `code-contracts` must use identical task inputs,
+model configuration, runtime, tools, limits, and verifier; only agent identity and code-contracts
+skill exposure may differ.
+
+@cc [author:spolu,label:security] benchmark-information-isolation
+Agent-visible inputs must never include DeepSWE solution artifacts, verifier implementation,
+held-out tests, or information derived from them.
+
+@cc [author:spolu,label:reproducibility] scored-run-provenance
+Each scored run must record immutable identifiers or digests for its dataset, task manifest,
+harness, agent, tools, skill prompt, model, reasoning configuration, and resolved run configuration.
+
+@cc [author:spolu,label:security] secret-non-persistence
+Credentials and secret values must enter through the runtime environment and never be written to
+images, committed configuration, prompts, trajectories, logs, or result artifacts.
+
+@cc [author:spolu,label:evaluation] outcome-integrity
+Raw trial artifacts must remain unmodified, and retries or exclusions must follow predeclared rules
+that apply identically to both arms.
