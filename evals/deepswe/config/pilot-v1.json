@@ -1,0 +1,105 @@
+{
+  "version": "pilot-v1",
+  "deep_swe_commit": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+  "selection": {
+    "algorithm": "Sort SHA256('code-contracts-pilot-v1:' + task_id) within each language and take the first task from each unique repository until its quota is filled.",
+    "language_quotas": {
+      "typescript": 4,
+      "go": 3,
+      "python": 3,
+      "rust": 2
+    }
+  },
+  "smoke_selection": {
+    "algorithm": "Exclude pilot tasks, sort eligible included-language tasks by SHA256('code-contracts-smoke-v1:' + task_id), and take the first two.",
+    "scored": false
+  },
+  "smoke_tasks": [
+    {
+      "task_id": "claude-code-by-agents-recursive-delegation",
+      "repository": "https://github.com/baryhuang/claude-code-by-agents",
+      "language": "typescript",
+      "selection_sha256": "00a81e7ba3774a2a16e988997f2c7128033d3c951ef10d8ceaa01681801dbee6"
+    },
+    {
+      "task_id": "goreleaser-retry-publish-auditing",
+      "repository": "https://github.com/goreleaser/goreleaser",
+      "language": "go",
+      "selection_sha256": "06f1e87f6dd09597f954c55ac0bb0dbc9798fbd7d33c9e740984961cee73abd1"
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "sql-formatter-bigquery-pipe-formatting",
+      "repository": "https://github.com/sql-formatter-org/sql-formatter",
+      "language": "typescript",
+      "selection_sha256": "09373b25f50b82511fb0578be895ffbbe7c527ccf1d0253a47d6ea278f92a387"
+    },
+    {
+      "task_id": "drizzle-orm-window-function-builders",
+      "repository": "https://github.com/drizzle-team/drizzle-orm",
+      "language": "typescript",
+      "selection_sha256": "0fad7c93d4fe017debb7beb0f9bbcc5466b889c6bfbac93246dbb598352f1d2d"
+    },
+    {
+      "task_id": "meriyah-explicit-resource-declarations",
+      "repository": "https://github.com/meriyah/meriyah",
+      "language": "typescript",
+      "selection_sha256": "16fe4b03b23c6a25458125b2eaa8c1b1745ec26005ac8f73b850c0b9f9e291fb"
+    },
+    {
+      "task_id": "ts-pattern-match-each",
+      "repository": "https://github.com/gvergnaud/ts-pattern",
+      "language": "typescript",
+      "selection_sha256": "1d207fc4d7c7dcaba53af9ff62304875a7aaa17a007599a43d0ef620fa49c7dd"
+    },
+    {
+      "task_id": "etree-xml-diff-patch",
+      "repository": "https://github.com/beevik/etree",
+      "language": "go",
+      "selection_sha256": "029f90d82b03ad76c87b5c5ba08c5103233641b8df4227563e4b1adcca3344fd"
+    },
+    {
+      "task_id": "task-task-graph-export",
+      "repository": "https://github.com/go-task/task",
+      "language": "go",
+      "selection_sha256": "02e4cdaeee9d49e0531c90365f59d880b664f48f64b0e710be51919520517a02"
+    },
+    {
+      "task_id": "dasel-html-document-format",
+      "repository": "https://github.com/TomWright/dasel",
+      "language": "go",
+      "selection_sha256": "0ddfdfb6793b2c3b32b9c2c1d4d84f9e5379069dee9c41e9bac7e0e12184d5b4"
+    },
+    {
+      "task_id": "psd-tools-blend-range-api",
+      "repository": "https://github.com/psd-tools/psd-tools",
+      "language": "python",
+      "selection_sha256": "0550d020a1249724dcaeb3a23740234aa107ac25c787c9ac426aeb8154b26f3f"
+    },
+    {
+      "task_id": "sqlfmt-create-table-ddl-formatting",
+      "repository": "https://github.com/tconbeer/sqlfmt",
+      "language": "python",
+      "selection_sha256": "10b526983b1961188ba0fbbe6d2692322ce817561e21eabe40c653367cc268fa"
+    },
+    {
+      "task_id": "pwntools-tube-multiplexing",
+      "repository": "https://github.com/Gallopsled/pwntools",
+      "language": "python",
+      "selection_sha256": "12d674c566b9a6dbbd94a6866f9fb0159407ba8e94e4afa635026f3c2a937230"
+    },
+    {
+      "task_id": "wasmi-trap-coredumps",
+      "repository": "https://github.com/wasmi-labs/wasmi",
+      "language": "rust",
+      "selection_sha256": "263865185920b093ef4176245ed498d6582273d5c409d80389fc6daf87920814"
+    },
+    {
+      "task_id": "pest-character-class-coalescing",
+      "repository": "https://github.com/pest-parser/pest",
+      "language": "rust",
+      "selection_sha256": "6dfadb39a0c2007623e819f96d7eaa42002485dfca23e0427cd2fc9ccae67750"
+    }
+  ]
+}

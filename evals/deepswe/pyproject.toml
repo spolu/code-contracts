@@ -1,0 +1,12 @@
+[project]
+name = "code-contracts-deepswe-eval"
+version = "0.1.0"
+description = "DeepSWE code-contracts ablation harness"
+requires-python = ">=3.12"
+dependencies = ["datacurve-pier==0.3.1"]
+
+[dependency-groups]
+dev = ["ruff==0.16.5"]
+
+[tool.ruff]
+line-length = 100
