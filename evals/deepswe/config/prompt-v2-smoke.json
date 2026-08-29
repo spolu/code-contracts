@@ -1,0 +1,16 @@
+{
+  "version": "prompt-v2-smoke",
+  "deep_swe_commit": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+  "selection": {
+    "algorithm": "Exclude pilot-v1 scored and smoke tasks, sort included-language tasks by SHA256('code-contracts-smoke-v2:' + task_id), and take the first task.",
+    "scored": false
+  },
+  "tasks": [
+    {
+      "task_id": "obsidian-linter-link-format-conversion",
+      "repository": "https://github.com/platers/obsidian-linter",
+      "language": "typescript",
+      "selection_sha256": "016ddfe877c87fa56e94aa794c4a015340099a59fc10ab5776b568129a91facb"
+    }
+  ]
+}

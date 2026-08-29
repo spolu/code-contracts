@@ -28,6 +28,15 @@ NODE_ARCHIVE_SHA256 = {
 }
 PROVENANCE_FILENAME = "deepswe-provenance.json"
 BUNDLE_CHUNK_SIZE = 24_000
+CODE_CONTRACTS_INSTRUCTIONS = """Use the code-contracts skill for every code change. Before tackling
+coding tasks, discover applicable contracts or introduce code contracts relevant to the code
+peripheral to the task at hand. For every materially changed behavior, add or update precise,
+task-relevant contracts; when no contracts exist, introduce them at the narrowest stable declaration
+or directory perimeter. A behavior-preserving mechanical change need not invent a new behavioral
+contract. Do not finish until `cc-check list` confirms the new or updated contracts are discoverable
+and `cc-check check` has validated each affected file separately; a passing check that discovers no
+contracts does not satisfy this requirement. In this non-interactive evaluation, omit `author`
+metadata when no authenticated GitHub identity is available."""
 
 
 def sha256_bytes(payload: bytes) -> str:
@@ -39,7 +48,12 @@ def sha256_file(path: Path) -> str:
 
 
 def skill_prompt_extension(skill_content: str) -> str:
-    return f'\n\n<skill name="code-contracts">\n{skill_content.rstrip()}\n</skill>\n'
+    return (
+        f'\n\n<skill name="code-contracts">\n{skill_content.rstrip()}\n</skill>\n\n'
+        "<code-contracts-instructions>\n"
+        f"{CODE_CONTRACTS_INSTRUCTIONS}\n"
+        "</code-contracts-instructions>\n"
+    )
 
 
 class _DeepSWEAgent(MiniSweAgent):
@@ -124,7 +138,8 @@ class _DeepSWEAgent(MiniSweAgent):
     def render_instruction(self, instruction: str) -> str:
         """@cc [author:spolu,label:evaluation] arm-prompt-boundary
         `control` returns the task instruction byte-for-byte; `code-contracts` appends exactly one
-        frozen skill extension and no task-specific or verifier-derived content.
+        frozen skill and activation-instruction extension with no task-specific or verifier-derived
+        content.
         """
         return instruction + self._prompt_extension
 
@@ -311,6 +326,7 @@ cc-check --help
         rendered_instruction = self.render_instruction(instruction)
         provenance = {
             "schema_version": 1,
+            "activation_instruction_sha256": sha256_bytes(CODE_CONTRACTS_INSTRUCTIONS.encode()),
             "agent_source_sha256": sha256_file(Path(__file__)),
             "arm": self.VARIANT,
             "cc_check_bundle_sha256": self._cc_check_bundle_sha256,

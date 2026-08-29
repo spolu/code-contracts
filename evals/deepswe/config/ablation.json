@@ -1,5 +1,5 @@
 {
-  "job_name": "deepswe-code-contracts-phase1",
+  "job_name": "deepswe-code-contracts",
   "jobs_dir": "jobs",
   "n_attempts": 1,
   "n_concurrent_trials": 2,
@@ -48,7 +48,7 @@
         "skill_sha256": "sha256:988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a",
         "pilot_manifest_sha256": "sha256:20f9ffb6333ee4474011a814437168c37754c7cb3a9f8e0d1300e4a9159b6788",
         "harness_lock_sha256": "sha256:3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1",
-        "prompt_extension_sha256": "sha256:738b9157c48cb0faa0628c8d78f3e4a7f42d5a8ac1d80ad6215562b8fd2fb4f7"
+        "prompt_extension_sha256": "sha256:9117bfa30c6983ecfadd5edcd2cef386670050c4e01b8d6592eee794b5ec76a1"
       },
       "env": {
         "OPENAI_API_KEY": "${OPENAI_API_KEY}"

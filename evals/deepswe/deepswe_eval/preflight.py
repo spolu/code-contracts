@@ -13,6 +13,7 @@ from typing import Any
 from pier.models.job.config import JobConfig
 
 from deepswe_eval.agents import (
+    CODE_CONTRACTS_INSTRUCTIONS,
     CodeContractsAgent,
     ControlAgent,
     sha256_bytes,
@@ -21,8 +22,9 @@ from deepswe_eval.agents import (
 )
 
 EVAL_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONFIG = EVAL_ROOT / "config" / "phase1.json"
+DEFAULT_CONFIG = EVAL_ROOT / "config" / "ablation.json"
 DEFAULT_MANIFEST = EVAL_ROOT / "config" / "pilot-v1.json"
+DEFAULT_PROMPT_V2_SMOKE = EVAL_ROOT / "config" / "prompt-v2-smoke.json"
 EXPECTED_ARMS = {
     "deepswe_eval.agents:CodeContractsAgent": CodeContractsAgent,
     "deepswe_eval.agents:ControlAgent": ControlAgent,
@@ -53,7 +55,7 @@ def _assert_config_parity(config: dict[str, Any]) -> None:
         raise ValueError("Pier serialization must preserve the API key placeholder.")
     agents = config.get("agents")
     if not isinstance(agents, list) or len(agents) != 2:
-        raise ValueError("Phase 1 config must contain exactly two agents.")
+        raise ValueError("Ablation config must contain exactly two agents.")
     import_paths = {agent.get("import_path") for agent in agents}
     if import_paths != set(EXPECTED_ARMS):
         raise ValueError(f"Unexpected agent imports: {sorted(import_paths)}")
@@ -63,7 +65,7 @@ def _assert_config_parity(config: dict[str, Any]) -> None:
         )
     for agent in agents:
         if agent.get("model_name") != "openai/gpt-5.6-luna":
-            raise ValueError("Phase 1 must use gpt-5.6-luna through Pier's OpenAI route.")
+            raise ValueError("The ablation must use gpt-5.6-luna through Pier's OpenAI route.")
         if agent.get("env") != {"OPENAI_API_KEY": "${OPENAI_API_KEY}"}:
             raise ValueError("OPENAI_API_KEY must remain a runtime-only environment placeholder.")
 
@@ -115,11 +117,38 @@ def _assert_manifest(manifest: dict[str, Any]) -> None:
             raise ValueError(f"Smoke selection digest mismatch for {task['task_id']}.")
 
 
-def run_preflight(config_path: Path, manifest_path: Path) -> None:
+def _assert_prompt_v2_smoke(smoke: dict[str, Any], pilot: dict[str, Any]) -> None:
+    if smoke.get("version") != "prompt-v2-smoke":
+        raise ValueError("Unexpected prompt-v2 smoke manifest version.")
+    if smoke.get("deep_swe_commit") != pilot.get("deep_swe_commit"):
+        raise ValueError("Prompt-v2 smoke and pilot manifests must pin the same DeepSWE commit.")
+    tasks = smoke.get("tasks")
+    if not isinstance(tasks, list) or len(tasks) != 1:
+        raise ValueError("Prompt-v2 smoke manifest must contain exactly one task.")
+    task = tasks[0]
+    excluded_ids = {
+        item["task_id"] for key in ("tasks", "smoke_tasks") for item in pilot.get(key, [])
+    }
+    if task.get("task_id") in excluded_ids:
+        raise ValueError("Prompt-v2 smoke task must not overlap pilot-v1 tasks.")
+    if task.get("language") not in {"typescript", "python", "go", "rust"}:
+        raise ValueError("Prompt-v2 smoke task must use an included language.")
+    expected = hashlib.sha256(f"code-contracts-smoke-v2:{task.get('task_id')}".encode()).hexdigest()
+    if task.get("selection_sha256") != expected:
+        raise ValueError("Prompt-v2 smoke selection digest mismatch.")
+
+
+def run_preflight(
+    config_path: Path,
+    manifest_path: Path,
+    prompt_v2_smoke_path: Path = DEFAULT_PROMPT_V2_SMOKE,
+) -> None:
     config = _load_json(config_path)
     manifest = _load_json(manifest_path)
+    prompt_v2_smoke = _load_json(prompt_v2_smoke_path)
     _assert_config_parity(config)
     _assert_manifest(manifest)
+    _assert_prompt_v2_smoke(prompt_v2_smoke, manifest)
 
     agents = config["agents"]
     shared_kwargs = agents[0]["kwargs"]
@@ -154,6 +183,10 @@ def run_preflight(config_path: Path, manifest_path: Path) -> None:
             raise ValueError(
                 "Treatment prompt does not contain exactly the frozen skill extension."
             )
+        if CODE_CONTRACTS_INSTRUCTIONS not in treatment.render_instruction(sample_instruction):
+            raise ValueError("Treatment prompt is missing the frozen activation instructions.")
+        if CODE_CONTRACTS_INSTRUCTIONS in control.render_instruction(sample_instruction):
+            raise ValueError("Control prompt contains the treatment activation instructions.")
         if control.to_agent_info().name != "control":
             raise ValueError("Control result identity is incorrect.")
         if treatment.to_agent_info().name != "code-contracts":
@@ -166,12 +199,17 @@ def run_preflight(config_path: Path, manifest_path: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Validate the frozen DeepSWE phase-1 harness.")
+    parser = argparse.ArgumentParser(description="Validate the frozen DeepSWE ablation harness.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--prompt-v2-smoke", type=Path, default=DEFAULT_PROMPT_V2_SMOKE)
     arguments = parser.parse_args()
-    run_preflight(arguments.config.resolve(), arguments.manifest.resolve())
-    print("DeepSWE phase-1 preflight passed.")
+    run_preflight(
+        arguments.config.resolve(),
+        arguments.manifest.resolve(),
+        arguments.prompt_v2_smoke.resolve(),
+    )
+    print("DeepSWE ablation preflight passed.")
 
 
 if __name__ == "__main__":
