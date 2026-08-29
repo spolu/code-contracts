@@ -1,0 +1,9 @@
+/**
+ * @cc [author:spolu,label:product] duplicate-rust-source-id
+ * Defines the first Rust expectation on one declaration.
+ */
+/**
+ * @cc [author:spolu,label:product] duplicate-rust-source-id
+ * Defines a conflicting Rust expectation with the same declaration-local ID.
+ */
+pub fn duplicate_source_id() {}

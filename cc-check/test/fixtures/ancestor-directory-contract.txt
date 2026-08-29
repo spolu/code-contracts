@@ -1,0 +1,2 @@
+@cc [author:spolu,label:coding] shared-directory-id
+Defines an expectation inherited by descendant directories.

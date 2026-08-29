@@ -1,0 +1,11 @@
+package fixture
+
+/*
+ * @cc [author:spolu,label:product] duplicate-go-source-id
+ * Defines the first Go expectation on one declaration.
+ */
+/*
+ * @cc [author:spolu,label:product] duplicate-go-source-id
+ * Defines a conflicting Go expectation with the same declaration-local ID.
+ */
+func duplicateSourceID() {}

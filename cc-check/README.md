@@ -37,7 +37,8 @@ cc-check list <file-like|location-like>
 ## Check
 
 `check` validates contracts against the
-[contracts grammar](../README.md#specification-and-grammar). With a file argument, it checks every
+[contracts grammar](../README.md#specification-and-grammar) and enforces ID uniqueness within the
+check perimeter. With a file argument, it checks every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
 docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
 file, every `@cc` Rust doc comment, or every contract in a `CONTRACTS` file. Without an argument, it
@@ -45,6 +46,7 @@ recursively checks all supported files under the current directory, excluding `.
 `node_modules`, `vendor`, `.venv`, `venv`, and `__pycache__`. A source documentation comment or
 docstring must contain exactly one directive; documentation without `@cc` is ignored. Python source
 support includes `.py` and `.pyi` files; Go and Rust support `.go` and `.rs` files, respectively.
+An argument-free check prints each selected relative file path in deterministic discovery order.
 
 ```sh
 npm run dev -- check src/example.ts
@@ -52,15 +54,19 @@ npm run dev -- check CONTRACTS
 npm run dev -- check
 ```
 
-A compliant file produces no output. Invalid grammar produces source-located diagnostics and a
-non-zero exit status:
+A compliant targeted file produces no output. Invalid grammar or ID uniqueness produces
+source-located diagnostics and a non-zero exit status:
 
 ```text
 cc-check: src/example.ts:12:1: error: Invalid @cc directive
 ```
 
-`check` validates grammar only. It does not assess whether prose is true, whether implementation
-meets a contract, or whether contract IDs are unique.
+Attached IDs must be unique within a declaration, but may repeat on distinct declarations.
+`CONTRACTS` IDs must be unique along ancestor chains included in the check perimeter, but may repeat
+in sibling directory branches. A targeted file is the entire check perimeter; an argument-free run
+uses every recursively discovered file.
+
+`check` does not assess whether prose is true or whether implementation meets a contract.
 
 ## Callers
 

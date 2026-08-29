@@ -10,13 +10,13 @@ const VERSION = "0.0.0";
 /**
  * @cc [author:spolu,label:product] check-command
  * `cc-check check [file-like]` reports whether `@cc` directives comply with the code contract
- * grammar. It checks the targeted file when provided or the current directory recursively when
- * omitted.
+ * grammar and ID uniqueness rules. It checks the targeted file when provided or the current
+ * directory recursively when omitted, printing each recursively selected file.
  */
 function addCheckCommand(program: Command): void {
   program
     .command("check")
-    .description("Check @cc directives against the code contract grammar")
+    .description("Check @cc grammar and contract ID uniqueness")
     .argument("[file-like]", "Source file; defaults to the current directory")
     .action(runCheckCommand);
 }

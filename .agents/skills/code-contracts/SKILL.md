@@ -193,9 +193,9 @@ cc-check check path/to/file.ts
 cc-check check # checks all files
 ```
 
-`cc-check check` validates grammar only. It does not prove that the prose is true, that code
-complies, or that IDs are unique. Use normal project formatting, type checking, tests, and review in
-addition to semantic contract inspection.
+`cc-check check` validates grammar and ID uniqueness within the check perimeter. It does not prove
+that the prose is true or that code complies. Use normal project formatting, type checking, tests,
+and review in addition to semantic contract inspection.
 
 ## Performing a bounded final audit
 
