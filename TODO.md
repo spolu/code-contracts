@@ -7,11 +7,12 @@
 - [x] `cc-check list <file-like|location-like>` (TypeScript, Python, Rust, and Go prototypes)
        Lists all declaration contracts in a file or those related to a pointed location (local
        declaration and potential parent declaration, such as a class), plus directory contracts.
+- [ ] make check ensure IDs are unique within the check perimeter
  
 ## Skill
 
-- [ ] @cc definition and usage directives
-- [ ] cc-check usage
+- [x] @cc definition and usage directives
+- [x] cc-check usage
 
 ## DeepSWE eval
 
