@@ -53,7 +53,7 @@ Code contracts enable:
 
 ## Agent skill
 
-The reusable [code-contracts skill](.agents/skills/code-contracts/SKILL.md) guides coding and review
+The reusable [code-contracts skill](skills/code-contracts/SKILL.md) guides coding and review
 agents through writing concise contracts, checking them while changing code, and performing a
 bounded semantic audit before commits and pull requests.
 
