@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +49,54 @@ try {
     join(fixtureDirectory, "malformed-rust-module.txt"),
     join(temporaryDirectory, "malformed-module.rs"),
   );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-source-ids.txt"),
+    join(temporaryDirectory, "duplicate-source-ids.ts"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "reused-source-id.txt"),
+    join(temporaryDirectory, "reused-source-id.ts"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-go-source-ids.txt"),
+    join(temporaryDirectory, "duplicate-source-ids.go"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-rust-source-ids.txt"),
+    join(temporaryDirectory, "duplicate-source-ids.rs"),
+  );
+  const duplicateDirectory = join(temporaryDirectory, "duplicate-directory");
+  mkdirSync(duplicateDirectory);
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-directory-ids.txt"),
+    join(duplicateDirectory, "CONTRACTS"),
+  );
+
+  const ancestorDirectory = join(temporaryDirectory, "ancestor");
+  const ancestorChildDirectory = join(ancestorDirectory, "child");
+  mkdirSync(ancestorChildDirectory, { recursive: true });
+  copyFileSync(
+    join(fixtureDirectory, "ancestor-directory-contract.txt"),
+    join(ancestorDirectory, "CONTRACTS"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "descendant-directory-contract.txt"),
+    join(ancestorChildDirectory, "CONTRACTS"),
+  );
+
+  const siblingDirectory = join(temporaryDirectory, "siblings");
+  const firstSiblingDirectory = join(siblingDirectory, "first");
+  const secondSiblingDirectory = join(siblingDirectory, "second");
+  mkdirSync(firstSiblingDirectory, { recursive: true });
+  mkdirSync(secondSiblingDirectory, { recursive: true });
+  copyFileSync(
+    join(fixtureDirectory, "sibling-directory-contract.txt"),
+    join(firstSiblingDirectory, "CONTRACTS"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "sibling-directory-contract.txt"),
+    join(secondSiblingDirectory, "CONTRACTS"),
+  );
 
   const cases = [
     {
@@ -50,7 +104,8 @@ try {
       arguments: ["check"],
       workingDirectory: fixtureDirectory,
       status: 0,
-      stdout: "",
+      stdout:
+        "CONTRACTS\ncontracts.ts\ngo/contracts.go\ngo/library.go\ngo/usage.go\nno-contracts.ts\npython/contracts.py\npython/library.py\npython/usage.py\nrust/src/contracts.rs\nrust/src/lib.rs\nrust/src/library.rs\n",
       stderr: "",
     },
     {
@@ -114,6 +169,75 @@ try {
       stdout: "",
       stderr:
         'cc-check: malformed-module.rs:1:5: error: Contract "module-missing-prose" has no prose body\n',
+    },
+    {
+      name: "check rejects duplicate IDs on one declaration",
+      arguments: ["check", "duplicate-source-ids.ts"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-source-ids.ts:5:1: error: Contract ID "duplicate-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "check allows an ID on distinct declarations",
+      arguments: ["check", "reused-source-id.ts"],
+      workingDirectory: temporaryDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "check rejects duplicate Go IDs on one declaration",
+      arguments: ["check", "duplicate-source-ids.go"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-source-ids.go:7:1: error: Contract ID "duplicate-go-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "check rejects duplicate Rust IDs on one declaration",
+      arguments: ["check", "duplicate-source-ids.rs"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-source-ids.rs:5:1: error: Contract ID "duplicate-rust-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "check rejects duplicate IDs in one CONTRACTS file",
+      arguments: ["check", "CONTRACTS"],
+      workingDirectory: duplicateDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: CONTRACTS:4:1: error: Contract ID "duplicate-directory-id" is not unique within its CONTRACTS ancestry\n',
+    },
+    {
+      name: "check limits a targeted CONTRACTS file to its own perimeter",
+      arguments: ["check", "child/CONTRACTS"],
+      workingDirectory: ancestorDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "check rejects duplicate IDs in a CONTRACTS ancestry",
+      arguments: ["check"],
+      workingDirectory: ancestorDirectory,
+      status: 1,
+      stdout: "CONTRACTS\nchild/CONTRACTS\n",
+      stderr:
+        'cc-check: child/CONTRACTS:1:1: error: Contract ID "shared-directory-id" is not unique within its CONTRACTS ancestry\n',
+    },
+    {
+      name: "check allows an ID in sibling CONTRACTS branches",
+      arguments: ["check"],
+      workingDirectory: siblingDirectory,
+      status: 0,
+      stdout: "first/CONTRACTS\nsecond/CONTRACTS\n",
+      stderr: "",
     },
     {
       name: "list prints every contract in a source file",

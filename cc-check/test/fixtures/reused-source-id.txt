@@ -1,0 +1,11 @@
+/**
+ * @cc [author:spolu,label:product] reusable-source-id
+ * Defines an expectation on the first declaration.
+ */
+export function firstDeclaration(): void {}
+
+/**
+ * @cc [author:spolu,label:product] reusable-source-id
+ * Defines an expectation on a distinct declaration.
+ */
+export function secondDeclaration(): void {}

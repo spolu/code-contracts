@@ -1,0 +1,9 @@
+/**
+ * @cc [author:spolu,label:product] duplicate-source-id
+ * Defines the first expectation on one declaration.
+ */
+/**
+ * @cc [author:spolu,label:product] duplicate-source-id
+ * Defines a conflicting expectation with the same declaration-local ID.
+ */
+export function duplicateSourceId(): void {}

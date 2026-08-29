@@ -1,19 +1,30 @@
 import { readdir, readFile } from "node:fs/promises";
-import { basename, join, relative, resolve } from "node:path";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from "node:path";
 
 import {
   ContractParseError,
   parseContracts,
+  type CodeContract,
   type ParsedContract,
 } from "./contract.js";
 import type { ContractDocument } from "./contract-extractors/contract-document.js";
 import {
   extractSourceContractDocuments,
   isSupportedContractSource,
+  startLocalContractExtractor,
 } from "./contract-extractors/index.js";
 
 export interface CheckCommandOptions {
   workingDirectory?: string;
+  writeLine?: (line: string) => void;
 }
 
 const SKIPPED_DIRECTORIES = new Set([
@@ -125,6 +136,92 @@ const checkSource = (
   return errors;
 };
 
+const duplicateDeclarationIdErrors = (
+  contracts: CodeContract[],
+): ContractParseError[] => {
+  const errors: ContractParseError[] = [];
+  const ids = new Set<string>();
+
+  for (const contract of contracts) {
+    if (ids.has(contract.id)) {
+      errors.push(
+        new ContractParseError(
+          `Contract ID "${contract.id}" is not unique within its declaration`,
+          contract.source.filePath,
+          contract.source.start.line,
+          contract.source.start.column,
+        ),
+      );
+    }
+    ids.add(contract.id);
+  }
+
+  return errors;
+};
+
+interface CheckedFile {
+  errors: ContractParseError[];
+  filePath: string;
+  directoryContracts?: ParsedContract[];
+}
+
+const pathDepth = (filePath: string): number =>
+  resolve(filePath).split(sep).filter(Boolean).length;
+
+const isWithinDirectory = (
+  ancestorDirectory: string,
+  candidateDirectory: string,
+): boolean => {
+  const nestedPath = relative(ancestorDirectory, candidateDirectory);
+  return (
+    nestedPath === "" ||
+    (nestedPath !== ".." &&
+      !nestedPath.startsWith(`..${sep}`) &&
+      !isAbsolute(nestedPath))
+  );
+};
+
+const duplicateDirectoryIdErrors = (
+  checkedFiles: CheckedFile[],
+): ContractParseError[] => {
+  const errors: ContractParseError[] = [];
+  const directoriesById = new Map<string, string[]>();
+  const directoryFiles = checkedFiles
+    .filter(
+      (file): file is CheckedFile & { directoryContracts: ParsedContract[] } =>
+        file.directoryContracts !== undefined,
+    )
+    .toSorted(
+      (left, right) =>
+        pathDepth(left.filePath) - pathDepth(right.filePath) ||
+        left.filePath.localeCompare(right.filePath),
+    );
+
+  for (const file of directoryFiles) {
+    const directory = dirname(file.filePath);
+    for (const contract of file.directoryContracts) {
+      const existingDirectories = directoriesById.get(contract.id) ?? [];
+      if (
+        existingDirectories.some((existingDirectory) =>
+          isWithinDirectory(existingDirectory, directory),
+        )
+      ) {
+        errors.push(
+          new ContractParseError(
+            `Contract ID "${contract.id}" is not unique within its CONTRACTS ancestry`,
+            file.filePath,
+            contract.startLine,
+          ),
+        );
+      }
+      existingDirectories.push(directory);
+      directoriesById.set(contract.id, existingDirectories);
+    }
+  }
+
+  return errors;
+};
+
 const displayPath = (filePath: string, workingDirectory: string): string =>
   relative(workingDirectory, filePath) || filePath;
 
@@ -134,22 +231,37 @@ const formatDiagnostic = (
 ): string =>
   `${displayPath(error.sourceName, workingDirectory)}:${error.line}:${error.column}: error: ${error.description}`;
 
-const checkFile = async (filePath: string): Promise<ContractParseError[]> => {
+const checkFile = async (filePath: string): Promise<CheckedFile> => {
   const source = await readFile(filePath, "utf8");
 
   if (basename(filePath) === "CONTRACTS") {
     try {
-      parseContracts(source, filePath);
-      return [];
+      return {
+        directoryContracts: parseContracts(source, filePath),
+        errors: [],
+        filePath,
+      };
     } catch (error) {
       if (!(error instanceof ContractParseError)) {
         throw error;
       }
-      return [error];
+      return { errors: [error], filePath };
     }
   }
 
-  return checkSource(filePath, source);
+  const errors = checkSource(filePath, source);
+  if (errors.length > 0) {
+    return { errors, filePath };
+  }
+
+  const extractor = await startLocalContractExtractor(filePath);
+  const declarations = await extractor.declarationsInFile(filePath);
+  return {
+    errors: declarations.flatMap(({ contracts }) =>
+      duplicateDeclarationIdErrors(contracts),
+    ),
+    filePath,
+  };
 };
 
 /**
@@ -161,8 +273,19 @@ const checkFile = async (filePath: string): Promise<ContractParseError[]> => {
  * types are rejected.
  */
 /**
+ * @cc [author:spolu,label:product] check-contract-id-uniqueness
+ * Within the files selected for checking, `check` rejects repeated IDs attached to one declaration
+ * and repeated `CONTRACTS` IDs along an ancestor chain; IDs on distinct declarations or sibling
+ * directory branches may repeat.
+ */
+/**
+ * @cc [author:spolu,label:product] check-progress-output
+ * An argument-free `check` writes each selected relative file path to stdout in deterministic
+ * discovery order; a targeted check remains silent when compliant.
+ */
+/**
  * @cc [author:spolu,label:product] check-result
- * A compliant file produces no output. Grammar failures reject the command with source-relative
+ * Grammar or ID uniqueness failures reject `check` with source-relative
  * `<path>:<line>:<column>: error: <description>` diagnostics and a non-zero exit status.
  */
 export async function runCheckCommand(
@@ -170,6 +293,7 @@ export async function runCheckCommand(
   options: CheckCommandOptions = {},
 ): Promise<void> {
   const workingDirectory = options.workingDirectory ?? process.cwd();
+  const writeLine = options.writeLine ?? console.log;
   const filePaths =
     input === undefined
       ? await discoverCheckFiles(workingDirectory)
@@ -181,7 +305,22 @@ export async function runCheckCommand(
     );
   }
 
-  const errors = (await Promise.all(filePaths.map(checkFile))).flat();
+  if (input === undefined) {
+    filePaths.forEach((filePath) =>
+      writeLine(displayPath(filePath, workingDirectory)),
+    );
+  }
+
+  const checkedFiles = await Promise.all(filePaths.map(checkFile));
+  const errors = [
+    ...checkedFiles.flatMap(({ errors: fileErrors }) => fileErrors),
+    ...duplicateDirectoryIdErrors(checkedFiles),
+  ].toSorted(
+    (left, right) =>
+      left.sourceName.localeCompare(right.sourceName) ||
+      left.line - right.line ||
+      left.column - right.column,
+  );
 
   if (errors.length > 0) {
     throw new Error(

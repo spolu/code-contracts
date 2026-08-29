@@ -1,0 +1,5 @@
+@cc [author:spolu,label:coding] duplicate-directory-id
+Defines the first directory expectation.
+
+@cc [author:spolu,label:coding] duplicate-directory-id
+Defines a conflicting expectation in the same file.

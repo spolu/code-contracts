@@ -1,0 +1,2 @@
+@cc [author:spolu,label:coding] sibling-directory-id
+Defines an expectation that may be reused in a separate sibling branch.

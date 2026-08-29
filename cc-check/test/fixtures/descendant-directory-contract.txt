@@ -1,0 +1,2 @@
+@cc [author:spolu,label:coding] shared-directory-id
+Defines a conflicting expectation in a descendant directory.
