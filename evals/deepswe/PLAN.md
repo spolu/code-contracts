@@ -72,8 +72,10 @@ instruction. It is not told that the code-contracts skill or `cc-check` exists.
 ### `code-contracts`
 
 `code-contracts` receives the same prompt plus the frozen contents of the repository's
-`code-contracts` skill. Because mini-swe-agent does not provide a native skill loader, the eval
-harness renders the skill into a deterministic prompt extension and records its digest.
+`code-contracts` skill and a frozen activation instruction requiring the contract workflow for every
+code change and task-relevant contracts for every material behavior change. Because mini-swe-agent
+does not provide a native skill loader, the eval harness renders both into a deterministic prompt
+extension and records its digest.
 
 The treatment receives no task-specific contracts, verifier information, or reference-solution
 information. It must discover applicable contracts and may create or update contracts from the
@@ -137,7 +139,7 @@ frozen.
 
 ### 2. Smoke tests
 
-Run single-task Docker trials before using remote parallel sandboxes:
+Run single-task trials with local Docker:
 
 - DeepSWE `nop` and `oracle` to validate task and verifier plumbing.
 - Stock mini-swe-agent and `control` to establish adapter neutrality.
@@ -149,9 +151,9 @@ configuration drift.
 
 ### 3. Pilot
 
-Run the two arms in one Pier job so every task and attempt has a matched control and treatment trial.
-Use one attempt first for operational validation, then three attempts per arm for the scored pilot.
-Use an even concurrency level so paired trials run near each other in time.
+Run the two arms in one Pier job on local Docker so every task and attempt has a matched control and
+treatment trial. Use one attempt first for operational validation, then three attempts per arm for
+the scored pilot. Use an even concurrency level so paired trials run near each other in time.
 
 Start with `gpt-5.6-luna` directly through the OpenAI API. Pier must use its OpenAI mini-swe-agent
 route, and credentials must be supplied through `OPENAI_API_KEY`. Freeze the reasoning effort and all

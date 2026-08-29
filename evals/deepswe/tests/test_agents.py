@@ -10,10 +10,10 @@ from types import SimpleNamespace
 
 from pier.agents.installed.base import NonZeroAgentExitCodeError
 
-from deepswe_eval.agents import CodeContractsAgent, ControlAgent
+from deepswe_eval.agents import CODE_CONTRACTS_INSTRUCTIONS, CodeContractsAgent, ControlAgent
 
 EVAL_ROOT = Path(__file__).resolve().parents[1]
-CONFIG = json.loads((EVAL_ROOT / "config" / "phase1.json").read_text())
+CONFIG = json.loads((EVAL_ROOT / "config" / "ablation.json").read_text())
 
 
 def _agent(agent_class, logs_dir: Path):
@@ -39,6 +39,8 @@ class AgentTests(unittest.TestCase):
             instruction = "Keep this instruction unchanged."
             self.assertEqual(control.render_instruction(instruction), instruction)
             self.assertTrue(treatment.render_instruction(instruction).startswith(instruction))
+            self.assertNotIn(CODE_CONTRACTS_INSTRUCTIONS, control.render_instruction(instruction))
+            self.assertIn(CODE_CONTRACTS_INSTRUCTIONS, treatment.render_instruction(instruction))
             self.assertEqual(
                 control.install_spec().model_dump(), treatment.install_spec().model_dump()
             )
@@ -60,9 +62,11 @@ class AgentTests(unittest.TestCase):
             serialized = (logs_dir / "deepswe-provenance.json").read_text()
             self.assertNotIn(instruction, serialized)
             self.assertNotIn(agent._skill_content, serialized)
+            self.assertNotIn(CODE_CONTRACTS_INSTRUCTIONS, serialized)
             self.assertNotIn("test-secret-value", serialized)
             provenance = json.loads(serialized)
             self.assertEqual(provenance["arm"], "control")
+            self.assertIn("activation_instruction_sha256", provenance)
             self.assertIn("resolved_prompt_sha256", provenance)
 
     def test_exec_passes_but_does_not_report_secret_values(self) -> None:
