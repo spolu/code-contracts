@@ -4,16 +4,16 @@ A simple open format for specifying structured assumptions and requirements abou
 faster and better agent-driven software development.
 
 ```typescript
-/** 
+/**
  * @cc [author:spolu,label:product] balance-pre-and-fail
  * `from.balance` is expected to be greater than or equal to `invoice.amount`, fails with
  * `InsufficientBalanceError` otherwise.
  */
-/** 
+/**
  * @cc [author:spolu,label:product] balance-post
  * `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
  */
-/** 
+/**
  * @cc [author:spolu,label:product] atomicity
  * The operation is atomic: either `from.balance` is decreased and `invoice.status` is set to
  * `paid`, or neither is changed.
@@ -60,8 +60,8 @@ bounded semantic audit before commits and pull requests.
 ## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each
-directive defines one code contract. Contracts are generally colocated with or within functions,
-classes or methods definitions.
+directive defines one code contract. Contracts are generally colocated with or within function,
+class, or method definitions.
 
 Code contracts that are not attached to a declaration live in a file named `CONTRACTS`. They apply
 to all code contained in the directory where that file lives and its descendant directories. Their
@@ -104,13 +104,13 @@ once. `prose_line` is any line that does not begin with an `@cc` directive.
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
 directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any
 number of lines. The core format does not prescribe vocabulary, sentence shape, modality, or a
-requirements notation but markdown format is generally expected. 
+requirements notation, but Markdown is generally expected.
 
 A documentation comment contains one `@cc` directive. Multiple consecutive contract comments may
 attach to the same declaration. Contract IDs are unique and stable within the declaration to which
-they are attached; the same ID may be used on a different declaration.  Contracts in a `CONTRACTS`
+they are attached; the same ID may be used on a different declaration. Contracts in a `CONTRACTS`
 file are not attached to a declaration, and their IDs are unique and stable within that file and
-across all parent `CONTRACTS` files. 
+across all parent `CONTRACTS` files.
 
 The identity of an attached contract is the language-specific identity of its declaration plus its
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
