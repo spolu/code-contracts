@@ -3,15 +3,15 @@
 ## Objective
 
 Measure whether a coding agent using code contracts solves more DeepSWE tasks, misses fewer stated
-requirements, or works more efficiently than the same agent without code-contract instructions.
+requirements, or works more efficiently than the same agent without the code-contracts skill.
 
-The first experiment uses a pilot spanning TypeScript, Python, Go, and Rust while excluding
-JavaScript. It compares exactly two arms:
+The first experiment uses a pilot spanning TypeScript, Python, Go, and Rust. It compares exactly two
+arms:
 
 - `control`: stock mini-swe-agent behavior.
 - `code-contracts`: the same mini-swe-agent with the code-contracts skill enabled.
 
-The pilot is an ablation of the skill and its workflow, not a comparison of different model
+The pilot is an ablation of the skill and its workflows, not a comparison of different model
 scaffolds. Both arms use the same model, task images, timeouts, submission mechanism, and verifier.
 
 ## Evaluation stack
@@ -25,8 +25,8 @@ scaffolds. Both arms use the same model, task images, timeouts, submission mecha
   confound the skill ablation.
 
 All dependencies and inputs must be pinned before a scored run: DeepSWE commit, Pier version,
-mini-swe-agent version, `cc-check` commit and build digest, skill digest, model identifier, reasoning
-configuration, and pilot task manifest.
+mini-swe-agent version, `cc-check` commit and build digest, skill digest, model identifier,
+reasoning configuration, and pilot task manifest.
 
 ## Agent architecture
 
