@@ -1,0 +1,16 @@
+{
+  "version": "prompt-v3-smoke",
+  "deep_swe_commit": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+  "selection": {
+    "algorithm": "Exclude pilot-v1 scored and smoke tasks plus prior prompt-smoke tasks, sort included-language tasks by SHA256('code-contracts-smoke-v3:' + task_id), and take the first task.",
+    "scored": false
+  },
+  "tasks": [
+    {
+      "task_id": "clack-async-autocomplete-options",
+      "repository": "https://github.com/bombshell-dev/clack",
+      "language": "typescript",
+      "selection_sha256": "009158b9737afe169976da828993cfbb87268bef49441d7b43eca9a05f829927"
+    }
+  ]
+}

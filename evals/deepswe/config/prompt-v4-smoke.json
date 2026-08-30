@@ -1,0 +1,16 @@
+{
+  "version": "prompt-v4-smoke",
+  "deep_swe_commit": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+  "selection": {
+    "algorithm": "Exclude pilot-v1 scored and smoke tasks plus prior prompt-smoke tasks, sort included-language tasks by SHA256('code-contracts-smoke-v4:' + task_id), and take the first task.",
+    "scored": false
+  },
+  "tasks": [
+    {
+      "task_id": "helm-array-merge-strategies",
+      "repository": "https://github.com/helm/helm",
+      "language": "go",
+      "selection_sha256": "01adb98f1c3546fbfb0af7ce4c66a2c54c71135eb1282500166d3e1787d85b07"
+    }
+  ]
+}

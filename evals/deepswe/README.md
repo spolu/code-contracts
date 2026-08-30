@@ -3,8 +3,8 @@
 This directory implements the matched Pier harness described in [PLAN.md](PLAN.md): a stock
 mini-swe-agent control and a code-contracts treatment. Both arms use the same pinned mini-swe-agent,
 Node, `cc-check` bundle, model route, reasoning effort, runtime settings, and task verifier. The
-treatment's only model-visible difference is the frozen skill followed by a frozen activation
-instruction, both appended to the task instruction.
+treatment's only model-visible difference is the frozen skill and workflow appended to the task
+instruction.
 
 Execution commands, immutable inputs, and outcomes are recorded chronologically in
 [REPRODUCIBILITY.md](REPRODUCIBILITY.md).

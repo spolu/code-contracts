@@ -28,15 +28,36 @@ NODE_ARCHIVE_SHA256 = {
 }
 PROVENANCE_FILENAME = "deepswe-provenance.json"
 BUNDLE_CHUNK_SIZE = 24_000
-CODE_CONTRACTS_INSTRUCTIONS = """Use the code-contracts skill for every code change. Before tackling
-coding tasks, discover applicable contracts or introduce code contracts relevant to the code
-peripheral to the task at hand. For every materially changed behavior, add or update precise,
-task-relevant contracts; when no contracts exist, introduce them at the narrowest stable declaration
-or directory perimeter. A behavior-preserving mechanical change need not invent a new behavioral
-contract. Do not finish until `cc-check list` confirms the new or updated contracts are discoverable
-and `cc-check check` has validated each affected file separately; a passing check that discovers no
-contracts does not satisfy this requirement. In this non-interactive evaluation, omit `author`
-metadata when no authenticated GitHub identity is available."""
+CODE_CONTRACTS_INSTRUCTIONS = """## Code Contracts Workflow
+
+Complete this workflow for every task that changes code.
+
+1. Identify every declaration, file, or directory whose implementation you may change.
+2. Before making any implementation edit, run `cc-check list <path>` for each target to discover its
+   applicable contracts.
+3. If a target has no task-relevant contracts governing the behavior you will change, STOP and cover
+   it first:
+   a. Add precise `@cc` contracts at the narrowest stable declaration or directory boundary.
+   b. Run `cc-check list <path>` and confirm that the new contracts are discoverable.
+   c. Run `cc-check check <path>` and confirm that it passes.
+   d. Do not edit the implementation until these checks succeed.
+4. Make the implementation changes while preserving or updating the applicable contracts.
+5. Introduce every new declaration together with precise contracts governing its material behavior.
+6. After implementation, run `cc-check list <path>` and `cc-check check <path>` separately for every
+   affected supported source file.
+7. Only after these checks pass and contract / code coherence is ensured, consider the task done.
+
+**CRITICAL REQUIREMENTS:**
+
+- You MUST use the code-contracts skill for every code change.
+- You MUST NOT edit existing implementation code that lacks task-relevant behavioral contracts. Add
+  and validate contracts first.
+- Every materially changed behavior MUST be covered by new or updated contracts in the final patch.
+- A successful `cc-check check` that discovers no task-relevant contracts does not satisfy this
+  workflow.
+- Do not invent speculative obligations; derive contracts from the task requirements and observable
+  code behavior.
+- If no authenticated GitHub identity is available, omit `author` metadata."""
 
 
 def sha256_bytes(payload: bytes) -> str:
@@ -50,9 +71,7 @@ def sha256_file(path: Path) -> str:
 def skill_prompt_extension(skill_content: str) -> str:
     return (
         f'\n\n<skill name="code-contracts">\n{skill_content.rstrip()}\n</skill>\n\n'
-        "<code-contracts-instructions>\n"
         f"{CODE_CONTRACTS_INSTRUCTIONS}\n"
-        "</code-contracts-instructions>\n"
     )
 
 
