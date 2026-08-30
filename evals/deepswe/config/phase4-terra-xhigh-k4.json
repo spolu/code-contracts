@@ -1,0 +1,77 @@
+{
+  "job_name": "pilot-v1-terra-xhigh-k4",
+  "jobs_dir": "jobs",
+  "n_attempts": 4,
+  "n_concurrent_trials": 8,
+  "quiet": false,
+  "debug": false,
+  "retry": {
+    "max_retries": 0
+  },
+  "environment": {
+    "type": "docker",
+    "force_build": false,
+    "delete": true
+  },
+  "datasets": [
+    {
+      "path": "resolved/deep-swe/tasks",
+      "task_names": [
+        "sql-formatter-bigquery-pipe-formatting",
+        "drizzle-orm-window-function-builders",
+        "meriyah-explicit-resource-declarations",
+        "ts-pattern-match-each",
+        "etree-xml-diff-patch",
+        "task-task-graph-export",
+        "dasel-html-document-format",
+        "psd-tools-blend-range-api",
+        "sqlfmt-create-table-ddl-formatting",
+        "pwntools-tube-multiplexing",
+        "wasmi-trap-coredumps",
+        "pest-character-class-coalescing"
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "import_path": "deepswe_eval.agents:ControlAgent",
+      "model_name": "openai/gpt-5.6-terra",
+      "kwargs": {
+        "version": "2.4.6",
+        "reasoning_effort": "xhigh",
+        "model_class": "litellm_response",
+        "model_kwargs": {},
+        "cost_limit": 0,
+        "extra_python_packages": [],
+        "cc_check_bundle_sha256": "sha256:5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f",
+        "skill_sha256": "sha256:988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a",
+        "pilot_manifest_sha256": "sha256:20f9ffb6333ee4474011a814437168c37754c7cb3a9f8e0d1300e4a9159b6788",
+        "harness_lock_sha256": "sha256:3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1",
+        "prompt_extension_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    },
+    {
+      "import_path": "deepswe_eval.agents:CodeContractsAgent",
+      "model_name": "openai/gpt-5.6-terra",
+      "kwargs": {
+        "version": "2.4.6",
+        "reasoning_effort": "xhigh",
+        "model_class": "litellm_response",
+        "model_kwargs": {},
+        "cost_limit": 0,
+        "extra_python_packages": [],
+        "cc_check_bundle_sha256": "sha256:5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f",
+        "skill_sha256": "sha256:988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a",
+        "pilot_manifest_sha256": "sha256:20f9ffb6333ee4474011a814437168c37754c7cb3a9f8e0d1300e4a9159b6788",
+        "harness_lock_sha256": "sha256:3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1",
+        "prompt_extension_sha256": "sha256:3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3"
+      },
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  ]
+}

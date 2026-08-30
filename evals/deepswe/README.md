@@ -103,3 +103,25 @@ PYTHONPATH=. uv run python -m deepswe_eval.analyze \
   --allow-error-type VerifierTimeoutError \
   --format markdown
 ```
+
+## Run the Terra/xhigh replication
+
+The Terra replication keeps the twelve tasks and two arms frozen while changing the model to
+`openai/gpt-5.6-terra`, reasoning effort to `xhigh`, attempts to four per task/arm, and concurrency
+to eight. It runs 96 trials with retries disabled.
+
+```bash
+cd evals/deepswe
+export OPENAI_API_KEY=...
+make check
+
+PYTHONPATH=. uv run pier run \
+  --config config/phase4-terra-xhigh-k4.json \
+  --yes
+
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-terra-xhigh-k4 \
+  --manifest config/pilot-v1.json \
+  --attempts 4 \
+  --format markdown
+```
