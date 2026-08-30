@@ -782,3 +782,128 @@ files contain 72 and one literal `${OPENAI_API_KEY}` placeholders, respectively.
   arms, so exact task-and-attempt paired McNemar analysis is not reconstructed for this run
 - Decision: retain this as a directional result; do not expand directly to all 108 tasks. Add five
   Luna attempts per task/arm before deciding whether to replicate with Terra and then Sol.
+
+## Phase 4 Terra/xhigh pilot replication
+
+### P02 — four-attempt matched pilot
+
+Frozen at `2026-08-30 14:36:22 CEST`, before any Terra scored call.
+
+- Frozen repository commit: `bde7c12792c9b22f1e0a17ff72eb26650b9e4f18`
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Backend: local Docker; direct OpenAI `gpt-5.6-terra`; reasoning effort `xhigh`
+- Design: the same twelve `pilot-v1` tasks and two arms, four attempts per task/arm, 96 total
+  trials, concurrency eight, and zero retries
+- User-directed deviation from the Phase 3 recommendation: proceed directly to Terra with four
+  attempts per cell instead of first adding five Luna attempts per cell
+- Expected cost: approximately `$36`, with a `$30–50` allowance. The estimate scales Phase 3's
+  observed token mix to 96 trials using OpenAI's current Terra prices of `$2.00` per million input,
+  `$0.20` per million cached-input, and `$12.00` per million output tokens.
+- Phase 4 config SHA-256:
+  `fff091b52577130f68df2b55bbf661698635320c7ebc189400bd5d96ba85a4da`
+- Pilot manifest / Phase 3 base config SHA-256:
+  `20f9ffb6333ee4474011a814437168c37754c7cb3a9f8e0d1300e4a9159b6788` /
+  `375bfad156a487cc44169075557ebd30b4ed537e7738510d687ab495c7fd1354`
+- Agent / preflight / analyzer source SHA-256:
+  `78b2563f6d03f7de239fe32864937ad79e5514c836eec4a7f01564dc1174f0fa` /
+  `bfc7cac105d1d64745692374cd0500fdad897a6b89b189a65a4f33fbd5d6be58` /
+  `f6b08b5373541386983d3f58737f5f12586387a3b1b690d365d9ad444b1320b1`
+- Harness lock / `cc-check` bundle / skill SHA-256:
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Preflight: passed; the Phase 4 config differs from frozen Phase 3 only in job name, attempts,
+  concurrency, model identifier, and reasoning effort, with both arms changed symmetrically
+- Analysis: require exactly four public binary rewards in every task/arm cell; report micro and
+  task-macro average pass rates plus task-macro pass@1 through pass@4
+- Raw job target: `jobs/pilot-v1-terra-xhigh-k4/`
+- Command:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/phase4-terra-xhigh-k4.json \
+  --yes
+```
+
+- Started: `2026-08-30 14:36:48 CEST`
+- Initial resolution: 96 total trials; eight running and 88 pending; zero errors, cancellations, or
+  retries
+
+At `2026-08-30 14:43:43 CEST`, a local process-list diagnostic printed the runtime OpenAI key in the
+private operator transcript because Docker Compose includes environment arguments in its process
+command line. The diagnostic output is not a repository or Pier artifact, but the key must be rotated
+after the run. An immediate literal scan found zero runtime-key occurrences in the Phase 4 job files;
+the sanitized lock contains 96 `${OPENAI_API_KEY}` placeholders. Process-list inspection is disabled
+for the remainder of the run.
+
+The job completed at `2026-08-30 17:14:45 CEST` after 2 hours 37 minutes 57 seconds. All 96 trials
+produced valid binary rewards: 48 per arm and four per task/arm cell. There were zero errors,
+cancellations, and retries, so no exclusion or replacement rule was invoked. Aggregate usage was
+340,217,354 input tokens, including 322,194,616 cached tokens, and 4,442,307 output tokens. Total
+model cost was `$165.15773510`: `$77.66091310` for control and `$87.49682200` for code-contracts.
+
+The `$165.16` actual cost was 4.59 times the approximately `$36` point estimate and 3.30 times the
+top of the `$30-50` allowance. The estimate incorrectly transferred Phase 3 Luna's token mix to
+Terra/xhigh. Relative to that 96-trial scaling, the completed run used 4.74 times as many input
+tokens and 4.98 times as many output tokens. Future Terra/xhigh estimates must use a same-model
+smoke sample.
+
+- Result / resolved config / lock SHA-256:
+  `d88ee7db4f7ea4c9e7cc8c8074f8e2d9d72ebd251f12be41e929dd27a2983347` /
+  `c3a1879f7298175b0748dd2b8809aa70acab42e410f238dbf0ff7f57262c891b` /
+  `8673a834947d496f8f0696b261564b27df1840af7fbe70dc761f8b3d39f01213`
+
+### P02 analysis
+
+Only public per-trial `result.json` outcomes were used for the primary analysis. The raw job
+directory was not edited.
+
+```bash
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-terra-xhigh-k4 \
+  --manifest config/pilot-v1.json \
+  --attempts 4 \
+  --format markdown
+```
+
+| Arm | Passed | Micro pass rate | Macro pass rate | pass@1 | pass@2 | pass@3 | pass@4 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| control | 29/48 | 0.6042 | 0.6042 | 0.6042 | 0.7222 | 0.7500 | 0.7500 |
+| code-contracts | 29/48 | 0.6042 | 0.6042 | 0.6042 | 0.6944 | 0.7292 | 0.7500 |
+| code-contracts - control | +0 | +0.0000 | +0.0000 | +0.0000 | -0.0278 | -0.0208 | +0.0000 |
+
+Treatment improved two tasks, lost two, and tied eight. It had higher mean partial score (`0.9974`
+versus `0.9593`) and fail-to-pass fraction (`0.9795` versus `0.9410`), and a slightly lower
+pass-to-pass fraction (`0.9996` versus `0.9999`). Treatment cost 12.67% more per trial, used 1.37%
+more steps, and took 12.28% longer. Complete task-level and secondary results are in
+[PHASE4_ANALYSIS.md](PHASE4_ANALYSIS.md).
+
+Treatment mechanism adoption was complete by the observable markers: all 48 treatment trajectories
+invoked `cc-check`, their bash tool calls contained 666 commands with `cc-check`, and all 48
+treatment patches added an `@cc` marker. All corresponding control counts were zero. These markers
+do not establish contract quality or a successful final per-file audit.
+
+All 96 provenance records agree on direct OpenAI `openai/gpt-5.6-terra`, reasoning effort `xhigh`,
+DeepSWE commit, mini-swe-agent and Node versions, agent source, pilot manifest, `cc-check` bundle,
+skill, harness lock, and activation-instruction digests. The job contains 48 provenance records per
+arm. Within each arm the prompt-extension digest is constant: control uses the empty-content digest
+and treatment uses `sha256:3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3`.
+
+The post-run public-artifact manifest selected the top-level resolved config, lock, and result plus
+each trial's public result, provenance, native trajectory, and model patch. The selection contains
+387 files and digest `13505f4dcbf664ffdd8b8dfe0f8a23723a7f4e0a6141c3f7c1794c6dacd5b715`.
+The digest hashes a newline-terminated, path-sorted manifest of
+`<file SHA-256>  <job-relative path>` entries.
+
+A full-job literal credential scan found zero runtime-key occurrences; the sanitized lock contains
+96 literal `${OPENAI_API_KEY}` placeholders. The earlier private-transcript exposure remains a
+credential incident even though no repository or Pier artifact persisted the key; rotate that key
+before further runs.
+
+- Phase 4 analysis report SHA-256:
+  `92ac384657db54be2b4854dbf02b8a82ad8f7666a2d3477ac2394b6f4f819b45`
+- Analysis limitation: public artifacts do not expose a stable shared attempt identifier across
+  arms, so exact task-and-attempt paired McNemar analysis is not reconstructed
+- Decision: Terra/xhigh does not reproduce Phase 3's positive binary difference. Do not expand
+  directly to all 108 tasks. A Sol run may be frozen as an independent replication, but is not a
+  validation of an established positive effect.
