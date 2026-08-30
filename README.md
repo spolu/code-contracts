@@ -69,12 +69,13 @@ npm install --global cc-check
 
 The `cc-check` command-line interface provides:
 
-- `cc-check check [file-like]`: validates code-contract grammar and contract-ID uniqueness in one
-  supported source or `CONTRACTS` file, or recursively across the current directory when no path is
-  given.
-- `cc-check list <file-like|location-like>`: lists declaration-attached contracts for a supported
-  source file or the declaration containing a source location, including applicable ancestor
-  `CONTRACTS` files by default; pass `--no-global` to show only declaration contracts.
+- `cc-check check [file-like]`: validates `@cc` grammar and contract-ID uniqueness in a supported
+  source or `CONTRACTS` file. Without a path, it recursively checks every supported file in the
+  current directory.
+- `cc-check list <file-like|location-like>`: lists contracts attached to declarations throughout a
+  supported source file, or contracts applicable to the declaration containing a source location
+  and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
+  included by default; pass `--no-global` to exclude them.
 
 ## Specification and grammar
 

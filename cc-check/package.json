@@ -27,7 +27,7 @@
   },
   "type": "module",
   "bin": {
-    "cc-check": "./dist/cc-check.js"
+    "cc-check": "dist/cc-check.js"
   },
   "scripts": {
     "build": "npm run clean && tsc --project tsconfig.build.json",
