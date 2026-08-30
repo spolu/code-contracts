@@ -126,3 +126,34 @@ PYTHONPATH=. uv run python -m deepswe_eval.analyze \
   --attempts 4 \
   --format markdown
 ```
+
+## Run the full Luna evaluation
+
+The confirmatory Luna run includes all 108 DeepSWE tasks written in TypeScript, Python, Go, or
+Rust and excludes the five JavaScript tasks. Both arms use `openai/gpt-5.6-luna` with reasoning
+effort `max`, three attempts per task, concurrency eight, and zero retries: 648 trials total.
+`config/full-v1.json` pins the upstream 113-task manifest and exact exclusions.
+
+```bash
+cd evals/deepswe
+
+# Materialize the tracked bundle and the pinned DeepSWE task checkout.
+git lfs pull --include='evals/deepswe/artifacts/*.tar.gz'
+git clone https://github.com/datacurve-ai/deep-swe resolved/deep-swe
+git -C resolved/deep-swe checkout 0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea
+
+uv sync --frozen
+export OPENAI_API_KEY=...
+make check
+
+# This is the scored operation: 648 trials at concurrency eight.
+PYTHONPATH=. uv run pier run \
+  --config config/full-v1-luna-k3.json \
+  --yes
+
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/full-v1-luna-k3 \
+  --manifest config/full-v1.json \
+  --attempts 3 \
+  --format markdown
+```

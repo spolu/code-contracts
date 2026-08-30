@@ -907,3 +907,62 @@ before further runs.
 - Decision: Terra/xhigh does not reproduce Phase 3's positive binary difference. Do not expand
   directly to all 108 tasks. A Sol run may be frozen as an independent replication, but is not a
   validation of an established positive effect.
+
+## Phase 5 full-corpus Luna evaluation
+
+### P03 — prepared remote run; not started
+
+Frozen at `2026-08-30 17:42:30 CEST`. This entry records preparation only. No Phase 5 Pier job,
+scored model call, job directory, or result artifact has been started or created.
+
+- Frozen repository commit: `24f18502cfbcafd67feaa071282d3549bb78256d`
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Source dataset: `deep-swe-1-1`, 113 tasks; source manifest SHA-256:
+  `f987b656fe75e20eeb7a050ec1b3c5d692cc8f102dfe7caca45906616b5ae879`
+- Selection: all 108 TypeScript, Python, Go, and Rust tasks; exclude exactly the five JavaScript
+  tasks named in `config/full-v1.json`
+- Backend: remote local Docker; direct OpenAI `gpt-5.6-luna`; reasoning effort `max`
+- Design: 108 tasks, two arms, three attempts per task/arm, 648 total trials, concurrency eight,
+  and zero retries
+- User-directed decision: prepare the full Luna run despite Phase 4's neutral binary result; do not
+  start locally because the user will launch it on a remote machine after merging the preparation PR
+- Expected cost: `$24.3` point estimate and `$25-40` operational range. The point estimate scales
+  Phase 3's complete `$2.73342557` cost for 73 executions to 648 executions.
+- Expected wall time: 8 hours 15 minutes point estimate and 8-12 hours operational range. The point
+  estimate scales Phase 3's 72-trial primary wall time by nine for trial count and one-half for the
+  concurrency increase from four to eight.
+- Current Luna pricing verified from OpenAI's model documentation at preparation time: `$0.20` per
+  million input tokens, `$0.02` per million cached-input tokens, and `$1.20` per million output
+  tokens; `max` reasoning is supported
+- Full selection manifest / run config SHA-256:
+  `85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772` /
+  `68033e8528725045ac1e6bc9dd9becce6d01516148664c857c25c2780b13a51e`
+- Agent / analyzer / preflight source SHA-256:
+  `78b2563f6d03f7de239fe32864937ad79e5514c836eec4a7f01564dc1174f0fa` /
+  `afadeb95a1104f37c1db6eeaab3c897727ddcf26bfc9d377677b7ee9dd78951a` /
+  `8c388a950bd3c0678263907d5d757ff5025c7fa20b4917cebb1f06c34ba2abe6`
+- Harness lock / `cc-check` bundle / skill SHA-256:
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Remote runbook SHA-256:
+  `b717f76002271d9069ac84b6783ab2441395dbe7b6131b6133922485fca2b38b`
+- Preflight: passed; Pier resolves exactly 108 tasks, 648 trials, concurrency eight, and zero
+  retries. The full config preserves Phase 3's model, reasoning, arms, tools, runtime limits, and
+  three attempts while changing only the frozen dataset selection, concurrency, job name, and
+  full-manifest provenance digest.
+- Credential handling: the remote operator must use a newly rotated key supplied only through the
+  runtime environment and must not inspect process arguments
+- Raw job target, currently absent: `jobs/full-v1-luna-k3/`
+- Operator handoff: [FULL_LUNA_RUNBOOK.md](FULL_LUNA_RUNBOOK.md)
+- Frozen scored command, intentionally not run during preparation:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/full-v1-luna-k3.json \
+  --yes
+```
+
+The remote operator must append the actual start timestamp and initial 648/8/640 resolution before
+interpreting results. All infrastructure errors remain in the immutable primary job and require a
+separately frozen, outcome-blind replacement decision.

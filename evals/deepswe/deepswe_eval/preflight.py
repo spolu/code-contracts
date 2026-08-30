@@ -29,6 +29,9 @@ DEFAULT_PROMPT_V3_SMOKE = EVAL_ROOT / "config" / "prompt-v3-smoke.json"
 DEFAULT_PROMPT_V4_SMOKE = EVAL_ROOT / "config" / "prompt-v4-smoke.json"
 DEFAULT_PHASE3_CONFIG = EVAL_ROOT / "config" / "phase3-luna.json"
 DEFAULT_PHASE4_CONFIG = EVAL_ROOT / "config" / "phase4-terra-xhigh-k4.json"
+DEFAULT_FULL_MANIFEST = EVAL_ROOT / "config" / "full-v1.json"
+DEFAULT_PHASE5_CONFIG = EVAL_ROOT / "config" / "full-v1-luna-k3.json"
+SOURCE_DEEPSWE_MANIFEST = EVAL_ROOT / "resolved" / "deep-swe" / "tasks" / "manifest.json"
 EXPECTED_ARMS = {
     "deepswe_eval.agents:CodeContractsAgent": CodeContractsAgent,
     "deepswe_eval.agents:ControlAgent": ControlAgent,
@@ -250,6 +253,90 @@ def _assert_phase4_config(phase4_config: dict[str, Any], phase3_config: dict[str
         )
 
 
+def _assert_full_manifest(full_manifest: dict[str, Any], pilot: dict[str, Any]) -> None:
+    """@cc [author:spolu,label:evaluation] full-v1-selection
+    `full-v1` contains every TypeScript, Python, Go, and Rust task and excludes exactly the five
+    JavaScript tasks from the pinned 113-task DeepSWE source manifest.
+    """
+    source_manifest = _load_json(SOURCE_DEEPSWE_MANIFEST)
+    if full_manifest.get("version") != "full-v1":
+        raise ValueError("Unexpected full-corpus manifest version.")
+    if full_manifest.get("deep_swe_commit") != pilot.get("deep_swe_commit"):
+        raise ValueError("Full and pilot manifests must pin the same DeepSWE commit.")
+    if full_manifest.get("source_dataset") != source_manifest.get("dataset"):
+        raise ValueError("Full manifest must identify the pinned DeepSWE source dataset.")
+    if full_manifest.get("source_manifest_sha256") != sha256_file(SOURCE_DEEPSWE_MANIFEST):
+        raise ValueError("Full manifest source digest does not match DeepSWE's task manifest.")
+
+    source_tasks = source_manifest.get("tasks")
+    if not isinstance(source_tasks, list) or len(source_tasks) != 113:
+        raise ValueError("The pinned DeepSWE source manifest must contain 113 tasks.")
+    language_counts = Counter(task["language"] for task in source_tasks)
+    expected_source_counts = Counter(
+        {"typescript": 35, "python": 34, "go": 34, "rust": 5, "javascript": 5}
+    )
+    if language_counts != expected_source_counts:
+        raise ValueError(f"Unexpected full-corpus source languages: {language_counts}")
+
+    excluded_tasks = sorted(
+        task["task_id"] for task in source_tasks if task["language"] == "javascript"
+    )
+    if full_manifest.get("excluded_tasks") != excluded_tasks:
+        raise ValueError("full-v1 must exclude exactly the five JavaScript tasks.")
+    expected_selection = {
+        "algorithm": (
+            "Include every source-manifest task whose language is TypeScript, Python, Go, or "
+            "Rust; exclude JavaScript."
+        ),
+        "included_languages": ["typescript", "python", "go", "rust"],
+        "excluded_languages": ["javascript"],
+        "language_counts": {"typescript": 35, "python": 34, "go": 34, "rust": 5},
+        "task_count": 108,
+    }
+    if full_manifest.get("selection") != expected_selection:
+        raise ValueError("Unexpected full-v1 selection metadata.")
+    if full_manifest.get("source_task_count") != len(source_tasks):
+        raise ValueError("Full manifest source task count is inconsistent.")
+
+    task_root = SOURCE_DEEPSWE_MANIFEST.parent
+    actual_task_ids = {path.name for path in task_root.iterdir() if path.is_dir()}
+    source_task_ids = {task["task_id"] for task in source_tasks}
+    if actual_task_ids != source_task_ids:
+        raise ValueError("Resolved DeepSWE task directories do not match the source manifest.")
+
+
+def _assert_phase5_config(
+    phase5_config: dict[str, Any],
+    phase3_config: dict[str, Any],
+    full_manifest: dict[str, Any],
+    full_manifest_digest: str,
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-full-luna-config
+    The full Luna job preserves Phase 3's two arms, model, reasoning, tools, limits, and three
+    attempts while selecting all 108 included-language tasks and using concurrency eight.
+    """
+    JobConfig.model_validate(phase5_config)
+    expected = copy.deepcopy(phase3_config)
+    expected.update(
+        {
+            "job_name": "full-v1-luna-k3",
+            "n_concurrent_trials": 8,
+            "datasets": [
+                {
+                    "path": "resolved/deep-swe/tasks",
+                    "exclude_task_names": full_manifest["excluded_tasks"],
+                }
+            ],
+        }
+    )
+    for agent in expected["agents"]:
+        agent["kwargs"]["pilot_manifest_sha256"] = full_manifest_digest
+    if phase5_config != expected:
+        raise ValueError(
+            "Phase 5 must differ from Phase 3 only in its frozen full-corpus run settings."
+        )
+
+
 def run_preflight(
     config_path: Path,
     manifest_path: Path,
@@ -258,6 +345,8 @@ def run_preflight(
     prompt_v4_smoke_path: Path = DEFAULT_PROMPT_V4_SMOKE,
     phase3_config_path: Path = DEFAULT_PHASE3_CONFIG,
     phase4_config_path: Path = DEFAULT_PHASE4_CONFIG,
+    full_manifest_path: Path = DEFAULT_FULL_MANIFEST,
+    phase5_config_path: Path = DEFAULT_PHASE5_CONFIG,
 ) -> None:
     config = _load_json(config_path)
     manifest = _load_json(manifest_path)
@@ -266,6 +355,8 @@ def run_preflight(
     prompt_v4_smoke = _load_json(prompt_v4_smoke_path)
     phase3_config = _load_json(phase3_config_path)
     phase4_config = _load_json(phase4_config_path)
+    full_manifest = _load_json(full_manifest_path)
+    phase5_config = _load_json(phase5_config_path)
     _assert_config_parity(config)
     _assert_manifest(manifest)
     _assert_prompt_v2_smoke(prompt_v2_smoke, manifest)
@@ -273,6 +364,10 @@ def run_preflight(
     _assert_prompt_v4_smoke(prompt_v4_smoke, manifest, (prompt_v2_smoke, prompt_v3_smoke))
     _assert_phase3_config(phase3_config, config, manifest)
     _assert_phase4_config(phase4_config, phase3_config)
+    _assert_full_manifest(full_manifest, manifest)
+    _assert_phase5_config(
+        phase5_config, phase3_config, full_manifest, sha256_file(full_manifest_path)
+    )
 
     agents = config["agents"]
     shared_kwargs = agents[0]["kwargs"]
@@ -333,6 +428,8 @@ def main() -> None:
     parser.add_argument("--prompt-v4-smoke", type=Path, default=DEFAULT_PROMPT_V4_SMOKE)
     parser.add_argument("--phase3-config", type=Path, default=DEFAULT_PHASE3_CONFIG)
     parser.add_argument("--phase4-config", type=Path, default=DEFAULT_PHASE4_CONFIG)
+    parser.add_argument("--full-manifest", type=Path, default=DEFAULT_FULL_MANIFEST)
+    parser.add_argument("--phase5-config", type=Path, default=DEFAULT_PHASE5_CONFIG)
     arguments = parser.parse_args()
     run_preflight(
         arguments.config.resolve(),
@@ -342,6 +439,8 @@ def main() -> None:
         arguments.prompt_v4_smoke.resolve(),
         arguments.phase3_config.resolve(),
         arguments.phase4_config.resolve(),
+        arguments.full_manifest.resolve(),
+        arguments.phase5_config.resolve(),
     )
     print("DeepSWE ablation preflight passed.")
 

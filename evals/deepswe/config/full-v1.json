@@ -1,0 +1,33 @@
+{
+  "version": "full-v1",
+  "deep_swe_commit": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+  "source_dataset": "deep-swe-1-1",
+  "source_task_count": 113,
+  "source_manifest_sha256": "sha256:f987b656fe75e20eeb7a050ec1b3c5d692cc8f102dfe7caca45906616b5ae879",
+  "selection": {
+    "algorithm": "Include every source-manifest task whose language is TypeScript, Python, Go, or Rust; exclude JavaScript.",
+    "included_languages": [
+      "typescript",
+      "python",
+      "go",
+      "rust"
+    ],
+    "excluded_languages": [
+      "javascript"
+    ],
+    "language_counts": {
+      "typescript": 35,
+      "python": 34,
+      "go": 34,
+      "rust": 5
+    },
+    "task_count": 108
+  },
+  "excluded_tasks": [
+    "csstree-shorthand-expansion-compression",
+    "katex-multicolumn-array-spans",
+    "testem-bail-on-test-failure",
+    "testem-per-launcher-reports",
+    "yjs-map-conflict-detection"
+  ]
+}

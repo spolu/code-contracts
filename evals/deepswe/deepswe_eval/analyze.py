@@ -8,8 +8,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from deepswe_eval.agents import sha256_file
+
 EVAL_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = EVAL_ROOT / "config" / "pilot-v1.json"
+DEFAULT_SOURCE_MANIFEST = EVAL_ROOT / "resolved" / "deep-swe" / "tasks" / "manifest.json"
 EXPECTED_ARMS = ("control", "code-contracts")
 
 
@@ -37,6 +40,39 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 def _task_id(task_name: str) -> str:
     return task_name.rsplit("/", maxsplit=1)[-1]
+
+
+def _manifest_task_ids(manifest: dict[str, Any], source_manifest_path: Path) -> list[str]:
+    """@cc [author:spolu,label:evaluation] deterministic-manifest-tasks
+    A manifest either lists unique `tasks` directly or selects them from a digest-pinned source
+    manifest by exact exclusions, and the resolved count must match its declared task count.
+    """
+    manifest_tasks = manifest.get("tasks")
+    if isinstance(manifest_tasks, list):
+        tasks = [task["task_id"] for task in manifest_tasks]
+    elif manifest.get("version") == "full-v1":
+        if manifest.get("source_manifest_sha256") != sha256_file(source_manifest_path):
+            raise ValueError("Full manifest source digest does not match the task source manifest.")
+        source_manifest = _load_json(source_manifest_path)
+        source_tasks = source_manifest.get("tasks")
+        excluded_tasks = manifest.get("excluded_tasks")
+        if not isinstance(source_tasks, list) or not isinstance(excluded_tasks, list):
+            raise TypeError("Full manifest source tasks and exclusions must be lists.")
+        excluded = set(excluded_tasks)
+        if len(excluded) != len(excluded_tasks):
+            raise ValueError("Full manifest exclusions must be unique.")
+        source_task_ids = {task["task_id"] for task in source_tasks}
+        if not excluded.issubset(source_task_ids):
+            raise ValueError("Full manifest excludes tasks absent from its source manifest.")
+        tasks = [task["task_id"] for task in source_tasks if task["task_id"] not in excluded]
+        expected_count = manifest.get("selection", {}).get("task_count")
+        if len(tasks) != expected_count:
+            raise ValueError("Full manifest resolved task count is inconsistent.")
+    else:
+        tasks = []
+    if not tasks or len(tasks) != len(set(tasks)):
+        raise ValueError("Manifest tasks must be a non-empty unique list.")
+    return tasks
 
 
 def collect_outcomes(
@@ -119,17 +155,16 @@ def analyze_job(
     manifest_path: Path,
     expected_attempts: int,
     allowed_error_types: frozenset[str] = frozenset(),
+    source_manifest_path: Path = DEFAULT_SOURCE_MANIFEST,
 ) -> dict[str, Any]:
     """@cc [author:spolu,label:evaluation] balanced-pilot-analysis
-    Pilot analysis requires exactly `expected_attempts` binary results for every manifest task and
+    Matched analysis requires exactly `expected_attempts` binary results for every manifest task and
     arm, then reports micro/macro pass rates and task-macro pass@k for every `1 <= k <= attempts`.
     """
     if expected_attempts < 1:
         raise ValueError("Expected attempts must be positive.")
     manifest = _load_json(manifest_path)
-    tasks = [task["task_id"] for task in manifest.get("tasks", [])]
-    if not tasks or len(tasks) != len(set(tasks)):
-        raise ValueError("Manifest tasks must be a non-empty unique list.")
+    tasks = _manifest_task_ids(manifest, source_manifest_path)
 
     normalized_job_dirs = [job_dirs] if isinstance(job_dirs, Path) else job_dirs
     outcomes, failures = collect_outcomes(normalized_job_dirs, allowed_error_types)
@@ -287,6 +322,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Analyze a matched DeepSWE pilot job.")
     parser.add_argument("job_dirs", type=Path, nargs="+")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--source-manifest", type=Path, default=DEFAULT_SOURCE_MANIFEST)
     parser.add_argument("--attempts", type=int, required=True)
     parser.add_argument("--allow-error-type", action="append", default=[])
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
@@ -296,6 +332,7 @@ def main() -> None:
         arguments.manifest.resolve(),
         arguments.attempts,
         frozenset(arguments.allow_error_type),
+        arguments.source_manifest.resolve(),
     )
     if arguments.format == "json":
         print(json.dumps(analysis, indent=2, sort_keys=True))
