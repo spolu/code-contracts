@@ -343,13 +343,281 @@ smoke result, not a scored estimate of treatment effect.
 - Decision: the local Phase 2 operational gate passes for prompt v2.1; the two binary failures are
   recorded as task outcomes rather than infrastructure failures, and no scored pilot was started
 
+### Prompt v3 refreeze
+
+Recorded at `2026-08-30 09:22:03 CEST` after the activation instruction was simplified following
+inspection of the unscored v2.1 smoke. The canonical skill remains unchanged. One grammatical
+correction changed “relevant or related to the task that are still not covered” to “relevant to or
+related to the task and are not yet covered” without changing the requested meaning. Prompt v3
+appends this frozen eval-specific instruction after the skill:
+
+```text
+Important instructions: Use the code-contracts skill for every code
+change. Before tackling coding tasks, discover applicable code contracts and/or introduce new code
+contracts for parts of the codebase that are relevant to or related to the task and are not yet
+covered.
+```
+
+- Repository commit: `2a878bb7b1878a1cb078915a42d59d3804d29f2e` plus the uncommitted prompt-v3
+  evaluation changes recorded here
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Code-contracts skill SHA-256: unchanged at
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Activation-instruction SHA-256:
+  `06420de9c016da3541648c08861dc6a5d54818f47c542cc43f9e7f5e0b5e7778`
+- Treatment prompt-extension SHA-256:
+  `164dadd796ea22ab1a0208a8592d9d76f2e03584eaf259a3a38d64b3818c51b0`
+- Ablation config SHA-256: `a11baf372392316738f1a6143e09ed94fb4c7b0185d98c0e4481b41b4a93cfa6`
+- Agent source SHA-256: `1b1b76039e07fc0faae5ade49907f53d6ba5fe807b70db7d57082948251e9ce0`
+- Preflight source SHA-256:
+  `795651f6531c5ae9c9098ca89242cac263a87b6ed3a933ffecbc831bece9e641`
+- Fresh smoke manifest SHA-256:
+  `be6a1732cc140f45e0e440fcdaafa747da0e98221a8448e44aac88d77d94f791`
+- Fresh smoke task: `clack-async-autocomplete-options`, selected by sorting eligible tasks by
+  `SHA256("code-contracts-smoke-v3:" + task_id)` after excluding all pilot-v1 and prior
+  prompt-smoke tasks
+- Task selection SHA-256:
+  `009158b9737afe169976da828993cfbb87268bef49441d7b43eca9a05f829927`
+- Status: prompt v3 is frozen but untested; no scored run may start until its fresh unscored matched
+  smoke completes
+
+### S10/S11 — prompt-v3 matched smoke pair
+
+- Task: `clack-async-autocomplete-options` (fresh unscored TypeScript smoke task)
+- Arms: `control` and `code-contracts`, one attempt each
+- Command:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/ablation.json \
+  --path resolved/deep-swe/tasks/clack-async-autocomplete-options \
+  --job-name smoke-prompt-v3-typescript --yes
+```
+
+- Pre-run status: pending local execution
+- Required treatment evidence: frozen simplified activation instruction delivered after the
+  canonical skill; a task-relevant contract added or updated when uncovered relevant code exists;
+  `cc-check` adoption, valid submission, trajectories, provenance, verifier, and credential checks
+  recorded for both arms
+
+The run completed locally without harness errors. Both patches failed the binary task threshold,
+and treatment underperformed control on the partial metrics. This is an unscored smoke result, not
+an estimate of treatment effect.
+
+- Repository commit: `2a878bb7b1878a1cb078915a42d59d3804d29f2e` plus the uncommitted prompt-v3
+  evaluation changes recorded above
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Backend: direct OpenAI `gpt-5.6-luna`, reasoning effort `max`
+- Start/end: `2026-08-30 09:22:28 CEST` / `2026-08-30 09:29:18 CEST`
+- Attempts/retries: one attempt per arm; zero retries
+- Frozen input SHA-256 values: prompt-v3 smoke manifest
+  `be6a1732cc140f45e0e440fcdaafa747da0e98221a8448e44aac88d77d94f791`, source ablation config
+  `a11baf372392316738f1a6143e09ed94fb4c7b0185d98c0e4481b41b4a93cfa6`, resolved job config
+  `d6e165d8d296e0b1a9fafd15016919d054fb4ad1e3ef64d8ef459f2a63e61a48`, and job lock
+  `c7d0f288c93d907cba04363dd2b0fe2227553ad5ab8a6542ec2a1dc9b1ff19dc`
+- Aggregate result: two completed trials, zero errors/cancellations/retries; 1,834,855 input tokens,
+  1,726,966 cached tokens, 21,302 output tokens, and `$0.08706647`
+- Control: reward `0`, F2P `70/82`, P2P `643/643`, partial `0.983448275862069`, 22 agent
+  steps, 598,690 input tokens, 556,440 cached tokens, 10,278 output tokens, `$0.03402160`, and
+  approximately 281 seconds of agent execution
+- Code-contracts: reward `0`, F2P `49/82`, P2P `643/643`, partial
+  `0.9544827586206897`, 28 agent steps, 1,236,165 input tokens, 1,170,526 cached tokens, 11,024
+  output tokens, `$0.05304487`, and approximately 410 seconds of agent execution
+- Model-visible parity: removing the single frozen extension from the treatment user content yields
+  the control user content byte-for-byte
+- Treatment delivery: the canonical skill and simplified activation instruction appeared exactly
+  once in treatment and were absent from control
+- Treatment adoption: treatment searched the repository for `CONTRACTS` files but made no
+  `cc-check` invocation and added no `@cc` directive or `CONTRACTS` file to its final patch
+- Control contamination: no skill marker, activation text, `cc-check` invocation, or contract was
+  present in the control prompt, trajectory, or patch
+- Provenance: both arms recorded the same activation, agent, bundle, DeepSWE, harness, manifest,
+  model, reasoning, and skill digests; only the expected prompt-extension and resolved-prompt digests
+  differed
+- Credential check: the runtime value was absent from the complete job tree; `lock.json` retained
+  exactly two `${OPENAI_API_KEY}` placeholders
+- Raw job: `jobs/smoke-prompt-v3-typescript/`
+- Aggregate `result.json` SHA-256:
+  `a0ea05fe0479eb29a4a91934625d875f2369c95fbe34b1fd5635a2dfb5332b4b`
+- Control trial/provenance/patch SHA-256:
+  `3088d33ef6c0702a104d6b4a34dbe57cf2a5d02bf51524c9e24e11c1c1180445` /
+  `eb6c244abbe7131203ae2cc5d3921d048ef17084d2e164cbc7f0cbbf961a0ff5` /
+  `10d07b0331eb0863125b71b980482d3827ebe0f5efce896da1850b2412be887a`
+- Code-contracts trial/provenance/patch SHA-256:
+  `32cc37105e98722990a44afc800fa2fc2fbb414d6e634268820704e2f8bafcf8` /
+  `cb11889a65c3696b4a0258a27fb4499edc126b195b2c0d727682ca0328d65a0f` /
+  `9fc1885f064c5874e9a2554c592394c044fae07a6a4982cadd7efad0b3b9551c`
+
+### Phase 2 prompt-v3 gate
+
+- Custom-arm harness completion: `2/2` (`100%` observed; one attempt per arm)
+- Known arm configuration drift: none
+- Control contamination: none observed
+- Treatment delivery: observed
+- Treatment contract creation and `cc-check` adoption: not observed
+- Decision: prompt v3 passes the harness-completion checks but fails the treatment-mechanism gate;
+  no scored pilot was started
+
+### Prompt v4 refreeze
+
+Recorded at `2026-08-30 09:52:31 CEST` after prompt v3 failed to produce contract creation or a
+`cc-check` invocation. Prompt v4 retains the canonical skill and replaces the short user activation
+with a workflow aligned to mini-swe-agent's own headings and imperative language. The workflow is
+plain user-message text immediately after `</skill>`; it has no additional XML wrapper. Both arms
+retain mini-swe-agent's stock system prompt. A proposed treatment-only system override was removed
+before execution and was never used in a model call.
+
+Frozen user-message workflow appended after the skill:
+
+```text
+## Code Contracts Workflow
+
+Complete this workflow for every task that changes code.
+
+1. Identify every declaration, file, or directory whose implementation you may change.
+2. Before making any implementation edit, run `cc-check list <path>` for each target to discover its
+   applicable contracts.
+3. If a target has no task-relevant contracts governing the behavior you will change, STOP and cover
+   it first:
+   a. Add precise `@cc` contracts at the narrowest stable declaration or directory boundary.
+   b. Run `cc-check list <path>` and confirm that the new contracts are discoverable.
+   c. Run `cc-check check <path>` and confirm that it passes.
+   d. Do not edit the implementation until these checks succeed.
+4. Make the implementation changes while preserving or updating the applicable contracts.
+5. Introduce every new declaration together with precise contracts governing its material behavior.
+6. After implementation, run `cc-check list <path>` and `cc-check check <path>` separately for every
+   affected supported source file.
+7. Only after these checks pass and contract / code coherence is ensured, consider the task done.
+
+**CRITICAL REQUIREMENTS:**
+
+- You MUST use the code-contracts skill for every code change.
+- You MUST NOT edit existing implementation code that lacks task-relevant behavioral contracts. Add
+  and validate contracts first.
+- Every materially changed behavior MUST be covered by new or updated contracts in the final patch.
+- A successful `cc-check check` that discovers no task-relevant contracts does not satisfy this
+  workflow.
+- Do not invent speculative obligations; derive contracts from the task requirements and observable
+  code behavior.
+- If no authenticated GitHub identity is available, omit `author` metadata.
+```
+
+- Repository commit: `2a878bb7b1878a1cb078915a42d59d3804d29f2e` plus the uncommitted prompt-v4
+  evaluation changes recorded here
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Code-contracts skill SHA-256: unchanged at
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- User-workflow SHA-256:
+  `628db52a689dc6fedb6e297bf9f2038fcabca85db276b5edbbd618271df87f22`
+- Treatment user-extension SHA-256:
+  `3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3`
+- Ablation config SHA-256: `da0319088f6f9c77b03b445a3a6aa8e8948cc9c446cf8393daaff5f7c0367e3c`
+- Agent source SHA-256: `78b2563f6d03f7de239fe32864937ad79e5514c836eec4a7f01564dc1174f0fa`
+- Preflight source SHA-256:
+  `5aaccc0a6f4e8192b5bdb2765d92b96f3f064f1187e80ca51554835abb875d02`
+- Fresh smoke manifest SHA-256:
+  `4a2c004a759def8a3f921dc9b10d306398c7f9764e736684b653f0c4e9ebb40c`
+- Fresh smoke task: `helm-array-merge-strategies`, selected by sorting eligible tasks by
+  `SHA256("code-contracts-smoke-v4:" + task_id)` after excluding all pilot-v1 and prior
+  prompt-smoke tasks
+- Task selection SHA-256:
+  `01adb98f1c3546fbfb0af7ce4c66a2c54c71135eb1282500166d3e1787d85b07`
+- Status: prompt v4 configuration passes local preflight but is untested in a task environment; no
+  scored pilot may start before the treatment-mechanism gate passes
+
+### S12/S13 — prompt-v4 matched smoke pair
+
+- Task: `helm-array-merge-strategies` (fresh unscored Go smoke task)
+- Arms: `control` and `code-contracts`, one attempt each
+- Command:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/ablation.json \
+  --path resolved/deep-swe/tasks/helm-array-merge-strategies \
+  --job-name smoke-prompt-v4-go --yes
+```
+
+- Pre-run status: pending local execution
+- Required treatment evidence: the canonical skill and unwrapped frozen workflow are delivered only
+  to treatment; contracts are introduced and validated before implementation edits; final contracts,
+  `cc-check` adoption, submission, trajectories, provenance, verifier, and credential checks are
+  recorded for both arms
+
+The run completed locally without harness errors. Both patches failed the binary task threshold,
+and treatment underperformed control on the partial metrics. This is an unscored smoke result, not
+an estimate of treatment effect.
+
+- Repository commit: `2a878bb7b1878a1cb078915a42d59d3804d29f2e` plus the uncommitted prompt-v4
+  evaluation changes recorded above
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Backend: local Docker, direct OpenAI `gpt-5.6-luna`, reasoning effort `max`
+- Start/end: `2026-08-30 09:53:27 CEST` / `2026-08-30 10:42:42 CEST`
+- Attempts/retries: one attempt per arm; zero retries
+- Frozen input SHA-256 values: prompt-v4 smoke manifest
+  `4a2c004a759def8a3f921dc9b10d306398c7f9764e736684b653f0c4e9ebb40c`, source ablation config
+  `da0319088f6f9c77b03b445a3a6aa8e8948cc9c446cf8393daaff5f7c0367e3c`, resolved job config
+  `df6bf0039631fbcb50847c7f474e60b80dea7934269c69d2fa36e2206a8efad9`, and job lock
+  `45ee440187102715d2c2852789dd765a2f6b9ff1f53fefd8c1b0b54158aaa3ac`
+- Aggregate result: two completed trials, zero errors/cancellations/retries; 2,228,215 input tokens,
+  2,135,587 cached tokens, 20,695 output tokens, and `$0.09069224`
+- Control: reward `0`, F2P `35/47`, P2P `12/12`, partial `0.7966101694915254`, 35 agent
+  steps, 999,445 input tokens, 957,400 cached tokens, 10,068 output tokens, `$0.04173560`, and
+  approximately 2,869 seconds of agent execution
+- Code-contracts: reward `0`, F2P `29/47`, P2P `12/12`, partial
+  `0.6949152542372882`, 35 agent steps, 1,228,770 input tokens, 1,178,187 cached tokens, 10,627
+  output tokens, `$0.04895664`, and approximately 2,955 seconds of agent execution
+- Model-visible parity: both arms received byte-identical stock system messages; the unwrapped
+  treatment extension appeared exactly once, and removing it from treatment user content yielded
+  control user content byte-for-byte
+- Treatment pre-edit adoption: treatment first found no existing contracts, then created a root
+  `CONTRACTS` file with `chart-coalescing`, `merge-null-semantics`, and `strategy-extraction`; its
+  next command successfully rediscovered the contracts for target source paths and checked the
+  `CONTRACTS` file before the first implementation edit
+- Treatment final-audit limitation: the contracts remained in the final patch and later
+  `cc-check` commands succeeded, but the agent checked only a subset of affected source files and
+  made a subsequent cleanup implementation edit before committing without rerunning `cc-check`;
+  prompt v4 therefore achieved contract creation and pre-edit validation but not the required
+  bounded final audit
+- Control contamination: no skill workflow, `cc-check` invocation, `@cc` directive, or `CONTRACTS`
+  file was present in the control prompt, trajectory, or patch
+- Provenance: both arms recorded the same workflow, agent, bundle, DeepSWE, harness, manifest,
+  model, reasoning, and skill digests; only the expected prompt-extension and resolved-prompt
+  digests differed
+- Credential check: the runtime value was absent from the complete job tree; `lock.json` retained
+  exactly two `${OPENAI_API_KEY}` placeholders
+- Raw job: `jobs/smoke-prompt-v4-go/`
+- Aggregate `result.json` SHA-256:
+  `5feebf3d95ecc596079a792120e30a6345ff1838f430fe1e5b56d50627ab9b46`
+- Control trial/provenance/patch/trajectory SHA-256:
+  `b208016449d28bd71a047dac984ba0e23333b0c8b6600bbb4f5e61327bf52fc4` /
+  `e06e5729b6954083cd1017382f6f8530e24f76625cf4d9313518a1786b13793d` /
+  `caeedc96f79c2b6408be8f86611ae57d2cbad870f14e5036b31c8dcfc68dd901` /
+  `abc5f72c67db230eb30f291f8859c35dedea9ec32d7f5b90d524adb2f4d40e8f`
+- Code-contracts trial/provenance/patch/trajectory SHA-256:
+  `3166c2877f9a4818bed6a9bc617025635558b9b1bd044569695428769ebf37c1` /
+  `a6d360ad6adae0a91d167144d96b2178a043a87de2a2ace7c27e5b425a188a8f` /
+  `331c480074277d8e9204b7b37e6432334ecf269717bd58d939c0d54884e7a838` /
+  `71fc886b1a80c958f005e9a78eba68058b20833772fdf666d9c9daf96e6703bb`
+
+### Phase 2 prompt-v4 gate
+
+- Custom-arm harness completion: `2/2` (`100%` observed; one attempt per arm)
+- Known arm configuration drift: none
+- Control contamination: none observed
+- Treatment delivery, contract creation, and pre-edit contract validation: observed
+- Treatment bounded final audit after the last implementation edit: not observed
+- Decision: prompt v4 passes the harness and pre-edit mechanism checks but fails the complete
+  treatment-mechanism gate; no scored pilot was started
+
 ## Required continuation entries
 
 Append an entry before interpreting results for each of the following:
 
-1. Fresh prompt-v2 paired smoke on a newly selected unscored task, including contract creation,
-   skill-delivery, `cc-check`, submission, trajectory, provenance, and credential-persistence checks.
-2. One-attempt paired pilot job.
+1. Any subsequent prompt-revision smoke on a newly selected unscored task, including contract
+   creation, skill-delivery, `cc-check`, submission, trajectory, provenance, and
+   credential-persistence checks.
+2. One-attempt paired pilot job after the active prompt passes its mechanism gate.
 3. Three-attempt paired pilot job if the operational gate passes.
 4. Any full-corpus or Terra/Sol replication.
 

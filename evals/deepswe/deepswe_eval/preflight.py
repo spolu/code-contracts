@@ -25,6 +25,8 @@ EVAL_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = EVAL_ROOT / "config" / "ablation.json"
 DEFAULT_MANIFEST = EVAL_ROOT / "config" / "pilot-v1.json"
 DEFAULT_PROMPT_V2_SMOKE = EVAL_ROOT / "config" / "prompt-v2-smoke.json"
+DEFAULT_PROMPT_V3_SMOKE = EVAL_ROOT / "config" / "prompt-v3-smoke.json"
+DEFAULT_PROMPT_V4_SMOKE = EVAL_ROOT / "config" / "prompt-v4-smoke.json"
 EXPECTED_ARMS = {
     "deepswe_eval.agents:CodeContractsAgent": CodeContractsAgent,
     "deepswe_eval.agents:ControlAgent": ControlAgent,
@@ -138,17 +140,74 @@ def _assert_prompt_v2_smoke(smoke: dict[str, Any], pilot: dict[str, Any]) -> Non
         raise ValueError("Prompt-v2 smoke selection digest mismatch.")
 
 
+def _assert_prompt_v3_smoke(
+    smoke: dict[str, Any], pilot: dict[str, Any], prompt_v2_smoke: dict[str, Any]
+) -> None:
+    if smoke.get("version") != "prompt-v3-smoke":
+        raise ValueError("Unexpected prompt-v3 smoke manifest version.")
+    if smoke.get("deep_swe_commit") != pilot.get("deep_swe_commit"):
+        raise ValueError("Prompt-v3 smoke and pilot manifests must pin the same DeepSWE commit.")
+    tasks = smoke.get("tasks")
+    if not isinstance(tasks, list) or len(tasks) != 1:
+        raise ValueError("Prompt-v3 smoke manifest must contain exactly one task.")
+    task = tasks[0]
+    excluded_ids = {
+        item["task_id"] for key in ("tasks", "smoke_tasks") for item in pilot.get(key, [])
+    }
+    excluded_ids.update(item["task_id"] for item in prompt_v2_smoke.get("tasks", []))
+    if task.get("task_id") in excluded_ids:
+        raise ValueError("Prompt-v3 smoke task must not overlap prior pilot or prompt-smoke tasks.")
+    if task.get("language") not in {"typescript", "python", "go", "rust"}:
+        raise ValueError("Prompt-v3 smoke task must use an included language.")
+    expected = hashlib.sha256(f"code-contracts-smoke-v3:{task.get('task_id')}".encode()).hexdigest()
+    if task.get("selection_sha256") != expected:
+        raise ValueError("Prompt-v3 smoke selection digest mismatch.")
+
+
+def _assert_prompt_v4_smoke(
+    smoke: dict[str, Any],
+    pilot: dict[str, Any],
+    prior_prompt_smokes: tuple[dict[str, Any], ...],
+) -> None:
+    if smoke.get("version") != "prompt-v4-smoke":
+        raise ValueError("Unexpected prompt-v4 smoke manifest version.")
+    if smoke.get("deep_swe_commit") != pilot.get("deep_swe_commit"):
+        raise ValueError("Prompt-v4 smoke and pilot manifests must pin the same DeepSWE commit.")
+    tasks = smoke.get("tasks")
+    if not isinstance(tasks, list) or len(tasks) != 1:
+        raise ValueError("Prompt-v4 smoke manifest must contain exactly one task.")
+    task = tasks[0]
+    excluded_ids = {
+        item["task_id"] for key in ("tasks", "smoke_tasks") for item in pilot.get(key, [])
+    }
+    for prior_smoke in prior_prompt_smokes:
+        excluded_ids.update(item["task_id"] for item in prior_smoke.get("tasks", []))
+    if task.get("task_id") in excluded_ids:
+        raise ValueError("Prompt-v4 smoke task must not overlap prior pilot or prompt-smoke tasks.")
+    if task.get("language") not in {"typescript", "python", "go", "rust"}:
+        raise ValueError("Prompt-v4 smoke task must use an included language.")
+    expected = hashlib.sha256(f"code-contracts-smoke-v4:{task.get('task_id')}".encode()).hexdigest()
+    if task.get("selection_sha256") != expected:
+        raise ValueError("Prompt-v4 smoke selection digest mismatch.")
+
+
 def run_preflight(
     config_path: Path,
     manifest_path: Path,
     prompt_v2_smoke_path: Path = DEFAULT_PROMPT_V2_SMOKE,
+    prompt_v3_smoke_path: Path = DEFAULT_PROMPT_V3_SMOKE,
+    prompt_v4_smoke_path: Path = DEFAULT_PROMPT_V4_SMOKE,
 ) -> None:
     config = _load_json(config_path)
     manifest = _load_json(manifest_path)
     prompt_v2_smoke = _load_json(prompt_v2_smoke_path)
+    prompt_v3_smoke = _load_json(prompt_v3_smoke_path)
+    prompt_v4_smoke = _load_json(prompt_v4_smoke_path)
     _assert_config_parity(config)
     _assert_manifest(manifest)
     _assert_prompt_v2_smoke(prompt_v2_smoke, manifest)
+    _assert_prompt_v3_smoke(prompt_v3_smoke, manifest, prompt_v2_smoke)
+    _assert_prompt_v4_smoke(prompt_v4_smoke, manifest, (prompt_v2_smoke, prompt_v3_smoke))
 
     agents = config["agents"]
     shared_kwargs = agents[0]["kwargs"]
@@ -185,6 +244,8 @@ def run_preflight(
             )
         if CODE_CONTRACTS_INSTRUCTIONS not in treatment.render_instruction(sample_instruction):
             raise ValueError("Treatment prompt is missing the frozen activation instructions.")
+        if "<code-contracts-instructions>" in treatment.render_instruction(sample_instruction):
+            raise ValueError("Treatment workflow must not use an additional XML wrapper.")
         if CODE_CONTRACTS_INSTRUCTIONS in control.render_instruction(sample_instruction):
             raise ValueError("Control prompt contains the treatment activation instructions.")
         if control.to_agent_info().name != "control":
@@ -203,11 +264,15 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--prompt-v2-smoke", type=Path, default=DEFAULT_PROMPT_V2_SMOKE)
+    parser.add_argument("--prompt-v3-smoke", type=Path, default=DEFAULT_PROMPT_V3_SMOKE)
+    parser.add_argument("--prompt-v4-smoke", type=Path, default=DEFAULT_PROMPT_V4_SMOKE)
     arguments = parser.parse_args()
     run_preflight(
         arguments.config.resolve(),
         arguments.manifest.resolve(),
         arguments.prompt_v2_smoke.resolve(),
+        arguments.prompt_v3_smoke.resolve(),
+        arguments.prompt_v4_smoke.resolve(),
     )
     print("DeepSWE ablation preflight passed.")
 

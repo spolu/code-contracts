@@ -10,7 +10,11 @@ from types import SimpleNamespace
 
 from pier.agents.installed.base import NonZeroAgentExitCodeError
 
-from deepswe_eval.agents import CODE_CONTRACTS_INSTRUCTIONS, CodeContractsAgent, ControlAgent
+from deepswe_eval.agents import (
+    CODE_CONTRACTS_INSTRUCTIONS,
+    CodeContractsAgent,
+    ControlAgent,
+)
 
 EVAL_ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((EVAL_ROOT / "config" / "ablation.json").read_text())
@@ -41,6 +45,9 @@ class AgentTests(unittest.TestCase):
             self.assertTrue(treatment.render_instruction(instruction).startswith(instruction))
             self.assertNotIn(CODE_CONTRACTS_INSTRUCTIONS, control.render_instruction(instruction))
             self.assertIn(CODE_CONTRACTS_INSTRUCTIONS, treatment.render_instruction(instruction))
+            self.assertNotIn(
+                "<code-contracts-instructions>", treatment.render_instruction(instruction)
+            )
             self.assertEqual(
                 control.install_spec().model_dump(), treatment.install_spec().model_dump()
             )

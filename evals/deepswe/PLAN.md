@@ -72,10 +72,10 @@ instruction. It is not told that the code-contracts skill or `cc-check` exists.
 ### `code-contracts`
 
 `code-contracts` receives the same prompt plus the frozen contents of the repository's
-`code-contracts` skill and a frozen activation instruction requiring the contract workflow for every
-code change and task-relevant contracts for every material behavior change. Because mini-swe-agent
-does not provide a native skill loader, the eval harness renders both into a deterministic prompt
-extension and records its digest.
+`code-contracts` skill and a frozen user-message workflow. The workflow requires task-relevant
+contracts to be added and validated before uncovered implementation code is edited. Because
+mini-swe-agent does not provide a native skill loader, the eval harness renders the skill and
+workflow into a deterministic user-message extension and records its digest.
 
 The treatment receives no task-specific contracts, verifier information, or reference-solution
 information. It must discover applicable contracts and may create or update contracts from the
