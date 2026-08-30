@@ -56,6 +56,22 @@ Code contracts enable:
 - Generative code analysis and verification that improves agent performance.
 - Maintenance at scale of invariants, product contracts, and security assumptions at code level.
 
+## Tooling
+
+```sh
+npm install --global @spolu/cc-check
+```
+
+The `cc-check` command-line interface provides:
+
+- `cc-check check [file-like]`: validates `@cc` grammar and contract-ID uniqueness in a supported
+  source or `CONTRACTS` file. Without a path, it recursively checks every supported file in the
+  current directory.
+- `cc-check list <file-like|location-like>`: lists contracts attached to declarations throughout a
+  supported source file, or contracts applicable to the declaration containing a source location
+  and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
+  included by default; pass `--no-global` to exclude them.
+
 ## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each

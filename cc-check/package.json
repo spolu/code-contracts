@@ -1,19 +1,43 @@
 {
-  "name": "cc-check",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@spolu/cc-check",
+  "version": "0.1.0",
   "description": "Command-line tooling for code contracts",
+  "keywords": [
+    "code-contracts",
+    "contracts",
+    "cli",
+    "static-analysis",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/spolu/code-contracts#readme",
+  "bugs": {
+    "url": "https://github.com/spolu/code-contracts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spolu/code-contracts.git",
+    "directory": "cc-check"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
-    "cc-check": "./dist/cc-check.js"
+    "cc-check": "dist/cc-check.js"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "npm run clean && tsc --project tsconfig.build.json",
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run test:integration",
+    "clean": "node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx src/cc-check.ts",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
     "lint": "eslint --cache --cache-location .eslintcache src/",
+    "prepack": "npm run check",
     "test": "npm run test:integration",
     "test:integration": "npm run build && node test/integration.mjs",
     "typecheck": "tsc --noEmit"

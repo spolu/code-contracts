@@ -4,6 +4,14 @@ Command-line tooling for discovering and checking code contracts.
 
 `check`, `list`, `callers`, and `references` support TypeScript, Python, Rust, and Go.
 
+## Installation
+
+```sh
+npm install --global @spolu/cc-check
+cc-check --version
+cc-check --help
+```
+
 ## Requirements
 
 - Node.js 24.16 or newer
@@ -37,8 +45,8 @@ cc-check list <file-like|location-like>
 ## Check
 
 `check` validates contracts against the
-[contracts grammar](../README.md#specification-and-grammar) and enforces ID uniqueness within the
-check perimeter. With a file argument, it checks every
+[contracts grammar](https://github.com/spolu/code-contracts#specification-and-grammar) and enforces
+ID uniqueness within the check perimeter. With a file argument, it checks every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
 docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
 file, every `@cc` Rust doc comment, or every contract in a `CONTRACTS` file. Without an argument, it
@@ -49,9 +57,9 @@ support includes `.py` and `.pyi` files; Go and Rust support `.go` and `.rs` fil
 An argument-free check prints each selected relative file path in deterministic discovery order.
 
 ```sh
-npm run dev -- check src/example.ts
-npm run dev -- check CONTRACTS
-npm run dev -- check
+cc-check check src/example.ts
+cc-check check CONTRACTS
+cc-check check
 ```
 
 A compliant targeted file produces no output. Invalid grammar or ID uniqueness produces
@@ -74,8 +82,8 @@ For TypeScript, Python, Rust, or Go files, pass a declaration's file and one-bas
 column is optional:
 
 ```sh
-npm run dev -- callers src/example.ts:42
-npm run dev -- callers src/example.ts:42:10
+cc-check callers src/example.ts:42
+cc-check callers src/example.ts:42:10
 ```
 
 TypeScript files must be under a `tsconfig.json` or `jsconfig.json`; Python files must be under a
@@ -98,7 +106,7 @@ bundled Pyright server, Rust uses `rust-analyzer` from `PATH`, and Go uses `gopl
 recognized usage except the declaration itself:
 
 ```sh
-npm run dev -- references src/example.ts:42
+cc-check references src/example.ts:42
 ```
 
 ```text
@@ -118,9 +126,9 @@ ancestors. Both forms discover `CONTRACTS` files from the repository root throug
 directory:
 
 ```sh
-npm run dev -- list src/example.ts
-npm run dev -- list src/example.ts:42
-npm run dev -- list --no-global src/example.ts:42:10
+cc-check list src/example.ts
+cc-check list src/example.ts:42
+cc-check list --no-global src/example.ts:42:10
 ```
 
 ```text

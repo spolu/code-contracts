@@ -5,7 +5,7 @@ import { runCheckCommand } from "./check.js";
 import { runListCommand } from "./list.js";
 import { runReferencesCommand } from "./references.js";
 
-const VERSION = "0.0.0";
+const VERSION = "0.1.0";
 
 /**
  * @cc [author:spolu,label:product] check-command
