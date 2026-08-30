@@ -7,7 +7,8 @@ treatment's only model-visible difference is the frozen skill and workflow appen
 instruction.
 
 Execution commands, immutable inputs, and outcomes are recorded chronologically in
-[REPRODUCIBILITY.md](REPRODUCIBILITY.md).
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md). Phase 3 results and their interpretation are in
+[PHASE3_ANALYSIS.md](PHASE3_ANALYSIS.md).
 
 ## Build and preflight
 
@@ -62,3 +63,43 @@ PYTHONPATH=. uv run pier run \
 Pier writes its sanitized `lock.json` plus trial outputs under `jobs/`. Each trial adds
 `agent/deepswe-provenance.json` after the agent process exits; it contains only public configuration
 and digests, never prompts, skill text, or environment values.
+
+## Run and analyze Phase 3
+
+Phase 3 runs the twelve frozen `pilot-v1` tasks with three attempts per arm: 72 trials total. Both
+arms use `openai/gpt-5.6-luna` with reasoning effort `max`; concurrency is four and retries are
+disabled.
+
+```bash
+cd evals/deepswe
+export OPENAI_API_KEY=...
+make check
+
+PYTHONPATH=. uv run pier run \
+  --config config/phase3-luna.json \
+  --yes
+
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-luna-k3 \
+  --manifest config/pilot-v1.json \
+  --attempts 3 \
+  --format markdown
+```
+
+The analyzer reads only public per-trial `result.json` files and refuses to report a balanced result
+unless every task/arm cell contains exactly three binary rewards. It reports micro and task-macro
+average pass rates plus task-macro pass@1, pass@2, and pass@3.
+
+If an outcome-blind replacement job is required for an infrastructure failure, pass both immutable
+job directories and explicitly name the allowed error type. The analyzer reports the exclusion and
+still requires exactly three binary outcomes in every cell:
+
+```bash
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-luna-k3 \
+  jobs/pilot-v1-luna-k3-replacement-01 \
+  --manifest config/pilot-v1.json \
+  --attempts 3 \
+  --allow-error-type VerifierTimeoutError \
+  --format markdown
+```
