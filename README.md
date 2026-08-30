@@ -53,9 +53,28 @@ Code contracts enable:
 
 ## Agent skill
 
-The reusable [code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
+```
+npx skills add https://github.com/spolu/code-Contracts
+```
+
+The reusable [$code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
 agents through writing concise contracts, checking them while changing code, and performing a
 bounded semantic audit before commits and pull requests.
+
+## Tooling
+
+```sh
+npm install --global cc-check
+```
+
+The `cc-check` command-line interface provides:
+
+- `cc-check check [file-like]`: validates code-contract grammar and contract-ID uniqueness in one
+  supported source or `CONTRACTS` file, or recursively across the current directory when no path is
+  given.
+- `cc-check list <file-like|location-like>`: lists declaration-attached contracts for a supported
+  source file or the declaration containing a source location, including applicable ancestor
+  `CONTRACTS` files by default; pass `--no-global` to show only declaration contracts.
 
 ## Specification and grammar
 
