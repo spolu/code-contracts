@@ -7,7 +7,8 @@ treatment's only model-visible difference is the frozen skill and workflow appen
 instruction.
 
 Execution commands, immutable inputs, and outcomes are recorded chronologically in
-[REPRODUCIBILITY.md](REPRODUCIBILITY.md).
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md). Phase 3 results and their interpretation are in
+[PHASE3_ANALYSIS.md](PHASE3_ANALYSIS.md).
 
 ## Build and preflight
 
@@ -88,3 +89,17 @@ PYTHONPATH=. uv run python -m deepswe_eval.analyze \
 The analyzer reads only public per-trial `result.json` files and refuses to report a balanced result
 unless every task/arm cell contains exactly three binary rewards. It reports micro and task-macro
 average pass rates plus task-macro pass@1, pass@2, and pass@3.
+
+If an outcome-blind replacement job is required for an infrastructure failure, pass both immutable
+job directories and explicitly name the allowed error type. The analyzer reports the exclusion and
+still requires exactly three binary outcomes in every cell:
+
+```bash
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-luna-k3 \
+  jobs/pilot-v1-luna-k3-replacement-01 \
+  --manifest config/pilot-v1.json \
+  --attempts 3 \
+  --allow-error-type VerifierTimeoutError \
+  --format markdown
+```

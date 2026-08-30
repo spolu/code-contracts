@@ -20,6 +20,14 @@ class TrialOutcome:
     reward: int
 
 
+@dataclass(frozen=True)
+class TrialFailure:
+    trial_name: str
+    task: str
+    arm: str
+    error_type: str
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text())
     if not isinstance(value, dict):
@@ -31,16 +39,25 @@ def _task_id(task_name: str) -> str:
     return task_name.rsplit("/", maxsplit=1)[-1]
 
 
-def collect_outcomes(job_dir: Path) -> list[TrialOutcome]:
+def collect_outcomes(
+    job_dirs: Path | list[Path], allowed_error_types: frozenset[str] = frozenset()
+) -> tuple[list[TrialOutcome], list[TrialFailure]]:
     """@cc [author:spolu,label:evaluation] aggregate-public-results
-    Analysis reads only each trial's public `result.json`, treats `verifier_result.rewards.reward` as
-    the binary outcome, and rejects missing, duplicate, unexpected-arm, or non-binary results.
+    Analysis reads only public per-trial `result.json` files, counts
+    `verifier_result.rewards.reward` as the binary outcome, reports and excludes only explicitly
+    allowed infrastructure errors, and rejects all other missing, duplicate, or invalid results.
     """
-    result_paths = sorted(job_dir.glob("*/result.json"))
+    normalized_job_dirs = [job_dirs] if isinstance(job_dirs, Path) else job_dirs
+    result_paths = sorted(
+        result_path
+        for job_dir in normalized_job_dirs
+        for result_path in job_dir.glob("*/result.json")
+    )
     if not result_paths:
-        raise FileNotFoundError(f"No trial results found under {job_dir}.")
+        raise FileNotFoundError(f"No trial results found under {normalized_job_dirs}.")
 
     outcomes: list[TrialOutcome] = []
+    failures: list[TrialFailure] = []
     trial_names: set[str] = set()
     for result_path in result_paths:
         result = _load_json(result_path)
@@ -62,11 +79,25 @@ def collect_outcomes(job_dir: Path) -> list[TrialOutcome]:
         verifier_result = result.get("verifier_result")
         rewards = verifier_result.get("rewards") if isinstance(verifier_result, dict) else None
         reward = rewards.get("reward") if isinstance(rewards, dict) else None
-        if not isinstance(reward, int | float) or reward not in (0, 1):
-            raise ValueError(f"Missing or non-binary reward in {result_path}.")
-        outcomes.append(TrialOutcome(task=_task_id(task_name), arm=arm, reward=int(reward)))
+        exception_info = result.get("exception_info")
+        error_type = (
+            exception_info.get("exception_type") if isinstance(exception_info, dict) else None
+        )
+        if isinstance(reward, int | float) and reward in (0, 1) and error_type is None:
+            outcomes.append(TrialOutcome(task=_task_id(task_name), arm=arm, reward=int(reward)))
+        elif isinstance(error_type, str) and error_type in allowed_error_types and reward is None:
+            failures.append(
+                TrialFailure(
+                    trial_name=trial_name,
+                    task=_task_id(task_name),
+                    arm=arm,
+                    error_type=error_type,
+                )
+            )
+        else:
+            raise ValueError(f"Missing, non-binary, or failed result in {result_path}.")
 
-    return outcomes
+    return outcomes, failures
 
 
 def _pass_at_k(n: int, successes: int, k: int) -> float:
@@ -83,7 +114,12 @@ def _pass_at_k(n: int, successes: int, k: int) -> float:
     return 1.0 - math.comb(n - successes, k) / math.comb(n, k)
 
 
-def analyze_job(job_dir: Path, manifest_path: Path, expected_attempts: int) -> dict[str, Any]:
+def analyze_job(
+    job_dirs: Path | list[Path],
+    manifest_path: Path,
+    expected_attempts: int,
+    allowed_error_types: frozenset[str] = frozenset(),
+) -> dict[str, Any]:
     """@cc [author:spolu,label:evaluation] balanced-pilot-analysis
     Pilot analysis requires exactly `expected_attempts` binary results for every manifest task and
     arm, then reports micro/macro pass rates and task-macro pass@k for every `1 <= k <= attempts`.
@@ -95,13 +131,17 @@ def analyze_job(job_dir: Path, manifest_path: Path, expected_attempts: int) -> d
     if not tasks or len(tasks) != len(set(tasks)):
         raise ValueError("Manifest tasks must be a non-empty unique list.")
 
-    outcomes = collect_outcomes(job_dir)
+    normalized_job_dirs = [job_dirs] if isinstance(job_dirs, Path) else job_dirs
+    outcomes, failures = collect_outcomes(normalized_job_dirs, allowed_error_types)
     cells: dict[tuple[str, str], list[int]] = defaultdict(list)
     expected_tasks = set(tasks)
     for outcome in outcomes:
         if outcome.task not in expected_tasks:
             raise ValueError(f"Unexpected task in job results: {outcome.task}.")
         cells[(outcome.arm, outcome.task)].append(outcome.reward)
+    for failure in failures:
+        if failure.task not in expected_tasks:
+            raise ValueError(f"Unexpected task in job failures: {failure.task}.")
 
     incomplete = {
         f"{arm}/{task}": len(cells[(arm, task)])
@@ -148,10 +188,19 @@ def analyze_job(job_dir: Path, manifest_path: Path, expected_attempts: int) -> d
     control = arm_results["control"]
     return {
         "schema_version": 1,
-        "job_dir": str(job_dir),
+        "job_dirs": [str(job_dir) for job_dir in normalized_job_dirs],
         "manifest": str(manifest_path),
         "n_tasks": len(tasks),
         "attempts_per_task_arm": expected_attempts,
+        "excluded_infrastructure_failures": [
+            {
+                "trial_name": failure.trial_name,
+                "task": failure.task,
+                "arm": failure.arm,
+                "error_type": failure.error_type,
+            }
+            for failure in failures
+        ],
         "arms": arm_results,
         "treatment_minus_control": {
             "micro_pass_rate": treatment["micro_pass_rate"] - control["micro_pass_rate"],
@@ -165,6 +214,10 @@ def analyze_job(job_dir: Path, manifest_path: Path, expected_attempts: int) -> d
 
 
 def render_markdown(analysis: dict[str, Any]) -> str:
+    """@cc [author:spolu,label:evaluation] complete-markdown-summary
+    Markdown output includes both arm aggregates, treatment-minus-control deltas, per-task pass
+    totals, and every excluded infrastructure failure.
+    """
     attempts = analysis["attempts_per_task_arm"]
     k_values = list(range(1, attempts + 1))
     headers = ["Arm", "Passed", "Micro pass rate", "Macro pass rate"] + [
@@ -182,6 +235,16 @@ def render_markdown(analysis: dict[str, Any]) -> str:
                 *[f"{result['pass_at_k'][str(k)]:.4f}" for k in k_values],
             ]
         )
+    delta = analysis["treatment_minus_control"]
+    rows.append(
+        [
+            "code-contracts - control",
+            f"{analysis['arms']['code-contracts']['passed'] - analysis['arms']['control']['passed']:+d}",
+            f"{delta['micro_pass_rate']:+.4f}",
+            f"{delta['macro_pass_rate']:+.4f}",
+            *[f"{delta['pass_at_k'][str(k)]:+.4f}" for k in k_values],
+        ]
+    )
 
     lines = [
         "| " + " | ".join(headers) + " |",
@@ -207,18 +270,32 @@ def render_markdown(analysis: dict[str, Any]) -> str:
             )
             + " |"
         )
+    lines.extend(["", "Excluded infrastructure failures:", ""])
+    failures = analysis["excluded_infrastructure_failures"]
+    if failures:
+        lines.extend(
+            f"- `{failure['trial_name']}`: `{failure['arm']}/{failure['task']}` "
+            f"(`{failure['error_type']}`)"
+            for failure in failures
+        )
+    else:
+        lines.append("None.")
     return "\n".join(lines)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Analyze a matched DeepSWE pilot job.")
-    parser.add_argument("job_dir", type=Path)
+    parser.add_argument("job_dirs", type=Path, nargs="+")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--attempts", type=int, required=True)
+    parser.add_argument("--allow-error-type", action="append", default=[])
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
     arguments = parser.parse_args()
     analysis = analyze_job(
-        arguments.job_dir.resolve(), arguments.manifest.resolve(), arguments.attempts
+        [job_dir.resolve() for job_dir in arguments.job_dirs],
+        arguments.manifest.resolve(),
+        arguments.attempts,
+        frozenset(arguments.allow_error_type),
     )
     if arguments.format == "json":
         print(json.dumps(analysis, indent=2, sort_keys=True))

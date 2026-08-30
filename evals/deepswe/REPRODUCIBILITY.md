@@ -625,3 +625,160 @@ Each entry must include the repository and DeepSWE commits, config and input dig
 start/end timestamps, backend, task/attempt counts, retries, result path and SHA-256, aggregate
 reward/error/usage/timing data, and any deviation from the frozen plan. Failed and interrupted runs
 remain in the ledger; they are never silently replaced.
+
+## Phase 3 Luna pilot
+
+### Phase 2 closure decision
+
+Recorded at `2026-08-30 12:22:54 CEST`. The user accepted Phase 2 as complete and explicitly
+authorized the scored Phase 3 pilot after reviewing prompt v4's successful contract creation and
+pre-edit validation together with its incomplete final per-file audit. This supersedes the earlier
+operational hold without rewriting the Phase 2 record.
+
+### P01 — three-attempt matched pilot
+
+- Pre-run status: frozen and pending local execution
+- Repository commit: `034f3d76872a9f046c1cc2052fc5cf1483943cae`
+- DeepSWE commit: `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`
+- Backend: local Docker; direct OpenAI `gpt-5.6-luna`; reasoning effort `max`
+- Design: twelve `pilot-v1` tasks, two arms, three attempts per task/arm, 72 total trials,
+  concurrency four, and zero retries
+- Request adjustment: the initial request for eight attempts was revised to exactly three before
+  the Phase 3 config was frozen and before any scored model call
+- Expected cost: `$2.92` from the mean completed Luna smoke-trial cost; `$4–6` practical allowance
+- Phase 3 config SHA-256:
+  `375bfad156a487cc44169075557ebd30b4ed537e7738510d687ab495c7fd1354`
+- Pilot manifest SHA-256:
+  `20f9ffb6333ee4474011a814437168c37754c7cb3a9f8e0d1300e4a9159b6788`
+- Base ablation config SHA-256:
+  `da0319088f6f9c77b03b445a3a6aa8e8948cc9c446cf8393daaff5f7c0367e3c`
+- Agent/analyzer/preflight source SHA-256:
+  `78b2563f6d03f7de239fe32864937ad79e5514c836eec4a7f01564dc1174f0fa` /
+  `2e808b34559d8d9f881900fc3cda71e44cacc117d089802be43badf1145aa4ec` /
+  `a419687ef38a124327116e142355b8fc6a546cc2ea87bedf8e2ba3549e19fd2a`
+- Harness lock / `cc-check` bundle / skill SHA-256:
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Preflight: passed with the Phase 3 config constrained to differ from the base ablation only in
+  job name, exact pilot dataset, attempts, and concurrency
+- Analysis: require exactly three public binary rewards in every task/arm cell; report micro and
+  task-macro average pass rates plus task-macro pass@1, pass@2, and pass@3 using
+  `1 - C(n - c, k) / C(n, k)` per task
+- Raw job target: `jobs/pilot-v1-luna-k3/`
+- Command:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/phase3-luna.json \
+  --yes
+```
+
+- Started: `2026-08-30 12:23:27 CEST`
+- Initial resolution: 72 total trials; four running and 68 pending; zero errors, cancellations, or
+  retries
+
+The scheduled job completed at `2026-08-30 14:13:28 CEST` after 1 hour 50 minutes. Pier completed
+all 72 trial processes with zero cancellations or automatic retries, but one control verifier for
+`pwntools-tube-multiplexing` ended with `VerifierTimeoutError` and produced no binary reward. The
+other 71 trials produced binary rewards. Aggregate usage before replacement was 54,381,033 input
+tokens, 50,796,934 cached tokens, 670,206 output tokens, and `$2.71578898`.
+
+Per the frozen rule that infrastructure failures are not task failures, the failed cell receives one
+outcome-blind replacement. The replacement repeats only the failed arm/task condition with identical
+agent, model, reasoning, prompt, runtime, verifier timeout, and zero-retry settings. The rule applies
+identically to either arm; no treatment replacement is run because no treatment trial had an
+infrastructure failure. The original job remains unmodified.
+
+- Replacement config SHA-256:
+  `d610c0680cdf05e8a83e7557f849384ac19fabdf3167c13e7305df44ecb809ea`
+- Replacement target: control / `pwntools-tube-multiplexing`, one attempt
+- Raw replacement job target: `jobs/pilot-v1-luna-k3-replacement-01/`
+- Command:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/phase3-luna-replacement-01.json \
+  --yes
+```
+
+The replacement started at `2026-08-30 14:15:21 CEST` and completed at
+`2026-08-30 14:17:11 CEST` after 1 minute 50 seconds. It produced a valid binary reward of zero with
+zero errors and retries. Its usage was 177,481 input tokens, 157,077 cached tokens, 7,830 output
+tokens, and `$0.01763659`.
+
+- Primary result / resolved config / lock SHA-256:
+  `4b2ec9722bcaad0b0182451b247cca50ffa277ac97c9f692829df3debe0e6502` /
+  `2f56c0d1499508615ecb2541a13a91df72799bfebbbaf42b483d5cc04f05df2a` /
+  `f780f21992714ba86893e081b1d2b67ff3918fbe5233fe6188e3edcbffafa46b`
+- Replacement result / resolved config / lock SHA-256:
+  `c425ae30b5a8f6758bb6df3df83aa048634bd98a7590ddd69e6420a1312dec74` /
+  `a98f0f38a8205985ff121af4a38f21cd78a62312cf8045ff7d8c601323f5e4ea` /
+  `f75f5b37cd002c56218c061810510dff552d05c074acdf3c764468be79fd45f0`
+- Combined execution: 73 processes, 72 valid binary outcomes, one excluded verifier timeout, zero
+  automatic retries or cancellations, 54,558,514 input tokens, 50,954,011 cached tokens, 678,036
+  output tokens, and `$2.73342557`
+- Sequential wall time: 1 hour 53 minutes 44 seconds from primary start through replacement finish,
+  including the 1 minute 53 second operator gap
+
+### P01 analysis
+
+Only public `result.json` outcomes were used for the primary analysis. The raw job directories were
+not edited. The analyzer was extended after the infrastructure failure only to combine immutable job
+directories and explicitly report and exclude the allowed `VerifierTimeoutError`; the frozen
+pass-rate and pass@k formulas were not changed.
+
+```bash
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-luna-k3 \
+  jobs/pilot-v1-luna-k3-replacement-01 \
+  --manifest config/pilot-v1.json \
+  --attempts 3 \
+  --allow-error-type VerifierTimeoutError \
+  --format markdown
+```
+
+| Arm | Passed | Micro pass rate | Macro pass rate | pass@1 | pass@2 | pass@3 |
+| --- | --- | --- | --- | --- | --- | --- |
+| control | 7/36 | 0.1944 | 0.1944 | 0.1944 | 0.2778 | 0.3333 |
+| code-contracts | 9/36 | 0.2500 | 0.2500 | 0.2500 | 0.3611 | 0.4167 |
+| code-contracts - control | +2 | +0.0556 | +0.0556 | +0.0556 | +0.0833 | +0.0833 |
+
+Treatment improved two tasks, lost one, and tied nine; six tasks had no binary success in either
+arm. The complete per-task and secondary analysis is in [PHASE3_ANALYSIS.md](PHASE3_ANALYSIS.md).
+Across the 36 valid outcomes per arm, code-contracts had lower mean partial score (`0.8505` versus
+`0.9001`) and fail-to-pass fraction (`0.7242` versus `0.7427`), higher pass-to-pass fraction
+(`0.9978` versus `0.9881`), 34.95% higher valid-trial cost, 22.61% more agent steps, and 3.60%
+longer duration.
+
+Treatment adoption was complete by the observable mechanism markers: all 36 treatment trajectories
+issued at least one command containing `cc-check`, their bash tool calls contained 268 such commands,
+and all 36 treatment patches added an `@cc` marker. Across 37 control executions, including the
+replacement, the corresponding counts were zero. These counts do not assert semantic contract
+quality or a successful final per-file audit.
+
+All 72 primary provenance files and the replacement provenance file agree on direct OpenAI
+`openai/gpt-5.6-luna`, reasoning effort `max`, DeepSWE commit, agent source, pilot manifest,
+`cc-check` bundle, skill, harness lock, and activation-instruction digests. The primary job contains
+36 provenance records per arm; the replacement contains one control record. Within each arm the
+prompt-extension digest is constant: the control uses the empty-content digest and the treatment
+uses `sha256:3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3`.
+
+The post-run public-artifact manifest selected the top-level resolved config, lock, and result plus
+each trial's public result, provenance, native trajectory, and model patch. The primary selection has
+291 files and digest `0f73b3583b417d551dc95ff50bb9d0973628facf0f75ebdfafdf68ef54147a15`;
+the replacement selection has seven files and digest
+`deb5bcaa203086e63eac937127698f09a081e6db99586ab827a471db7a5e5541`.
+Each digest hashes a newline-terminated, path-sorted manifest of
+`<file SHA-256>  <job-relative path>` entries.
+A full-job literal credential scan found zero runtime-key occurrences in both jobs. Sanitized lock
+files contain 72 and one literal `${OPENAI_API_KEY}` placeholders, respectively.
+
+- Final analyzer source SHA-256:
+  `f6b08b5373541386983d3f58737f5f12586387a3b1b690d365d9ad444b1320b1`
+- Phase 3 analysis report SHA-256:
+  `a3c95413c7e9130c9fef22670d030c916caea85c22f476a103c1b5ebdfcaa398`
+- Analysis limitation: the public artifacts do not expose a stable shared attempt identifier across
+  arms, so exact task-and-attempt paired McNemar analysis is not reconstructed for this run
+- Decision: retain this as a directional result; do not expand directly to all 108 tasks. Add five
+  Luna attempts per task/arm before deciding whether to replicate with Terra and then Sol.
