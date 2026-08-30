@@ -6,6 +6,7 @@ from deepswe_eval.preflight import (
     DEFAULT_CONFIG,
     DEFAULT_MANIFEST,
     DEFAULT_PHASE3_CONFIG,
+    DEFAULT_PHASE4_CONFIG,
     DEFAULT_PROMPT_V2_SMOKE,
     DEFAULT_PROMPT_V3_SMOKE,
     DEFAULT_PROMPT_V4_SMOKE,
@@ -22,6 +23,7 @@ class PreflightTests(unittest.TestCase):
             DEFAULT_PROMPT_V3_SMOKE,
             DEFAULT_PROMPT_V4_SMOKE,
             DEFAULT_PHASE3_CONFIG,
+            DEFAULT_PHASE4_CONFIG,
         )
 
 
