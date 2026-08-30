@@ -1,5 +1,5 @@
 {
-  "name": "cc-check",
+  "name": "@spolu/cc-check",
   "version": "0.1.0",
   "description": "Command-line tooling for code contracts",
   "keywords": [

@@ -7,7 +7,7 @@ Command-line tooling for discovering and checking code contracts.
 ## Installation
 
 ```sh
-npm install --global cc-check
+npm install --global @spolu/cc-check
 cc-check --version
 cc-check --help
 ```

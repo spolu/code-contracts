@@ -64,7 +64,7 @@ bounded semantic audit before commits and pull requests.
 ## Tooling
 
 ```sh
-npm install --global cc-check
+npm install --global @spolu/cc-check
 ```
 
 The `cc-check` command-line interface provides:
