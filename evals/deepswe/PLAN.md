@@ -152,8 +152,8 @@ configuration drift.
 ### 3. Pilot
 
 Run the two arms in one Pier job on local Docker so every task and attempt has a matched control and
-treatment trial. Use one attempt first for operational validation, then three attempts per arm for
-the scored pilot. Use an even concurrency level so paired trials run near each other in time.
+treatment trial. Phase 2 provides the operational validation; run three attempts per task and arm
+for the scored pilot. Use concurrency four so two matched arm-pairs run near each other in time.
 
 Start with `gpt-5.6-luna` directly through the OpenAI API. Pier must use its OpenAI mini-swe-agent
 route, and credentials must be supplied through `OPENAI_API_KEY`. Freeze the reasoning effort and all
@@ -206,7 +206,9 @@ Adoption metrics explain the mechanism but do not replace the intention-to-treat
 Pair trials by task and attempt. Report raw arm results and the paired difference for every task.
 Use exact McNemar testing for binary outcomes and repository-clustered bootstrap confidence intervals
 for reward, partial score, token use, cost, and duration. With three attempts, compute pass rate from
-task-level attempt means rather than treating attempts as independent tasks.
+task-level attempt means rather than treating attempts as independent tasks. Report task-macro
+pass@1, pass@2, and pass@3 using `1 - C(n - c, k) / C(n, k)` for each task before averaging across
+the twelve tasks.
 
 Infrastructure failures are not task failures. A predeclared symmetric retry rule must distinguish
 provider or harness failures from agent timeouts and invalid submissions, which remain agent

@@ -62,3 +62,29 @@ PYTHONPATH=. uv run pier run \
 Pier writes its sanitized `lock.json` plus trial outputs under `jobs/`. Each trial adds
 `agent/deepswe-provenance.json` after the agent process exits; it contains only public configuration
 and digests, never prompts, skill text, or environment values.
+
+## Run and analyze Phase 3
+
+Phase 3 runs the twelve frozen `pilot-v1` tasks with three attempts per arm: 72 trials total. Both
+arms use `openai/gpt-5.6-luna` with reasoning effort `max`; concurrency is four and retries are
+disabled.
+
+```bash
+cd evals/deepswe
+export OPENAI_API_KEY=...
+make check
+
+PYTHONPATH=. uv run pier run \
+  --config config/phase3-luna.json \
+  --yes
+
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/pilot-v1-luna-k3 \
+  --manifest config/pilot-v1.json \
+  --attempts 3 \
+  --format markdown
+```
+
+The analyzer reads only public per-trial `result.json` files and refuses to report a balanced result
+unless every task/arm cell contains exactly three binary rewards. It reports micro and task-macro
+average pass rates plus task-macro pass@1, pass@2, and pass@3.

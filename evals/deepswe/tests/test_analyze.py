@@ -1,0 +1,74 @@
+from __future__ import annotations
+
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from deepswe_eval.analyze import analyze_job, render_markdown
+
+
+class AnalyzeTests(unittest.TestCase):
+    @staticmethod
+    def _write_manifest(root: Path) -> Path:
+        path = root / "manifest.json"
+        path.write_text(json.dumps({"tasks": [{"task_id": "task-a"}, {"task_id": "task-b"}]}))
+        return path
+
+    @staticmethod
+    def _write_trial(root: Path, index: int, task: str, arm: str, reward: int) -> None:
+        trial_name = f"{task}-{arm}-{index}"
+        trial_dir = root / trial_name
+        trial_dir.mkdir()
+        (trial_dir / "result.json").write_text(
+            json.dumps(
+                {
+                    "trial_name": trial_name,
+                    "task_name": f"datacurve/{task}",
+                    "agent_info": {"name": arm},
+                    "verifier_result": {"rewards": {"reward": reward, "partial": reward}},
+                }
+            )
+        )
+
+    def test_balanced_pass_rates_and_pass_at_k(self) -> None:
+        rewards = {
+            ("control", "task-a"): [1, 0, 0],
+            ("control", "task-b"): [0, 0, 0],
+            ("code-contracts", "task-a"): [1, 1, 0],
+            ("code-contracts", "task-b"): [1, 0, 0],
+        }
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = self._write_manifest(root)
+            index = 0
+            for (arm, task), values in rewards.items():
+                for reward in values:
+                    self._write_trial(root, index, task, arm, reward)
+                    index += 1
+
+            analysis = analyze_job(root, manifest, 3)
+
+        control = analysis["arms"]["control"]
+        treatment = analysis["arms"]["code-contracts"]
+        self.assertAlmostEqual(control["micro_pass_rate"], 1 / 6)
+        self.assertAlmostEqual(control["macro_pass_rate"], 1 / 6)
+        self.assertAlmostEqual(control["pass_at_k"]["2"], 1 / 3)
+        self.assertAlmostEqual(control["pass_at_k"]["3"], 1 / 2)
+        self.assertAlmostEqual(treatment["micro_pass_rate"], 1 / 2)
+        self.assertAlmostEqual(treatment["pass_at_k"]["2"], 5 / 6)
+        self.assertAlmostEqual(treatment["pass_at_k"]["3"], 1.0)
+        self.assertIn("| code-contracts | 3/6 |", render_markdown(analysis))
+
+    def test_incomplete_cells_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = self._write_manifest(root)
+            self._write_trial(root, 0, "task-a", "control", 1)
+
+            with self.assertRaisesRegex(ValueError, "Every task/arm cell"):
+                analyze_job(root, manifest, 3)
+
+
+if __name__ == "__main__":
+    unittest.main()

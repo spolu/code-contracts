@@ -27,6 +27,7 @@ DEFAULT_MANIFEST = EVAL_ROOT / "config" / "pilot-v1.json"
 DEFAULT_PROMPT_V2_SMOKE = EVAL_ROOT / "config" / "prompt-v2-smoke.json"
 DEFAULT_PROMPT_V3_SMOKE = EVAL_ROOT / "config" / "prompt-v3-smoke.json"
 DEFAULT_PROMPT_V4_SMOKE = EVAL_ROOT / "config" / "prompt-v4-smoke.json"
+DEFAULT_PHASE3_CONFIG = EVAL_ROOT / "config" / "phase3-luna.json"
 EXPECTED_ARMS = {
     "deepswe_eval.agents:CodeContractsAgent": CodeContractsAgent,
     "deepswe_eval.agents:ControlAgent": ControlAgent,
@@ -191,23 +192,60 @@ def _assert_prompt_v4_smoke(
         raise ValueError("Prompt-v4 smoke selection digest mismatch.")
 
 
+def _assert_phase3_config(
+    phase3_config: dict[str, Any], ablation_config: dict[str, Any], pilot: dict[str, Any]
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-phase3-config
+    Phase 3 differs from the frozen ablation config only by its job name, exactly three attempts,
+    concurrency four, and a dataset containing the twelve pilot tasks in manifest order.
+    """
+    JobConfig.model_validate(phase3_config)
+    task_names = [task["task_id"] for task in pilot["tasks"]]
+    expected = copy.deepcopy(ablation_config)
+    expected.update(
+        {
+            "job_name": "pilot-v1-luna-k3",
+            "n_attempts": 3,
+            "n_concurrent_trials": 4,
+            "datasets": [
+                {
+                    "path": "resolved/deep-swe/tasks",
+                    "task_names": task_names,
+                }
+            ],
+        }
+    )
+    if phase3_config != expected:
+        raise ValueError(
+            "Phase 3 must differ from the frozen ablation only in its preregistered run settings."
+        )
+
+    task_root = EVAL_ROOT / phase3_config["datasets"][0]["path"]
+    missing_tasks = [task_name for task_name in task_names if not (task_root / task_name).is_dir()]
+    if missing_tasks:
+        raise FileNotFoundError(f"Phase 3 task directories are missing: {missing_tasks}")
+
+
 def run_preflight(
     config_path: Path,
     manifest_path: Path,
     prompt_v2_smoke_path: Path = DEFAULT_PROMPT_V2_SMOKE,
     prompt_v3_smoke_path: Path = DEFAULT_PROMPT_V3_SMOKE,
     prompt_v4_smoke_path: Path = DEFAULT_PROMPT_V4_SMOKE,
+    phase3_config_path: Path = DEFAULT_PHASE3_CONFIG,
 ) -> None:
     config = _load_json(config_path)
     manifest = _load_json(manifest_path)
     prompt_v2_smoke = _load_json(prompt_v2_smoke_path)
     prompt_v3_smoke = _load_json(prompt_v3_smoke_path)
     prompt_v4_smoke = _load_json(prompt_v4_smoke_path)
+    phase3_config = _load_json(phase3_config_path)
     _assert_config_parity(config)
     _assert_manifest(manifest)
     _assert_prompt_v2_smoke(prompt_v2_smoke, manifest)
     _assert_prompt_v3_smoke(prompt_v3_smoke, manifest, prompt_v2_smoke)
     _assert_prompt_v4_smoke(prompt_v4_smoke, manifest, (prompt_v2_smoke, prompt_v3_smoke))
+    _assert_phase3_config(phase3_config, config, manifest)
 
     agents = config["agents"]
     shared_kwargs = agents[0]["kwargs"]
@@ -266,6 +304,7 @@ def main() -> None:
     parser.add_argument("--prompt-v2-smoke", type=Path, default=DEFAULT_PROMPT_V2_SMOKE)
     parser.add_argument("--prompt-v3-smoke", type=Path, default=DEFAULT_PROMPT_V3_SMOKE)
     parser.add_argument("--prompt-v4-smoke", type=Path, default=DEFAULT_PROMPT_V4_SMOKE)
+    parser.add_argument("--phase3-config", type=Path, default=DEFAULT_PHASE3_CONFIG)
     arguments = parser.parse_args()
     run_preflight(
         arguments.config.resolve(),
@@ -273,6 +312,7 @@ def main() -> None:
         arguments.prompt_v2_smoke.resolve(),
         arguments.prompt_v3_smoke.resolve(),
         arguments.prompt_v4_smoke.resolve(),
+        arguments.phase3_config.resolve(),
     )
     print("DeepSWE ablation preflight passed.")
 
