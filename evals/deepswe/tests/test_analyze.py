@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from deepswe_eval.analyze import analyze_job, render_markdown
+from deepswe_eval.analyze import _manifest_task_ids, analyze_job, render_markdown
 
 
 class AnalyzeTests(unittest.TestCase):
@@ -135,6 +135,33 @@ class AnalyzeTests(unittest.TestCase):
         self.assertEqual(analysis["arms"]["control"]["passed"], 2)
         self.assertEqual(analysis["arms"]["code-contracts"]["passed"], 2)
 
+    def test_digest_pinned_fallback_manifest_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source_manifest = root / "source-manifest.json"
+            source_manifest.write_text(
+                json.dumps(
+                    {
+                        "tasks": [
+                            {"task_id": "task-a"},
+                            {"task_id": "task-b"},
+                            {"task_id": "task-c"},
+                        ]
+                    }
+                )
+            )
+            source_digest = f"sha256:{hashlib.sha256(source_manifest.read_bytes()).hexdigest()}"
+            manifest = {
+                "version": "full-v1-minus-pwntools",
+                "source_manifest_sha256": source_digest,
+                "selection": {"task_count": 2},
+                "excluded_tasks": ["task-c"],
+            }
+
+            tasks = _manifest_task_ids(manifest, source_manifest)
+
+        self.assertEqual(tasks, ["task-a", "task-b"])
+
     def test_allowed_infrastructure_failure_is_reported_and_excluded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -182,6 +209,62 @@ class AnalyzeTests(unittest.TestCase):
                     manifest,
                     3,
                     frozenset({"VerifierTimeoutError"}),
+                )
+
+    def test_manifest_excluded_task_results_can_be_explicitly_ignored(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = root / "manifest.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "tasks": [{"task_id": "task-a"}, {"task_id": "task-b"}],
+                        "excluded_tasks": ["task-c"],
+                    }
+                )
+            )
+            index = 0
+            for arm in ("control", "code-contracts"):
+                for task in ("task-a", "task-b"):
+                    for reward in (1, 0, 0):
+                        self._write_trial(root, index, task, arm, reward)
+                        index += 1
+            self._write_trial(root, index, "task-c", "control", 0)
+            index += 1
+            self._write_failure(root, index, "task-c", "code-contracts", "VerifierTimeoutError")
+
+            analysis = analyze_job(
+                root,
+                manifest,
+                3,
+                frozenset({"VerifierTimeoutError"}),
+                ignored_tasks=frozenset({"task-c"}),
+            )
+
+        self.assertEqual(analysis["n_tasks"], 2)
+        self.assertEqual(
+            analysis["ignored_task_results"],
+            [
+                {
+                    "task": "task-c",
+                    "binary_results": 1,
+                    "infrastructure_failures": 1,
+                }
+            ],
+        )
+        self.assertEqual(analysis["excluded_infrastructure_failures"], [])
+
+    def test_ignored_task_must_be_manifest_excluded(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = self._write_manifest(root)
+
+            with self.assertRaisesRegex(ValueError, "explicitly excluded"):
+                analyze_job(
+                    root,
+                    manifest,
+                    3,
+                    ignored_tasks=frozenset({"task-c"}),
                 )
 
 

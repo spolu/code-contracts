@@ -9,7 +9,8 @@ instruction.
 Execution commands, immutable inputs, and outcomes are recorded chronologically in
 [REPRODUCIBILITY.md](REPRODUCIBILITY.md). Phase 3 results and their interpretation are in
 [PHASE3_ANALYSIS.md](PHASE3_ANALYSIS.md); the Terra/xhigh replication is analyzed in
-[PHASE4_ANALYSIS.md](PHASE4_ANALYSIS.md).
+[PHASE4_ANALYSIS.md](PHASE4_ANALYSIS.md); and the full-corpus Luna evaluation is analyzed in
+[PHASE5_ANALYSIS.md](PHASE5_ANALYSIS.md).
 
 ## Build and preflight
 

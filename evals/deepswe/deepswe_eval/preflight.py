@@ -10,6 +10,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from harbor.models.job.config import JobConfig as HarborJobConfig
 from pier.models.job.config import JobConfig
 
 from deepswe_eval.agents import (
@@ -31,6 +32,24 @@ DEFAULT_PHASE3_CONFIG = EVAL_ROOT / "config" / "phase3-luna.json"
 DEFAULT_PHASE4_CONFIG = EVAL_ROOT / "config" / "phase4-terra-xhigh-k4.json"
 DEFAULT_FULL_MANIFEST = EVAL_ROOT / "config" / "full-v1.json"
 DEFAULT_PHASE5_CONFIG = EVAL_ROOT / "config" / "full-v1-luna-k3.json"
+DEFAULT_PHASE5_RELAUNCH_CONFIG = EVAL_ROOT / "config" / "full-v1-luna-k3-relaunch-01.json"
+DEFAULT_PHASE5_RELAUNCH_02_CONFIG = EVAL_ROOT / "config" / "full-v1-luna-k3-relaunch-02.json"
+DEFAULT_PHASE5_REPLACEMENT_CONTROL_PWNTOOLS = (
+    EVAL_ROOT / "config" / "full-v1-luna-k3-replacement-01-control-pwntools.json"
+)
+DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_PWNTOOLS = (
+    EVAL_ROOT / "config" / "full-v1-luna-k3-replacement-01-code-contracts-pwntools.json"
+)
+DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_AIOMONITOR = (
+    EVAL_ROOT / "config" / "full-v1-luna-k3-replacement-01-code-contracts-aiomonitor.json"
+)
+DEFAULT_PHASE5_REGRADE_CONTROL_PWNTOOLS = (
+    EVAL_ROOT / "config" / "full-v1-luna-k3-regrade-01-control-pwntools.json"
+)
+DEFAULT_PHASE5_REGRADE_CODE_CONTRACTS_PWNTOOLS = (
+    EVAL_ROOT / "config" / "full-v1-luna-k3-regrade-01-code-contracts-pwntools.json"
+)
+DEFAULT_FULL_FALLBACK_MANIFEST = EVAL_ROOT / "config" / "full-v1-minus-pwntools.json"
 SOURCE_DEEPSWE_MANIFEST = EVAL_ROOT / "resolved" / "deep-swe" / "tasks" / "manifest.json"
 EXPECTED_ARMS = {
     "deepswe_eval.agents:CodeContractsAgent": CodeContractsAgent,
@@ -305,6 +324,28 @@ def _assert_full_manifest(full_manifest: dict[str, Any], pilot: dict[str, Any]) 
         raise ValueError("Resolved DeepSWE task directories do not match the source manifest.")
 
 
+def _assert_full_fallback_manifest(
+    fallback_manifest: dict[str, Any], full_manifest: dict[str, Any]
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-pwntools-exclusion-fallback
+    The predeclared fallback differs from `full-v1` only by excluding
+    `pwntools-tube-multiplexing` and reducing the Python and total task counts by one.
+    """
+    expected = copy.deepcopy(full_manifest)
+    expected["version"] = "full-v1-minus-pwntools"
+    expected["selection"]["algorithm"] = (
+        "Include every source-manifest task whose language is TypeScript, Python, Go, or Rust; "
+        "exclude JavaScript and pwntools-tube-multiplexing."
+    )
+    expected["selection"]["language_counts"]["python"] = 33
+    expected["selection"]["task_count"] = 107
+    expected["excluded_tasks"] = sorted(
+        [*full_manifest["excluded_tasks"], "pwntools-tube-multiplexing"]
+    )
+    if fallback_manifest != expected:
+        raise ValueError("The full-run fallback may differ only by the frozen pwntools exclusion.")
+
+
 def _assert_phase5_config(
     phase5_config: dict[str, Any],
     phase3_config: dict[str, Any],
@@ -337,6 +378,104 @@ def _assert_phase5_config(
         )
 
 
+def _assert_phase5_relaunch_config(
+    relaunch_config: dict[str, Any], phase5_config: dict[str, Any], expected_job_name: str
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-full-luna-relaunch-config
+    Each full Luna relaunch differs from the original full job only by its predeclared immutable job
+    name.
+    """
+    JobConfig.model_validate(relaunch_config)
+    expected = copy.deepcopy(phase5_config)
+    expected["job_name"] = expected_job_name
+    if relaunch_config != expected:
+        raise ValueError("The Phase 5 relaunch may differ from the original only by job name.")
+
+
+def _assert_phase5_replacement_config(
+    replacement_config: dict[str, Any],
+    phase5_config: dict[str, Any],
+    expected_job_name: str,
+    expected_task_name: str,
+    expected_agent_import_path: str,
+    expected_attempts: int,
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-full-luna-timeout-replacement
+    A full Luna replacement reruns only its frozen arm/task timeout cells while preserving the
+    primary agent, model, prompt, tools, runtime, manifest digest, and zero-retry configuration.
+    """
+    JobConfig.model_validate(replacement_config)
+    matching_agents = [
+        agent
+        for agent in phase5_config["agents"]
+        if agent["import_path"] == expected_agent_import_path
+    ]
+    if len(matching_agents) != 1:
+        raise ValueError("The replacement arm must select exactly one frozen primary agent.")
+    expected = copy.deepcopy(phase5_config)
+    expected.update(
+        {
+            "job_name": expected_job_name,
+            "n_attempts": expected_attempts,
+            "n_concurrent_trials": expected_attempts,
+            "datasets": [
+                {
+                    "path": "resolved/deep-swe/tasks",
+                    "task_names": [expected_task_name],
+                }
+            ],
+            "agents": [copy.deepcopy(matching_agents[0])],
+        }
+    )
+    if replacement_config != expected:
+        raise ValueError(
+            "A Phase 5 replacement may differ only in its frozen job, arm, task, attempt count, "
+            "and matching concurrency."
+        )
+
+
+def _assert_phase5_regrade_config(
+    regrade_config: dict[str, Any],
+    expected_job_name: str,
+    expected_source_job_name: str,
+    expected_source_job_id: str,
+    expected_trials: int,
+) -> None:
+    """@cc [author:spolu,label:evaluation] frozen-pwntools-verifier-regrade
+    A pwntools regrade reruns every recorded source submission without an agent, changes only the
+    verifier timeout multiplier to `2.0`, and preserves environment build timeout and zero retries.
+    """
+    HarborJobConfig.model_validate(regrade_config)
+    expected = {
+        "job_name": expected_job_name,
+        "jobs_dir": "jobs",
+        "n_attempts": 1,
+        "timeout_multiplier": 1.0,
+        "verifier_timeout_multiplier": 2.0,
+        "environment_build_timeout_multiplier": 1.0,
+        "n_concurrent_trials": expected_trials,
+        "quiet": False,
+        "debug": False,
+        "retry": {"max_retries": 0},
+        "environment": {"type": "docker", "force_build": False, "delete": True},
+        "verifier": {"disable": False},
+        "tasks": [{"path": "resolved/deep-swe/tasks/pwntools-tube-multiplexing"}],
+        "source_jobs": [
+            {
+                "action": "regrade",
+                "type": "local",
+                "job_id": expected_source_job_id,
+                "path": f"jobs/{expected_source_job_name}",
+            }
+        ],
+    }
+    if regrade_config != expected:
+        raise ValueError(
+            "A Phase 5 regrade may differ only in its frozen job/source identity and matching "
+            "concurrency."
+        )
+
+
 def run_preflight(
     config_path: Path,
     manifest_path: Path,
@@ -347,6 +486,20 @@ def run_preflight(
     phase4_config_path: Path = DEFAULT_PHASE4_CONFIG,
     full_manifest_path: Path = DEFAULT_FULL_MANIFEST,
     phase5_config_path: Path = DEFAULT_PHASE5_CONFIG,
+    phase5_relaunch_config_path: Path = DEFAULT_PHASE5_RELAUNCH_CONFIG,
+    phase5_relaunch_02_config_path: Path = DEFAULT_PHASE5_RELAUNCH_02_CONFIG,
+    phase5_replacement_control_pwntools_path: Path = DEFAULT_PHASE5_REPLACEMENT_CONTROL_PWNTOOLS,
+    phase5_replacement_code_contracts_pwntools_path: Path = (
+        DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_PWNTOOLS
+    ),
+    phase5_replacement_code_contracts_aiomonitor_path: Path = (
+        DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_AIOMONITOR
+    ),
+    phase5_regrade_control_pwntools_path: Path = DEFAULT_PHASE5_REGRADE_CONTROL_PWNTOOLS,
+    phase5_regrade_code_contracts_pwntools_path: Path = (
+        DEFAULT_PHASE5_REGRADE_CODE_CONTRACTS_PWNTOOLS
+    ),
+    full_fallback_manifest_path: Path = DEFAULT_FULL_FALLBACK_MANIFEST,
 ) -> None:
     config = _load_json(config_path)
     manifest = _load_json(manifest_path)
@@ -357,6 +510,18 @@ def run_preflight(
     phase4_config = _load_json(phase4_config_path)
     full_manifest = _load_json(full_manifest_path)
     phase5_config = _load_json(phase5_config_path)
+    phase5_relaunch_config = _load_json(phase5_relaunch_config_path)
+    phase5_relaunch_02_config = _load_json(phase5_relaunch_02_config_path)
+    phase5_replacement_control_pwntools = _load_json(phase5_replacement_control_pwntools_path)
+    phase5_replacement_code_contracts_pwntools = _load_json(
+        phase5_replacement_code_contracts_pwntools_path
+    )
+    phase5_replacement_code_contracts_aiomonitor = _load_json(
+        phase5_replacement_code_contracts_aiomonitor_path
+    )
+    phase5_regrade_control_pwntools = _load_json(phase5_regrade_control_pwntools_path)
+    phase5_regrade_code_contracts_pwntools = _load_json(phase5_regrade_code_contracts_pwntools_path)
+    full_fallback_manifest = _load_json(full_fallback_manifest_path)
     _assert_config_parity(config)
     _assert_manifest(manifest)
     _assert_prompt_v2_smoke(prompt_v2_smoke, manifest)
@@ -365,8 +530,53 @@ def run_preflight(
     _assert_phase3_config(phase3_config, config, manifest)
     _assert_phase4_config(phase4_config, phase3_config)
     _assert_full_manifest(full_manifest, manifest)
+    _assert_full_fallback_manifest(full_fallback_manifest, full_manifest)
     _assert_phase5_config(
         phase5_config, phase3_config, full_manifest, sha256_file(full_manifest_path)
+    )
+    _assert_phase5_relaunch_config(
+        phase5_relaunch_config, phase5_config, "full-v1-luna-k3-relaunch-01"
+    )
+    _assert_phase5_relaunch_config(
+        phase5_relaunch_02_config, phase5_config, "full-v1-luna-k3-relaunch-02"
+    )
+    _assert_phase5_replacement_config(
+        phase5_replacement_control_pwntools,
+        phase5_config,
+        "full-v1-luna-k3-replacement-01-control-pwntools",
+        "pwntools-tube-multiplexing",
+        "deepswe_eval.agents:ControlAgent",
+        1,
+    )
+    _assert_phase5_regrade_config(
+        phase5_regrade_control_pwntools,
+        "full-v1-luna-k3-regrade-01-control-pwntools",
+        "full-v1-luna-k3-replacement-01-control-pwntools",
+        "44d11593-db34-4864-bb59-f28787618b3d",
+        1,
+    )
+    _assert_phase5_regrade_config(
+        phase5_regrade_code_contracts_pwntools,
+        "full-v1-luna-k3-regrade-01-code-contracts-pwntools",
+        "full-v1-luna-k3-replacement-01-code-contracts-pwntools",
+        "1606519f-34bc-44f0-b59b-b834a47338f1",
+        3,
+    )
+    _assert_phase5_replacement_config(
+        phase5_replacement_code_contracts_pwntools,
+        phase5_config,
+        "full-v1-luna-k3-replacement-01-code-contracts-pwntools",
+        "pwntools-tube-multiplexing",
+        "deepswe_eval.agents:CodeContractsAgent",
+        3,
+    )
+    _assert_phase5_replacement_config(
+        phase5_replacement_code_contracts_aiomonitor,
+        phase5_config,
+        "full-v1-luna-k3-replacement-01-code-contracts-aiomonitor",
+        "aiomonitor-task-snapshots-diff",
+        "deepswe_eval.agents:CodeContractsAgent",
+        1,
     )
 
     agents = config["agents"]
@@ -418,6 +628,21 @@ def run_preflight(
         ].get("prompt_extension_sha256"):
             raise ValueError("Treatment prompt extension digest is not recorded in the config.")
 
+        full_instances = []
+        for agent_config in phase5_relaunch_02_config["agents"]:
+            agent_class = EXPECTED_ARMS[agent_config["import_path"]]
+            full_instances.append(
+                agent_class(
+                    logs_dir=Path(temporary_directory) / f"full-{agent_class.VARIANT}",
+                    model_name=agent_config["model_name"],
+                    **agent_config["kwargs"],
+                )
+            )
+        if any(
+            agent._pilot_manifest_path != full_manifest_path.resolve() for agent in full_instances
+        ):
+            raise ValueError("Full-run agents must resolve the frozen full-corpus manifest.")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate the frozen DeepSWE ablation harness.")
@@ -430,6 +655,44 @@ def main() -> None:
     parser.add_argument("--phase4-config", type=Path, default=DEFAULT_PHASE4_CONFIG)
     parser.add_argument("--full-manifest", type=Path, default=DEFAULT_FULL_MANIFEST)
     parser.add_argument("--phase5-config", type=Path, default=DEFAULT_PHASE5_CONFIG)
+    parser.add_argument(
+        "--phase5-relaunch-config", type=Path, default=DEFAULT_PHASE5_RELAUNCH_CONFIG
+    )
+    parser.add_argument(
+        "--phase5-relaunch-02-config",
+        type=Path,
+        default=DEFAULT_PHASE5_RELAUNCH_02_CONFIG,
+    )
+    parser.add_argument(
+        "--phase5-replacement-control-pwntools",
+        type=Path,
+        default=DEFAULT_PHASE5_REPLACEMENT_CONTROL_PWNTOOLS,
+    )
+    parser.add_argument(
+        "--phase5-replacement-code-contracts-pwntools",
+        type=Path,
+        default=DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_PWNTOOLS,
+    )
+    parser.add_argument(
+        "--phase5-replacement-code-contracts-aiomonitor",
+        type=Path,
+        default=DEFAULT_PHASE5_REPLACEMENT_CODE_CONTRACTS_AIOMONITOR,
+    )
+    parser.add_argument(
+        "--phase5-regrade-control-pwntools",
+        type=Path,
+        default=DEFAULT_PHASE5_REGRADE_CONTROL_PWNTOOLS,
+    )
+    parser.add_argument(
+        "--phase5-regrade-code-contracts-pwntools",
+        type=Path,
+        default=DEFAULT_PHASE5_REGRADE_CODE_CONTRACTS_PWNTOOLS,
+    )
+    parser.add_argument(
+        "--full-fallback-manifest",
+        type=Path,
+        default=DEFAULT_FULL_FALLBACK_MANIFEST,
+    )
     arguments = parser.parse_args()
     run_preflight(
         arguments.config.resolve(),
@@ -441,6 +704,14 @@ def main() -> None:
         arguments.phase4_config.resolve(),
         arguments.full_manifest.resolve(),
         arguments.phase5_config.resolve(),
+        arguments.phase5_relaunch_config.resolve(),
+        arguments.phase5_relaunch_02_config.resolve(),
+        arguments.phase5_replacement_control_pwntools.resolve(),
+        arguments.phase5_replacement_code_contracts_pwntools.resolve(),
+        arguments.phase5_replacement_code_contracts_aiomonitor.resolve(),
+        arguments.phase5_regrade_control_pwntools.resolve(),
+        arguments.phase5_regrade_code_contracts_pwntools.resolve(),
+        arguments.full_fallback_manifest.resolve(),
     )
     print("DeepSWE ablation preflight passed.")
 

@@ -18,12 +18,13 @@ from deepswe_eval.agents import (
 
 EVAL_ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((EVAL_ROOT / "config" / "ablation.json").read_text())
+FULL_CONFIG = json.loads((EVAL_ROOT / "config" / "full-v1-luna-k3-relaunch-02.json").read_text())
 
 
-def _agent(agent_class, logs_dir: Path):
+def _agent(agent_class, logs_dir: Path, config=CONFIG):
     config = next(
         agent
-        for agent in CONFIG["agents"]
+        for agent in config["agents"]
         if agent["import_path"].endswith(f":{agent_class.__name__}")
     )
     return agent_class(
@@ -34,6 +35,14 @@ def _agent(agent_class, logs_dir: Path):
 
 
 class AgentTests(unittest.TestCase):
+    def test_full_config_resolves_full_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            agent = _agent(ControlAgent, Path(temporary_directory), FULL_CONFIG)
+            self.assertEqual(
+                agent._pilot_manifest_path,
+                (EVAL_ROOT / "config" / "full-v1.json").resolve(),
+            )
+
     def test_arm_prompts_and_install_specs_are_matched(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

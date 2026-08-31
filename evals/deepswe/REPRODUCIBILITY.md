@@ -966,3 +966,523 @@ PYTHONPATH=. uv run pier run \
 The remote operator must append the actual start timestamp and initial 648/8/640 resolution before
 interpreting results. All infrastructure errors remain in the immutable primary job and require a
 separately frozen, outcome-blind replacement decision.
+
+### P03 remote restart and operational gate
+
+Recorded on `2026-08-30` after the first remote launch exited before dispatch. The user directed a
+restart from the operational gate and then explicitly authorized a new full run. The original raw
+job remains immutable at `jobs/full-v1-luna-k3/`: its public result started at
+`2026-08-30 15:50:41.206382 UTC`, resolved 648 total trials, and remained at zero completed, zero
+errors, zero running, 648 pending, zero retries, null cost, and null `finished_at`. Its resolved
+config / lock / result SHA-256 values are
+`b635f4f55306be65b0569a763e88b2f33031bbf1506cc83a81fe834a5e39fbce` /
+`1a95dfd2f8220e9ff6aabce498fc21c6885795f891a3506bbc62fb7a2549e660` /
+`acbf6f476619b52cede85189aed084f317db6184158d15f5f06ecb8154b6b78e`.
+
+The remote operational restart used repository commit
+`566217b98b2332364b084c1532c073145fd0d83e` and the clean DeepSWE checkout at
+`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`.
+
+- A Phase 1 `make bundle` rebuild produced SHA-256
+  `cbba407e0f548dbd5f046fbfc82774c3eb7c93ac8f36dc9123d12b7899435e6c`, so the frozen digest
+  checks failed as designed. Comparison with the tracked archive showed that the historical bundle
+  contains four obsolete, unused `dist/src/*` outputs from an older build layout. The generated
+  artifact was discarded, the tracked LFS object was restored at
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f`, and no scored input was
+  changed. This is a known clean-rebuild reproducibility limitation of the historical bundle.
+- With the frozen artifact restored, formatting, lint, all nine unit tests, and the full preflight
+  passed.
+- The first non-model `nop` smoke, `jobs/phase1-nop-remote-01/`, exposed that Docker Compose was
+  absent on the host and ended with one public `RuntimeError` before task execution. Docker Compose
+  v2.40.3 was installed as a user-level Docker CLI plugin.
+- The fresh retry command was:
+
+```bash
+uv run pier run \
+  --path resolved/deep-swe/tasks/claude-code-by-agents-recursive-delegation \
+  --agent nop --env docker --jobs-dir jobs --job-name phase1-nop-remote-02 \
+  --n-attempts 1 --n-concurrent 1 --max-retries 0 --yes
+```
+
+- The retry ran from `2026-08-30 16:08:28.825132 UTC` through
+  `2026-08-30 16:09:51.676263 UTC` and completed the task, submission, and verifier path with the
+  expected reward zero, zero errors, cancellations, and retries. Its resolved config / lock /
+  result SHA-256 values are
+  `e8707f9779c4026d1a6be1f3faccb1ba9d9d049a9232b7fd111a449330244c36` /
+  `95e91856c8afd46c25c995d00226234d307dac6a726f3f4430064e1bd81ce0b9` /
+  `e1653845a702f63da61e3d8d941e69859fdb4b0dec8f39ad3ad475699bc43b67`.
+- The model-backed matched smoke command was:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/ablation.json \
+  --path resolved/deep-swe/tasks/goreleaser-retry-publish-auditing \
+  --job-name phase1-matched-remote-01 --yes
+```
+
+- The matched smoke ran from `2026-08-30 16:10:48.058137 UTC` through
+  `2026-08-30 16:20:07.778193 UTC`. Both control and code-contracts completed agent execution and
+  separate verification with reward one, zero errors, cancellations, and retries. Aggregate usage
+  was 1,839,710 input tokens, 1,741,989 cached tokens, 21,703 output tokens, and `$0.08530493`.
+- Matched-smoke resolved config / lock / result SHA-256:
+  `36ea03dd112b0c41bc25196e59a333c0a249ad5a7e3815fb4bb2e0e79fe11022` /
+  `5a68c32708d2363ef6839adbb7ac079e0d8bc3e6e88efbf99a7dca526adaaa9c` /
+  `3e7353a14416b5c92ca3c770307f8fe7c979dee448a8ce93a5be43ec108817b7`.
+- Count-only literal credential scans found zero runtime-key occurrences in all three operational
+  job directories; the matched sanitized lock contains two `${OPENAI_API_KEY}` placeholders.
+
+### P03 authorized full relaunch — prepared, not started
+
+Frozen at `2026-08-30 16:22:32 UTC`. The relaunch preserves the original Phase 5 dataset, arms,
+model, reasoning, tools, prompts, runtime limits, three attempts, concurrency eight, and zero
+retries; the only config delta is the immutable job name `full-v1-luna-k3-relaunch-01`.
+
+- Execution repository: commit `566217b98b2332364b084c1532c073145fd0d83e` plus the uncommitted
+  relaunch config, preflight assertion/test, runbook, and this ledger entry
+- Full selection manifest / original config / relaunch config SHA-256:
+  `85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772` /
+  `68033e8528725045ac1e6bc9dd9becce6d01516148664c857c25c2780b13a51e` /
+  `f7610505553da1ea410fe0d5ffdf750800e2dceb6eebc53ea116bc452d1b402c`
+- Agent / analyzer / relaunch preflight / preflight test SHA-256:
+  `78b2563f6d03f7de239fe32864937ad79e5514c836eec4a7f01564dc1174f0fa` /
+  `afadeb95a1104f37c1db6eeaab3c897727ddcf26bfc9d377677b7ee9dd78951a` /
+  `af58d60de7ae00bf0f6b59ed4526d574eb9c693949ce37aa21f5434284a05020` /
+  `bd3bd94ca35f27c01e9f4b9802e0f6eb33d7fcface77d4d3214b0250f3db8437`
+- Harness lock / `cc-check` bundle / skill SHA-256:
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Relaunch runbook SHA-256:
+  `3725728260f277ec6024d140e503ee96302c09f9155d1334873ee3d4acf46192`
+- Preflight: passed and enforces that the relaunch config differs from the original only by job
+  name; dataset resolution returned exactly 108 tasks, 648 trials, concurrency eight, and zero
+  retries
+- Raw target, confirmed absent: `jobs/full-v1-luna-k3-relaunch-01/`
+- Operator addendum: [FULL_LUNA_RELAUNCH_RUNBOOK.md](FULL_LUNA_RELAUNCH_RUNBOOK.md)
+- Frozen scored command, not yet run at this timestamp:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/full-v1-luna-k3-relaunch-01.json \
+  --yes
+```
+
+### P03 relaunch 01 — pre-dispatch manifest failure
+
+The relaunch started at `2026-08-30 16:24:15.783888 UTC`, resolved 648 total trials, and exited
+before dispatch with zero completed, zero running, 648 pending, zero retries, null cost, and null
+`finished_at`. The retained tmux pane captured the public exception: both full-run agents received
+the correct `full-v1.json` digest, but the shared adapter always verified it against
+`pilot-v1.json`, causing `ValueError: pilot manifest digest mismatch` during agent construction.
+No task environment, model call, verifier, or arm outcome was produced.
+
+- Raw job, retained unmodified: `jobs/full-v1-luna-k3-relaunch-01/`
+- Resolved config / lock / result SHA-256:
+  `2d218271ca2270f2f5210fe9630db4885d69e59fcec98d56e337821bd7cf194c` /
+  `08893c26be72054896190a3fe6ef801d24cbfee348aac5caa6a4ed94937c90a5` /
+  `12d21cedea1d7d88d3c75eaa896d1984f8aa137795aaeb6a20ef14e7a879cb69`
+- Disposition: preserve the raw job and fix the symmetric manifest-selection defect before using a
+  new immutable job name
+
+### P03 authorized full relaunch 02 — prepared and executed
+
+Frozen at `2026-08-30 16:29:03 UTC`. The agent adapter now resolves the task manifest from its
+configured digest, which uniquely selects either the frozen pilot or full-corpus manifest. Preflight
+now instantiates both relaunch agents and verifies that they resolve `full-v1.json`. The fix is
+identical for control and code-contracts and changes no task, model, reasoning, prompt, tool, limit,
+or verifier.
+
+- Execution repository: commit `566217b98b2332364b084c1532c073145fd0d83e` plus the uncommitted
+  operational/relaunch changes and ledger entries recorded here
+- Full selection manifest / original config / relaunch-02 config SHA-256:
+  `85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772` /
+  `68033e8528725045ac1e6bc9dd9becce6d01516148664c857c25c2780b13a51e` /
+  `b836bf23e587e9c955602853c2a0fe716475138abd33d730bef95d01a00ad213`
+- Relaunch-02 agent / analyzer / preflight SHA-256:
+  `74583488e2f8d3031fbfa5b74827471838f7b70aeeba4bc93f3d0143684c13e5` /
+  `afadeb95a1104f37c1db6eeaab3c897727ddcf26bfc9d377677b7ee9dd78951a` /
+  `8588539760fc3a9a50622c2ca21de7ee3f0f6637b702f5b000aceaab9df5671d`
+- Agent / preflight test SHA-256:
+  `3ce6cb22d6abad4bb00308458e4c13497655ed90eb27aa67e5076527c6c33e7d` /
+  `83287d99ac4caa316e7228ad7458332a08449d591d59c80d61b4609a54b2df9f`
+- Harness lock / `cc-check` bundle / skill SHA-256: unchanged at
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Relaunch-02 runbook SHA-256:
+  `7a239c2181520db141eae3f755c7acd9c7deef48992d945eb4e5daf2c0bf7070`
+- Validation: formatting, lint, ten unit tests, preflight, file-scoped contract checks, and the
+  explicit config comparison passed; relaunch-02 differs from the original full config only by
+  `job_name`
+- Dataset resolution: exactly 108 tasks, 648 trials, concurrency eight, and zero retries
+- Raw target, confirmed absent: `jobs/full-v1-luna-k3-relaunch-02/`
+- Operator handoff: [FULL_LUNA_RELAUNCH_02_RUNBOOK.md](FULL_LUNA_RELAUNCH_02_RUNBOOK.md)
+- Frozen scored command, not yet run at this timestamp:
+
+```bash
+PYTHONPATH=. uv run pier run \
+  --config config/full-v1-luna-k3-relaunch-02.json \
+  --yes
+```
+
+- Started: `2026-08-30 16:30:07.417435 UTC`
+- Initial dispatch: 648 total trials, eight running, 640 pending, zero errors, cancellations, and
+  retries
+- Resolved config / lock SHA-256:
+  `81b9cc5e09b1e2500c3eac63429431e37ca5fcaa2ac73c8b552d9dcd10772a28` /
+  `d0950703d85e32903385015e9f7137cbcd5b10db5f4aac74db65eb0719b2289f`
+- Sanitized lock: 648 literal `${OPENAI_API_KEY}` placeholders
+
+At `2026-08-30 19:54:04 UTC`, after 284 completed processes, the aggregate public result reported
+one `VerifierTimeoutError` in the code-contracts arm for `aiomonitor-task-snapshots-diff`. The job
+continues with the error preserved in place and zero retries. No replacement is authorized or
+launched before terminal completion and review of the complete infrastructure-error set.
+
+At `2026-08-30 20:03:14 UTC`, after 297 completed processes, the aggregate reported a second
+`VerifierTimeoutError`, also in the code-contracts arm, for `pwntools-tube-multiplexing`. This task
+previously produced a verifier timeout in the Phase 3 Luna pilot's control arm. Both Phase 5 errors
+remain unmodified with zero retries; the primary run continues.
+
+At `2026-08-30 22:29:55 UTC`, after 517 completed processes, a third
+`VerifierTimeoutError` appeared in the code-contracts arm for a second
+`pwntools-tube-multiplexing` attempt. All three errors remain unmodified with zero retries; the
+primary run continues.
+
+The immutable primary run reached terminal state at `2026-08-31 00:54:44.372537 UTC`,
+`8:24:36.955102` after its recorded start. All 648 scheduled processes terminated: 643 produced
+valid scored results, five ended in `VerifierTimeoutError`, and none were pending, running,
+cancelled, or retried. The complete public error set is one control-arm
+`pwntools-tube-multiplexing` attempt and four code-contracts-arm attempts: one
+`aiomonitor-task-snapshots-diff` and three `pwntools-tube-multiplexing`. Aggregate usage was
+565,891,003 input tokens, 524,993,989 cached tokens, 6,568,053 output tokens, and
+`$28.59828528`.
+
+- Exact public error set: control
+  `pwntools-tube-multiplexing__AohArfF`; code-contracts
+  `aiomonitor-task-snapshots-diff__YH9FvGE`,
+  `pwntools-tube-multiplexing__D2sLLnE`,
+  `pwntools-tube-multiplexing__iDYVZgD`, and
+  `pwntools-tube-multiplexing__2ABC5tK`
+- Terminal resolved config / lock / result SHA-256:
+  `81b9cc5e09b1e2500c3eac63429431e37ca5fcaa2ac73c8b552d9dcd10772a28` /
+  `d0950703d85e32903385015e9f7137cbcd5b10db5f4aac74db65eb0719b2289f` /
+  `083112273af0ed7f9acdb682766c9b1e0b00c161729b87d438863eb43e4bb231`
+- Outcome-integrity disposition: retain all five primary errors in place. The frozen analyzer
+  requires three valid attempts per task and arm, so it must not be weakened or used to publish a
+  complete-arm comparison from the 643 valid primary results. No replacement run is authorized or
+  launched from these outcomes; any completion run requires a separately frozen, outcome-blind,
+  symmetric replacement decision.
+
+All 648 public provenance records, 324 per arm, agree on direct OpenAI
+`openai/gpt-5.6-luna`, reasoning effort `max`, DeepSWE commit, mini-swe-agent and Node versions,
+agent source, full manifest, `cc-check` bundle, skill, harness lock, and activation-instruction
+digests. Within each arm the prompt-extension digest is constant: control uses the empty-content
+digest and code-contracts uses
+`sha256:3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3`.
+
+Treatment mechanism adoption was complete by the observable markers: all 324 code-contracts
+trajectories issued at least one bash command containing `cc-check`, with 2,307 matching tool calls
+in total, and all 324 treatment patches added an `@cc` marker. The corresponding counts across 324
+control trajectories and patches were zero. These markers do not establish semantic contract
+quality or a successful final per-file audit.
+
+The terminal public-artifact manifest selected the top-level resolved config, lock, and result plus
+each trial's public result, provenance, native trajectory, and model patch. The selection contains
+2,595 files and digest `eea93c7d3e43fdd48823573d8263c4892d739d5cb29ef92f97ef773212d93462`.
+The digest hashes a newline-terminated, path-sorted manifest of
+`<file SHA-256>  <job-relative path>` entries. A count-only scan of all 14,024 regular files in the
+job found zero runtime-key occurrences; the sanitized lock contains 648 literal
+`${OPENAI_API_KEY}` placeholders.
+
+The post-terminal bounded contract audit found no conflict among the applicable arm-parity,
+information-isolation, provenance, secret, outcome-integrity, manifest-resolution, and frozen-config
+contracts. File-scoped `cc-check list` and `check` passed for the four changed Python/test files;
+Ruff formatting and lint, all ten unit tests, the full preflight, and `git diff --check` also passed.
+
+### P03 authorized timeout replacement 01 — executed, incomplete
+
+Frozen at `2026-08-31 06:48:42 UTC` after explicit user authorization. The replacement decision
+uses only the primary job's five public `VerifierTimeoutError` records and does not use rewards,
+patches, trajectories, verifier output, or task-specific evidence. The arm-agnostic rule gives every
+timeout exactly one replacement in the same arm/task cell: one control
+`pwntools-tube-multiplexing`, three code-contracts `pwntools-tube-multiplexing`, and one
+code-contracts `aiomonitor-task-snapshots-diff`. The primary remains immutable.
+
+- Execution repository: commit `566217b98b2332364b084c1532c073145fd0d83e` plus the uncommitted
+  operational, replacement, runbook, test, and ledger changes recorded here
+- Control pwntools / code-contracts pwntools / code-contracts aiomonitor config SHA-256:
+  `1dd935dce207ae70bfcf554e45b53622e00ecb3c465fe58bedc8f96c9ba664d3` /
+  `0cd7e10c1ed2847d7377f5daee95b9f345e3c33462c9999697d89a7d72a70332` /
+  `de262a546b49aa62ea9be4a20f12449507f97778441131e12a94dee1d7f5218d`
+- Full manifest / agent / analyzer / replacement preflight SHA-256:
+  `85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772` /
+  `74583488e2f8d3031fbfa5b74827471838f7b70aeeba4bc93f3d0143684c13e5` /
+  `afadeb95a1104f37c1db6eeaab3c897727ddcf26bfc9d377677b7ee9dd78951a` /
+  `e24c26e91fb2092c505164a39ab573c9b3e487a898359453149f7801adde0799`
+- Replacement preflight test / harness lock / `cc-check` bundle / skill SHA-256:
+  `71d7740ed7d841f431a28af4c2aa45f560a7c14dad6613b75815699ae5b46aa5` /
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Replacement runbook SHA-256:
+  `f0a69e3543b50f04020c188832c49e78fb2ee5a8b97cd89b4d22cc845cc40f03`
+- Parity: each config selects the corresponding primary arm configuration byte-for-byte and changes
+  only job name, exact task selection, replacement attempt count, and matching concurrency; model,
+  max reasoning, prompt, tools, limits, verifier, full-manifest digest, and zero retries are preserved
+- Resolution: exactly one, three, and one trials with concurrency one, three, and one; total five
+  replacement trials and zero retries
+- Validation: clean DeepSWE checkout at `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Docker Compose
+  v2.40.3, file-scoped contract checks, Ruff formatting and lint, eleven unit tests, full preflight,
+  and `git diff --check` passed
+- Raw targets: all three confirmed absent
+- Operator handoff: [FULL_LUNA_REPLACEMENT_01_RUNBOOK.md](FULL_LUNA_REPLACEMENT_01_RUNBOOK.md)
+
+The three frozen commands in the runbook were not run at this timestamp. Any replacement error is
+preserved with zero retries and requires a new explicit decision.
+
+- Started: control pwntools `2026-08-31 06:49:42.659501 UTC`; code-contracts pwntools
+  `2026-08-31 06:49:42.569230 UTC`; code-contracts aiomonitor
+  `2026-08-31 06:49:42.569099 UTC`
+- Initial dispatch: respectively 1/1/0, 3/3/0, and 1/1/0 total/running/pending; zero errors,
+  cancellations, and retries
+- Resolved config / lock SHA-256, control pwntools:
+  `29279d884440be7ad27bdc164a7d14c575704ab9a2b596e622bd8991d4bbe721` /
+  `a79da8b4c68fa42a6f18502a28c5fd59e1a56e3ff26cb4ed15c2341d2bf2c00f`
+- Resolved config / lock SHA-256, code-contracts pwntools:
+  `af1b0be66cfed0ce77e265fd6b03b05f794f282e715343d2df28a441b6f53221` /
+  `661a0ec9d4679faa0a9cfb28ed80eb9e72c43af26f778e7814bb8760f9a38324`
+- Resolved config / lock SHA-256, code-contracts aiomonitor:
+  `6109c4b685ad11a0a96f6370149a9ee5c062bcbfcacaa2cd9825cf5590848edf` /
+  `e1707b2ed4f68cb43776325867de1427b66d8f0c792eb6dbd4ef3c9e1861504c`
+- Sanitized locks: respectively one, three, and one literal `${OPENAI_API_KEY}` placeholders
+
+Replacement 01 reached terminal state between `2026-08-31 06:52:27.013232 UTC` and
+`2026-08-31 07:53:06.329531 UTC`. Two replacement processes produced valid binary rewards of zero:
+code-contracts `aiomonitor-task-snapshots-diff__Z3mpmnf` and code-contracts
+`pwntools-tube-multiplexing__59ZKKya`. The other three ended in `VerifierTimeoutError`: control
+`pwntools-tube-multiplexing__wTkCwFq` and code-contracts
+`pwntools-tube-multiplexing__cTN9ZCC` / `pwntools-tube-multiplexing__82xmPCV`. All five processes
+remain immutable, with zero cancellations and retries.
+
+The pinned `pwntools-tube-multiplexing` task allows 1,800 seconds for separate verifier-environment
+startup and 1,800 seconds for verifier execution. The three failures reached terminal state after
+the same approximately one-hour verifier-stage window observed in the primary. No further
+replacement was launched.
+
+- Replacement aggregate usage: 2,239,909 input tokens, 2,030,777 cached tokens, 46,322 output
+  tokens, and `$0.14847024`
+- Primary plus replacement-01 execution: 653 processes, 645 valid binary results, eight preserved
+  verifier timeouts, zero cancellations or retries, 568,130,912 input tokens, 527,024,766 cached
+  tokens, 6,614,375 output tokens, and `$28.74675552`
+- Terminal result SHA-256, control pwntools / code-contracts pwntools / code-contracts aiomonitor:
+  `07470f07a13e34bd877ff3d5337be80d4f854943824f168a2001d901ce4aae81` /
+  `235c2b9617ec21ca7acc7446a6e9efffb9b5707b6df2272a298e62a981074fa9` /
+  `9ac14586729d00cb0d0173be9524ecc765729ca595418315438cb5d9bcbdf3d1`
+- Public-artifact manifest file count / SHA-256, control pwntools: 7 /
+  `c3d607a348300168feddcc87e984e4171ed968d0849916fda932db084a3503ec`
+- Public-artifact manifest file count / SHA-256, code-contracts pwntools: 15 /
+  `43cfbfb45d118e570ad9771e5b45abd129cb776eb21e97f1c19d692a0360d5f2`
+- Public-artifact manifest file count / SHA-256, code-contracts aiomonitor: 7 /
+  `9e0e48dd45c0e807c6f6cdd4883578168525c10e2fce387638cc0934c9552f94`
+
+All five replacement provenance records agree with the primary's direct Luna/max route, agent,
+full manifest, harness, bundle, skill, activation, and arm-specific prompt digests. All four
+code-contracts trajectories invoked `cc-check`, with 30 matching tool calls in total, and all four
+patches added an `@cc` marker; the single control trajectory and patch had neither marker. Count-only
+credential scans covered 22, 60, and 26 regular files in the three jobs and found zero runtime-key
+occurrences.
+
+Outcome-integrity disposition: Replacement 01 repairs the aiomonitor cell and one of the three
+missing code-contracts pwntools outcomes, but the control pwntools cell and two code-contracts
+pwntools outcomes remain missing. The frozen analyzer still cannot satisfy exactly three valid
+results per task/arm cell, so no complete-arm comparison is published. Any additional replacement
+requires a new explicit decision.
+
+### P03 authorized pwntools verifier regrade 01 — prepared
+
+Frozen at `2026-08-31 08:39:38 UTC` after explicit user authorization. Harbor will fork and
+verifier-only regrade every submission in the latest pwntools replacement job for each arm: one
+control submission and three code-contracts submissions. The agent is not rerun and no new patch or
+model call is permitted. The verifier timeout multiplier is doubled from `1.0` to `2.0`; the
+separate verifier-environment build multiplier remains `1.0`, and retries remain zero.
+
+The analysis branch is frozen before launch and does not depend on reward. If all four regrades
+produce valid binary rewards, the 108-task analysis uses the primary, both complete regrade jobs,
+and the successful aiomonitor replacement, and does not also use either source pwntools replacement
+job. If any regrade is invalid, `pwntools-tube-multiplexing` is excluded completely and
+symmetrically from both arms using the predeclared 107-task fallback manifest; that analysis uses
+only the primary plus the successful aiomonitor replacement and explicitly ignores every primary
+pwntools result and allowed infrastructure failure.
+
+- Execution repository: commit `566217b98b2332364b084c1532c073145fd0d83e` plus the uncommitted
+  operational, regrade, fallback, analysis, test, runbook, and ledger changes recorded here
+- Control / code-contracts regrade config SHA-256:
+  `fa3a6285e9fc79016266d2ba824e46a7af5b9d09c2e62b40c9ee69c2639a1397` /
+  `b8b39c684903bc9eb14186e8b418aa33e097a49707ddca909bcbf9a06293a27d`
+- Full / 107-task fallback manifest SHA-256:
+  `85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772` /
+  `72abbcb7a85edb3841d0cee4a311d6d50b8d6aae46d98271d3b5549dd915378c`
+- Analyzer / preflight / analyzer test / preflight test SHA-256:
+  `b300fda2ede2c6de9ebb3de4b4c96cee560cd22b9257c3e9762862f628c81fb8` /
+  `c0ecff3a6197641aa91ec37938009dc21f2cfdcc6797943af9f1e6c9c9b65c99` /
+  `2d0e43b90ade3c05033f3ce975ce00a274cb5eb77ffb9a53289ee9b2beacc972` /
+  `bcf790d9f84790f25b931eb8c040f049f1541a230e2950b1aebbd5bde49a7fe4`
+- Harness lock / `cc-check` bundle / skill SHA-256:
+  `3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1` /
+  `5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f` /
+  `988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a`
+- Source replacement resolved config / lock / result SHA-256, control:
+  `29279d884440be7ad27bdc164a7d14c575704ab9a2b596e622bd8991d4bbe721` /
+  `a79da8b4c68fa42a6f18502a28c5fd59e1a56e3ff26cb4ed15c2341d2bf2c00f` /
+  `07470f07a13e34bd877ff3d5337be80d4f854943824f168a2001d901ce4aae81`
+- Source replacement resolved config / lock / result SHA-256, code-contracts:
+  `af1b0be66cfed0ce77e265fd6b03b05f794f282e715343d2df28a441b6f53221` /
+  `661a0ec9d4679faa0a9cfb28ed80eb9e72c43af26f778e7814bb8760f9a38324` /
+  `235c2b9617ec21ca7acc7446a6e9efffb9b5707b6df2272a298e62a981074fa9`
+- Harbor version / regrade runbook SHA-256: `0.22.0` /
+  `7e6cc3cdc9105543c0268234c20d5e55491f1757f55c6d73ec731e64c9f0438e`
+- Validation: Harbor expanded the configs to exactly one and three source submissions with the
+  correct original arm identities, exact pwntools task path, verifier multiplier `2.0`, build
+  multiplier `1.0`, and verifier-only source action. Ruff formatting and lint, all fourteen unit
+  tests, the full preflight, file-scoped contract checks, and `git diff --check` passed.
+- Raw targets: both confirmed absent
+- Operator handoff: [FULL_LUNA_REGRADE_01_RUNBOOK.md](FULL_LUNA_REGRADE_01_RUNBOOK.md)
+
+The two frozen commands in the runbook were not run at this timestamp. The task permits up to 1,800
+seconds for verifier-environment startup followed by up to 3,600 seconds for verifier execution, so
+a worst-case regrade can reach roughly 90 minutes plus cleanup after launch before terminal state.
+
+Both regrade jobs started at `2026-08-31 08:41:07 UTC` and reached terminal state at
+`2026-08-31 08:41:09 UTC`. All four processes failed during Harbor's pre-verifier regrade
+validation with `RegradeError`; no task environment, verifier execution, model call, new patch,
+retry, or cancellation occurred. The public errors report that the older Pier source trials record
+`/logs/artifacts` and `/logs/artifacts/model.patch` at destinations that differ from Harbor's new
+regrade declarations. The source and regrade jobs remain immutable.
+
+- Exact regrade error set: control `pwntools-tube-multiplexing__y4Uqyc2`; code-contracts
+  `pwntools-tube-multiplexing__4GX9ior`, `pwntools-tube-multiplexing__JpLp6sR`, and
+  `pwntools-tube-multiplexing__n5FCbGt`
+- Terminal resolved config / lock / result SHA-256, control:
+  `c1f48e6025a1d0a585173de364e57a40ad3cdd187b38aac2364c3d379b57c7aa` /
+  `70fc375ae77958465b528845fea2245c2ba588922665af26195c3ae0f1552614` /
+  `99eaedf060508ab324c20d811199ab04e58bbc3f86aa1f379e4c4bd1a72d7d45`
+- Terminal resolved config / lock / result SHA-256, code-contracts:
+  `c7db910294dcc86121391838b4b640e2302e7b98bf7d81e73f9a23e113c151d4` /
+  `606ec33cc4251f3a59eda63ca0c36e43cac8d404cd906a78a1975a2c1a73630b` /
+  `f15a69059613ccd66766b6db6e9b2f452c25564f4d181e095c9707ab2f1803dd`
+- Public-artifact manifest file count / SHA-256, control: 4 /
+  `07abd35f4123fb6e75855ef45ff51bd088559a132e8b85573a39736e9799224d`
+- Public-artifact manifest file count / SHA-256, code-contracts: 6 /
+  `245a3a490943c0a306913bf30e75a83f7d76fee5ccd8710aea555baa37c6e19c`
+- Count-only credential scans covered 9 and 19 regular files and found zero runtime-key
+  occurrences. The files contain respectively four and twelve literal `${OPENAI_API_KEY}` source
+  placeholders.
+- Harbor copied the source token and cost counters into each regrade result even though no agent was
+  executed. Those duplicated metadata counters are not added to model usage or cost.
+
+The predeclared invalid-regrade condition selected fallback branch B. This is an arm-symmetric task
+exclusion, not a reward-based trial exclusion: every pwntools outcome and infrastructure failure is
+ignored in both arms, including two valid primary control outcomes and all source replacement
+outcomes. The final analyzed corpus contains 107 tasks from 86 repositories and exactly three valid
+binary outcomes per task and arm.
+
+### P03 fallback analysis
+
+Only public per-trial `result.json`, model-patch, trajectory, provenance, and source-manifest
+artifacts were used. No solution, verifier implementation, held-out test, or raw outcome was edited.
+
+```bash
+PYTHONPATH=. uv run python -m deepswe_eval.analyze \
+  jobs/full-v1-luna-k3-relaunch-02 \
+  jobs/full-v1-luna-k3-replacement-01-code-contracts-aiomonitor \
+  --manifest config/full-v1-minus-pwntools.json \
+  --attempts 3 \
+  --allow-error-type VerifierTimeoutError \
+  --ignore-task pwntools-tube-multiplexing \
+  --format markdown
+```
+
+| Arm | Passed | Micro pass rate | Macro pass rate | pass@1 | pass@2 | pass@3 |
+| --- | --- | --- | --- | --- | --- | --- |
+| control | 49/321 | 0.1526 | 0.1526 | 0.1526 | 0.2430 | 0.2991 |
+| code-contracts | 39/321 | 0.1215 | 0.1215 | 0.1215 | 0.2087 | 0.2710 |
+| code-contracts - control | -10 | -0.0312 | -0.0312 | -0.0312 | -0.0343 | -0.0280 |
+
+Treatment improved 10 tasks, lost 18, and tied 79. Its binary point estimate is lower in all four
+language strata. A deterministic 50,000-replicate repository-clustered bootstrap over 86
+repositories gives a 95% percentile interval of `[-0.0737, +0.0093]` for the task-macro binary
+difference, which includes zero.
+
+The corresponding all-attempt pass@1 estimates—each task's `c/3` estimate averaged equally—are
+`0.1526` for control (95% repository-clustered interval `[0.1000, 0.2107]`, bootstrap SE `0.0283`)
+and `0.1215` for code-contracts (interval `[0.0777, 0.1699]`, bootstrap SE `0.0237`). This is the
+three-attempt pass@1 estimator, not the fraction of tasks solved at least once, which is pass@3.
+
+Across the 321 valid outcomes per arm, treatment's mean partial score was `0.8899` versus `0.8924`,
+fail-to-pass fraction `0.6841` versus `0.6807`, and pass-to-pass fraction `0.9636` versus `0.9691`.
+Treatment used 26.81% more input tokens, 16.19% more output tokens, cost 23.38% more per valid trial,
+used 12.89% more agent steps, took 7.28% longer end-to-end, changed 14.52% more files, and changed
+10.05% more lines. Repository-clustered intervals exclude zero for the measured input, cached-input,
+output, cost, and duration overheads.
+
+The analyzed corpus uses 643 model executions: 321 control and 322 code-contracts, including the
+preserved primary aiomonitor timeout and its valid replacement. It contains 642 valid binary
+results, one reported and excluded `VerifierTimeoutError`, zero cancellations, and zero retries.
+Control used 248,654,955 input / 230,601,034 cached / 3,012,875 output tokens and cost
+`$12.73489973`; code-contracts used 315,940,368 input / 293,257,028 cached / 3,509,975 output tokens
+and cost `$15.74649761`. Total analyzed-corpus model cost was `$28.48139734`.
+
+Treatment adoption remained complete in the analyzed corpus: all 322 code-contracts executions
+invoked `cc-check`, with 2,294 matching bash commands, and all 322 treatment patches added an `@cc`
+marker. All corresponding counts across 321 control executions were zero. These are mechanism
+markers, not semantic contract-quality judgments.
+
+- Final analyzer source SHA-256:
+  `b300fda2ede2c6de9ebb3de4b4c96cee560cd22b9257c3e9762862f628c81fb8`
+- Phase 5 analysis report SHA-256:
+  `7bb7f3f4fccee83656739a4550512d61df05c18499a857bf157474d42b46cf96`
+- Complete report: [PHASE5_ANALYSIS.md](PHASE5_ANALYSIS.md)
+- Analysis limitation: public artifacts do not expose a stable shared attempt identifier across
+  arms, so exact task-and-attempt McNemar analysis is not reconstructed. The observable matched
+  task structure is retained in task-level means and repository-clustered resampling.
+- Decision: the full-corpus Luna result does not support a binary-success benefit from the frozen
+  code-contracts workflow. Its point estimate is lower, its partial verifier progress is essentially
+  unchanged, and its resource overhead is material.
+
+The post-analysis bounded audit passed Ruff formatting and lint, all fifteen unit tests, the full
+preflight, file-scoped contract discovery/checks for every changed Python and test file, caller
+inspection for the changed analysis/preflight entry points, and `git diff --check`. The final
+analyzer-test SHA-256 is
+`82b1926383056273c46910b0141b39e24d7d763862a2ee1c71062726f36cd556`.
+
+### P03 post-hoc sharp-reversal review
+
+At user request, the public artifacts for the three cells with 3/3 or 2/3 control success and 0/3
+code-contracts success were reviewed after the aggregate analysis. The review was restricted to
+public task instructions, per-trial results, trajectories, and model patches for
+`claude-code-by-agents-recursive-delegation`, `fd-deterministic-multi-key-sorting`, and
+`ipython-session-bundle-replay`; verifier implementation, held-out tests, and solution artifacts
+were not inspected.
+
+All eighteen trials had pass-to-pass fraction `1.0`, so these were feature-completeness misses, not
+base-code regressions. Binary scoring magnified near-misses for fd and IPython, whose treatment
+fail-to-pass fractions ranged from `0.7059` to `0.9767`. Delegation was systematic: every treatment
+attempt reached `0.2857` fail-to-pass while every control reached `1.0`.
+
+The intervention appended 12,538 bytes / 1,795 words of skill and mandatory workflow instructions;
+it was not a candidate-preserving compute extension. Treatment used 87.5%, 35.9%, and 25.7% more
+mean input tokens than control on delegation, fd, and IPython respectively. Across the three cells,
+treatment issued 65 commands containing `cc-check` but no `callers` or `references` command. Public
+patch inspection found semantic defects despite passing contract syntax checks, including child
+output suppressed before accumulation in one delegation patch, reverse applied after result
+truncation despite an adjacent contract saying the opposite in one fd patch, premature raw-case
+tie-breaking in two fd patches, and `%session_bundle status` printing and returning `None` in one
+IPython patch.
+
+This is not a simple `cc-check` dose effect: improved, lost, and tied full-corpus tasks averaged
+6.97, 7.50, and 7.05 treatment commands containing `cc-check`. The cells were also selected after
+observing 107 tasks, among which large reversals occurred in both directions. The diagnostic
+conclusion is a small negative aggregate point effect plus task-specific prompt/policy sensitivity,
+not deterministic damage from contracts. The expanded evidence and proposed neutral-prompt,
+advisory-contract, post-implementation-contract, and candidate-preserving follow-ups are recorded in
+[PHASE5_ANALYSIS.md](PHASE5_ANALYSIS.md).

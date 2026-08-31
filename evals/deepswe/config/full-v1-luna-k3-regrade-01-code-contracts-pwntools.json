@@ -1,0 +1,35 @@
+{
+  "job_name": "full-v1-luna-k3-regrade-01-code-contracts-pwntools",
+  "jobs_dir": "jobs",
+  "n_attempts": 1,
+  "timeout_multiplier": 1.0,
+  "verifier_timeout_multiplier": 2.0,
+  "environment_build_timeout_multiplier": 1.0,
+  "n_concurrent_trials": 3,
+  "quiet": false,
+  "debug": false,
+  "retry": {
+    "max_retries": 0
+  },
+  "environment": {
+    "type": "docker",
+    "force_build": false,
+    "delete": true
+  },
+  "verifier": {
+    "disable": false
+  },
+  "tasks": [
+    {
+      "path": "resolved/deep-swe/tasks/pwntools-tube-multiplexing"
+    }
+  ],
+  "source_jobs": [
+    {
+      "action": "regrade",
+      "type": "local",
+      "job_id": "1606519f-34bc-44f0-b59b-b834a47338f1",
+      "path": "jobs/full-v1-luna-k3-replacement-01-code-contracts-pwntools"
+    }
+  ]
+}

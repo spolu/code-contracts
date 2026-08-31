@@ -18,6 +18,8 @@ REPOSITORY_ROOT = EVAL_ROOT.parents[1]
 DEFAULT_CC_CHECK_BUNDLE = EVAL_ROOT / "artifacts" / "cc-check.tar.gz"
 DEFAULT_SKILL = REPOSITORY_ROOT / "skills" / "code-contracts" / "SKILL.md"
 DEFAULT_PILOT_MANIFEST = EVAL_ROOT / "config" / "pilot-v1.json"
+DEFAULT_FULL_MANIFEST = EVAL_ROOT / "config" / "full-v1.json"
+DEFAULT_TASK_MANIFESTS = (DEFAULT_PILOT_MANIFEST, DEFAULT_FULL_MANIFEST)
 DEFAULT_HARNESS_LOCK = EVAL_ROOT / "uv.lock"
 
 MINI_SWE_AGENT_VERSION = "2.4.6"
@@ -92,7 +94,7 @@ class _DeepSWEAgent(MiniSweAgent):
         reasoning_effort: str = "max",
         cc_check_bundle_path: str | Path = DEFAULT_CC_CHECK_BUNDLE,
         skill_path: str | Path = DEFAULT_SKILL,
-        pilot_manifest_path: str | Path = DEFAULT_PILOT_MANIFEST,
+        pilot_manifest_path: str | Path | None = None,
         harness_lock_path: str | Path = DEFAULT_HARNESS_LOCK,
         **kwargs: Any,
     ) -> None:
@@ -105,7 +107,9 @@ class _DeepSWEAgent(MiniSweAgent):
 
         self._cc_check_bundle_path = Path(cc_check_bundle_path).resolve()
         self._skill_path = Path(skill_path).resolve()
-        self._pilot_manifest_path = Path(pilot_manifest_path).resolve()
+        self._pilot_manifest_path = self._resolve_manifest_path(
+            pilot_manifest_path, pilot_manifest_sha256
+        )
         self._harness_lock_path = Path(harness_lock_path).resolve()
         self._cc_check_bundle_sha256 = cc_check_bundle_sha256
         self._skill_sha256 = skill_sha256
@@ -153,6 +157,25 @@ class _DeepSWEAgent(MiniSweAgent):
         actual = sha256_file(path)
         if actual != expected:
             raise ValueError(f"{label} digest mismatch: expected {expected}, got {actual}.")
+
+    @staticmethod
+    def _resolve_manifest_path(manifest_path: str | Path | None, expected_digest: str) -> Path:
+        """@cc [author:spolu,label:reproducibility] task-manifest-digest-resolution
+        Without an explicit path, the configured manifest digest must uniquely select the frozen
+        pilot or full-corpus task manifest.
+        """
+        if manifest_path is not None:
+            return Path(manifest_path).resolve()
+        matches = [
+            path.resolve()
+            for path in DEFAULT_TASK_MANIFESTS
+            if path.is_file() and sha256_file(path) == expected_digest
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Task manifest digest must match exactly one frozen manifest; got {len(matches)}."
+            )
+        return matches[0]
 
     def render_instruction(self, instruction: str) -> str:
         """@cc [author:spolu,label:evaluation] arm-prompt-boundary

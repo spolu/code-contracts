@@ -1,0 +1,46 @@
+{
+  "job_name": "full-v1-luna-k3-replacement-01-code-contracts-aiomonitor",
+  "jobs_dir": "jobs",
+  "n_attempts": 1,
+  "n_concurrent_trials": 1,
+  "quiet": false,
+  "debug": false,
+  "retry": {
+    "max_retries": 0
+  },
+  "environment": {
+    "type": "docker",
+    "force_build": false,
+    "delete": true
+  },
+  "datasets": [
+    {
+      "path": "resolved/deep-swe/tasks",
+      "task_names": [
+        "aiomonitor-task-snapshots-diff"
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "import_path": "deepswe_eval.agents:CodeContractsAgent",
+      "model_name": "openai/gpt-5.6-luna",
+      "kwargs": {
+        "version": "2.4.6",
+        "reasoning_effort": "max",
+        "model_class": "litellm_response",
+        "model_kwargs": {},
+        "cost_limit": 0,
+        "extra_python_packages": [],
+        "cc_check_bundle_sha256": "sha256:5b4de4d3221e78fe9e9825ed2ae060833ad5f6608dd8d9837fb5d99b68c6f32f",
+        "skill_sha256": "sha256:988d40190227cf2798aad7c1c5bd2359915b92621bcec76db39142b24999c37a",
+        "pilot_manifest_sha256": "sha256:85d96539172c71a38fffd07a5ef18d481d2e2efee4adc8a5647742666f41e772",
+        "harness_lock_sha256": "sha256:3e411d2eb53ee7d229371227c11669ff1ba96313f5c6993370104121ad0d18c1",
+        "prompt_extension_sha256": "sha256:3847d9406419e923fed112643bb714f88c6560876f1111758469d9fd8be87da3"
+      },
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  ]
+}

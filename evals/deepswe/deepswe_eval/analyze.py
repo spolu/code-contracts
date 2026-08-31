@@ -50,7 +50,7 @@ def _manifest_task_ids(manifest: dict[str, Any], source_manifest_path: Path) -> 
     manifest_tasks = manifest.get("tasks")
     if isinstance(manifest_tasks, list):
         tasks = [task["task_id"] for task in manifest_tasks]
-    elif manifest.get("version") == "full-v1":
+    elif manifest.get("version") in {"full-v1", "full-v1-minus-pwntools"}:
         if manifest.get("source_manifest_sha256") != sha256_file(source_manifest_path):
             raise ValueError("Full manifest source digest does not match the task source manifest.")
         source_manifest = _load_json(source_manifest_path)
@@ -156,27 +156,45 @@ def analyze_job(
     expected_attempts: int,
     allowed_error_types: frozenset[str] = frozenset(),
     source_manifest_path: Path = DEFAULT_SOURCE_MANIFEST,
+    ignored_tasks: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     """@cc [author:spolu,label:evaluation] balanced-pilot-analysis
     Matched analysis requires exactly `expected_attempts` binary results for every manifest task and
-    arm, then reports micro/macro pass rates and task-macro pass@k for every `1 <= k <= attempts`.
+    arm. Ignored task results must be explicitly excluded by the manifest; every other unexpected
+    task is rejected before reporting micro/macro pass rates and task-macro pass@k.
     """
     if expected_attempts < 1:
         raise ValueError("Expected attempts must be positive.")
     manifest = _load_json(manifest_path)
     tasks = _manifest_task_ids(manifest, source_manifest_path)
 
+    expected_tasks = set(tasks)
+    manifest_excluded_tasks = set(manifest.get("excluded_tasks", []))
+    if ignored_tasks.intersection(expected_tasks):
+        raise ValueError("Ignored tasks must not be present in the analysis manifest.")
+    if not ignored_tasks.issubset(manifest_excluded_tasks):
+        raise ValueError("Ignored tasks must be explicitly excluded by the analysis manifest.")
     normalized_job_dirs = [job_dirs] if isinstance(job_dirs, Path) else job_dirs
     outcomes, failures = collect_outcomes(normalized_job_dirs, allowed_error_types)
     cells: dict[tuple[str, str], list[int]] = defaultdict(list)
-    expected_tasks = set(tasks)
+    ignored_result_counts = {
+        task: {"binary_results": 0, "infrastructure_failures": 0} for task in sorted(ignored_tasks)
+    }
     for outcome in outcomes:
+        if outcome.task in ignored_tasks:
+            ignored_result_counts[outcome.task]["binary_results"] += 1
+            continue
         if outcome.task not in expected_tasks:
             raise ValueError(f"Unexpected task in job results: {outcome.task}.")
         cells[(outcome.arm, outcome.task)].append(outcome.reward)
+    included_failures = []
     for failure in failures:
+        if failure.task in ignored_tasks:
+            ignored_result_counts[failure.task]["infrastructure_failures"] += 1
+            continue
         if failure.task not in expected_tasks:
             raise ValueError(f"Unexpected task in job failures: {failure.task}.")
+        included_failures.append(failure)
 
     incomplete = {
         f"{arm}/{task}": len(cells[(arm, task)])
@@ -227,6 +245,9 @@ def analyze_job(
         "manifest": str(manifest_path),
         "n_tasks": len(tasks),
         "attempts_per_task_arm": expected_attempts,
+        "ignored_task_results": [
+            {"task": task, **counts} for task, counts in ignored_result_counts.items()
+        ],
         "excluded_infrastructure_failures": [
             {
                 "trial_name": failure.trial_name,
@@ -234,7 +255,7 @@ def analyze_job(
                 "arm": failure.arm,
                 "error_type": failure.error_type,
             }
-            for failure in failures
+            for failure in included_failures
         ],
         "arms": arm_results,
         "treatment_minus_control": {
@@ -315,6 +336,16 @@ def render_markdown(analysis: dict[str, Any]) -> str:
         )
     else:
         lines.append("None.")
+    lines.extend(["", "Ignored manifest-excluded task results:", ""])
+    ignored_results = analysis["ignored_task_results"]
+    if ignored_results:
+        lines.extend(
+            f"- `{result['task']}`: {result['binary_results']} binary results, "
+            f"{result['infrastructure_failures']} allowed infrastructure failures"
+            for result in ignored_results
+        )
+    else:
+        lines.append("None.")
     return "\n".join(lines)
 
 
@@ -325,6 +356,7 @@ def main() -> None:
     parser.add_argument("--source-manifest", type=Path, default=DEFAULT_SOURCE_MANIFEST)
     parser.add_argument("--attempts", type=int, required=True)
     parser.add_argument("--allow-error-type", action="append", default=[])
+    parser.add_argument("--ignore-task", action="append", default=[])
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
     arguments = parser.parse_args()
     analysis = analyze_job(
@@ -333,6 +365,7 @@ def main() -> None:
         arguments.attempts,
         frozenset(arguments.allow_error_type),
         arguments.source_manifest.resolve(),
+        frozenset(arguments.ignore_task),
     )
     if arguments.format == "json":
         print(json.dumps(analysis, indent=2, sort_keys=True))
