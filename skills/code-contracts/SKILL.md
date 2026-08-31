@@ -64,9 +64,10 @@ npm install --global @spolu/cc-check
 
 The `cc-check` command-line interface provides:
 
-- `cc-check check [file-like]`: validates `@cc` grammar and contract-ID uniqueness in a supported
-  source or `CONTRACTS` file. Without a path, it recursively checks every supported file in the
-  current directory.
+- `cc-check format [file-like]`: reports malformed `@cc` syntax and duplicate contract IDs in a
+  supported source or `CONTRACTS` file. Without a path, it recursively inspects every supported file
+  in the current directory. It never rewrites files or assesses contract prose or implementation
+  compliance.
 - `cc-check list <file-like|location-like>`: lists contracts attached to declarations throughout a
   supported source file, or contracts applicable to the declaration containing a source location
   and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
@@ -205,13 +206,13 @@ While implementing or reviewing a change:
 - Validate edited contract syntax early and again after the final edit:
 
 ```text
-cc-check check path/to/file.ts
-cc-check check # checks all files
+cc-check format path/to/file.ts
+cc-check format # inspects all supported files
 ```
 
-`cc-check check` validates grammar and ID uniqueness within the check perimeter. It does not prove
-that the prose is true or that code complies. Use normal project formatting, type checking, tests,
-and review in addition to semantic contract inspection.
+`cc-check format` reports malformed syntax and duplicate IDs within the selected files. It does not
+prove that the prose is true or that code complies. Use normal project formatting, type checking,
+tests, and review in addition to semantic contract inspection.
 
 ## Performing a bounded final audit
 
@@ -232,7 +233,7 @@ This is a focused risk check, not a claim of exhaustive verification.
 6. When more than 32 candidates exist, use relationship results to understand the fanout, select the
    most consequential and diverse sites, then stop at the bound. Do not imply that every reference
    was reviewed.
-7. Run `cc-check check` and the relevant project quality gates after resolving findings.
+7. Run `cc-check format` and the relevant project quality gates after resolving findings.
 
 A known contract violation is not excused by the audit bound. Fix it before submission or report it
 as an explicit blocker. In the commit or pull-request validation summary, state the contract checks

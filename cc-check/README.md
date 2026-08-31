@@ -1,8 +1,8 @@
 # cc-check
 
-Command-line tooling for discovering and checking code contracts.
+Command-line tooling for discovering and inspecting code contracts.
 
-`check`, `list`, `callers`, and `references` support TypeScript, Python, Rust, and Go.
+`format`, `list`, `callers`, and `references` support TypeScript, Python, Rust, and Go.
 
 ## Installation
 
@@ -36,45 +36,46 @@ Node.js built-ins. Rust and Go relationship cases run when their language server
 ## Command surface
 
 ```text
-cc-check check [file-like]
+cc-check format [file-like]
 cc-check callers <location-like>
 cc-check references <location-like>
 cc-check list <file-like|location-like>
 ```
 
-## Check
+## Format
 
-`check` validates contracts against the
-[contracts grammar](https://github.com/spolu/code-contracts#specification-and-grammar) and enforces
-ID uniqueness within the check perimeter. With a file argument, it checks every
+`format` reports malformed `@cc` directives according to the
+[contracts grammar](https://github.com/spolu/code-contracts#specification-and-grammar) and duplicate
+IDs within the selected files. With a file argument, it inspects every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
 docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
 file, every `@cc` Rust doc comment, or every contract in a `CONTRACTS` file. Without an argument, it
-recursively checks all supported files under the current directory, excluding `.git`,
+recursively inspects all supported files under the current directory, excluding `.git`,
 `node_modules`, `vendor`, `.venv`, `venv`, and `__pycache__`. A source documentation comment or
 docstring must contain exactly one directive; documentation without `@cc` is ignored. Python source
 support includes `.py` and `.pyi` files; Go and Rust support `.go` and `.rs` files, respectively.
-An argument-free check prints each selected relative file path in deterministic discovery order.
+An argument-free `format` prints each selected relative file path in deterministic discovery order.
 
 ```sh
-cc-check check src/example.ts
-cc-check check CONTRACTS
-cc-check check
+cc-check format src/example.ts
+cc-check format CONTRACTS
+cc-check format
 ```
 
-A compliant targeted file produces no output. Invalid grammar or ID uniqueness produces
-source-located diagnostics and a non-zero exit status:
+A targeted file with no format or ID-uniqueness issue produces no output. Malformed syntax or a
+duplicate ID produces source-located diagnostics and a non-zero exit status:
 
 ```text
 cc-check: src/example.ts:12:1: error: Invalid @cc directive
 ```
 
 Attached IDs must be unique within a declaration, but may repeat on distinct declarations.
-`CONTRACTS` IDs must be unique along ancestor chains included in the check perimeter, but may repeat
-in sibling directory branches. A targeted file is the entire check perimeter; an argument-free run
-uses every recursively discovered file.
+`CONTRACTS` IDs must be unique along ancestor chains included in the selected files, but may repeat
+in sibling directory branches. A targeted file is the entire inspection scope; an argument-free
+run uses every recursively discovered file.
 
-`check` does not assess whether prose is true or whether implementation meets a contract.
+`format` is read-only: it does not rewrite files, assess whether prose is true, or determine whether
+implementation meets a contract.
 
 ## Callers
 
