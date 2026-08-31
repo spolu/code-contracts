@@ -22,7 +22,7 @@ import {
   startLocalContractExtractor,
 } from "./contract-extractors/index.js";
 
-export interface CheckCommandOptions {
+export interface FormatCommandOptions {
   workingDirectory?: string;
   writeLine?: (line: string) => void;
 }
@@ -36,10 +36,10 @@ const SKIPPED_DIRECTORIES = new Set([
   "venv",
 ]);
 
-const isCheckFile = (filePath: string): boolean =>
+const isFormatTarget = (filePath: string): boolean =>
   basename(filePath) === "CONTRACTS" || isSupportedContractSource(filePath);
 
-const discoverCheckFiles = async (directory: string): Promise<string[]> => {
+const discoverFormatFiles = async (directory: string): Promise<string[]> => {
   const files: string[] = [];
   const entries = await readdir(directory, { withFileTypes: true });
   entries.sort(({ name: left }, { name: right }) =>
@@ -50,9 +50,9 @@ const discoverCheckFiles = async (directory: string): Promise<string[]> => {
     const entryPath = join(directory, entry.name);
     if (entry.isDirectory()) {
       if (!SKIPPED_DIRECTORIES.has(entry.name)) {
-        files.push(...(await discoverCheckFiles(entryPath)));
+        files.push(...(await discoverFormatFiles(entryPath)));
       }
-    } else if (entry.isFile() && isCheckFile(entryPath)) {
+    } else if (entry.isFile() && isFormatTarget(entryPath)) {
       files.push(entryPath);
     }
   }
@@ -95,7 +95,7 @@ const sourceContractError = (
   );
 };
 
-const checkSource = (
+const sourceFormatErrors = (
   filePath: string,
   source: string,
 ): ContractParseError[] => {
@@ -159,7 +159,7 @@ const duplicateDeclarationIdErrors = (
   return errors;
 };
 
-interface CheckedFile {
+interface FormatFileResult {
   errors: ContractParseError[];
   filePath: string;
   directoryContracts?: ParsedContract[];
@@ -182,14 +182,17 @@ const isWithinDirectory = (
 };
 
 const duplicateDirectoryIdErrors = (
-  checkedFiles: CheckedFile[],
+  fileResults: FormatFileResult[],
 ): ContractParseError[] => {
   const errors: ContractParseError[] = [];
   const directoriesById = new Map<string, string[]>();
-  const directoryFiles = checkedFiles
+  const directoryFiles = fileResults
     .filter(
-      (file): file is CheckedFile & { directoryContracts: ParsedContract[] } =>
-        file.directoryContracts !== undefined,
+      (
+        file,
+      ): file is FormatFileResult & {
+        directoryContracts: ParsedContract[];
+      } => file.directoryContracts !== undefined,
     )
     .toSorted(
       (left, right) =>
@@ -231,7 +234,9 @@ const formatDiagnostic = (
 ): string =>
   `${displayPath(error.sourceName, workingDirectory)}:${error.line}:${error.column}: error: ${error.description}`;
 
-const checkFile = async (filePath: string): Promise<CheckedFile> => {
+const inspectFormatFile = async (
+  filePath: string,
+): Promise<FormatFileResult> => {
   const source = await readFile(filePath, "utf8");
 
   if (basename(filePath) === "CONTRACTS") {
@@ -249,7 +254,7 @@ const checkFile = async (filePath: string): Promise<CheckedFile> => {
     }
   }
 
-  const errors = checkSource(filePath, source);
+  const errors = sourceFormatErrors(filePath, source);
   if (errors.length > 0) {
     return { errors, filePath };
   }
@@ -265,41 +270,50 @@ const checkFile = async (filePath: string): Promise<CheckedFile> => {
 };
 
 /**
- * @cc [author:spolu,label:product] check-file-scope
- * `check [file-like]` validates the targeted `CONTRACTS` or supported source file. Without a file,
- * it recursively checks every supported file under the current directory, excluding common
+ * @cc [author:spolu,label:product] format-file-scope
+ * `format [file-like]` inspects the targeted `CONTRACTS` or supported source file. Without a file,
+ * it recursively inspects every supported file under the current directory, excluding common
  * repository metadata, dependency, environment, and cache directories. Source documentation must
  * contain exactly one directive; documentation without `@cc` is ignored, and unsupported file
  * types are rejected.
  */
 /**
- * @cc [author:spolu,label:product] check-contract-id-uniqueness
- * Within the files selected for checking, `check` rejects repeated IDs attached to one declaration
- * and repeated `CONTRACTS` IDs along an ancestor chain; IDs on distinct declarations or sibling
- * directory branches may repeat.
+ * @cc [author:spolu,label:product] format-contract-id-uniqueness
+ * Within the files selected for inspection, `format` rejects repeated IDs attached to one
+ * declaration and repeated `CONTRACTS` IDs along an ancestor chain; IDs on distinct declarations
+ * or sibling directory branches may repeat.
  */
 /**
- * @cc [author:spolu,label:product] check-progress-output
- * An argument-free `check` writes each selected relative file path to stdout in deterministic
- * discovery order; a targeted check remains silent when compliant.
+ * @cc [author:spolu,label:product] format-progress-output
+ * An argument-free `format` writes each selected relative file path to stdout in deterministic
+ * discovery order; a targeted inspection remains silent when no issue is found.
  */
 /**
- * @cc [author:spolu,label:product] check-result
- * Grammar or ID uniqueness failures reject `check` with source-relative
+ * @cc [author:spolu,label:product] format-result
+ * Grammar or ID uniqueness failures reject `format` with source-relative
  * `<path>:<line>:<column>: error: <description>` diagnostics and a non-zero exit status.
  */
-export async function runCheckCommand(
+/**
+ * @cc [author:spolu,label:product] format-read-only
+ * `format` reads selected files without modifying them.
+ */
+/**
+ * @cc [author:spolu,label:product] format-no-semantic-validation
+ * `format` performs structural grammar, directive-cardinality, and ID-uniqueness checks only; it
+ * never assesses contract prose or whether code complies with a contract.
+ */
+export async function runFormatCommand(
   input?: string,
-  options: CheckCommandOptions = {},
+  options: FormatCommandOptions = {},
 ): Promise<void> {
   const workingDirectory = options.workingDirectory ?? process.cwd();
   const writeLine = options.writeLine ?? console.log;
   const filePaths =
     input === undefined
-      ? await discoverCheckFiles(workingDirectory)
+      ? await discoverFormatFiles(workingDirectory)
       : [resolve(workingDirectory, input)];
 
-  if (input !== undefined && !isCheckFile(filePaths[0] ?? "")) {
+  if (input !== undefined && !isFormatTarget(filePaths[0] ?? "")) {
     throw new Error(
       `Unsupported file "${input}". Expected a CONTRACTS or supported source file.`,
     );
@@ -311,10 +325,10 @@ export async function runCheckCommand(
     );
   }
 
-  const checkedFiles = await Promise.all(filePaths.map(checkFile));
+  const fileResults = await Promise.all(filePaths.map(inspectFormatFile));
   const errors = [
-    ...checkedFiles.flatMap(({ errors: fileErrors }) => fileErrors),
-    ...duplicateDirectoryIdErrors(checkedFiles),
+    ...fileResults.flatMap(({ errors: fileErrors }) => fileErrors),
+    ...duplicateDirectoryIdErrors(fileResults),
   ].toSorted(
     (left, right) =>
       left.sourceName.localeCompare(right.sourceName) ||

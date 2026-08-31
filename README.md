@@ -58,8 +58,8 @@ npx skills add https://github.com/spolu/code-Contracts
 ```
 
 The reusable [$code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
-agents through writing concise contracts, checking them while changing code, and performing a
-bounded semantic audit before commits and pull requests.
+agents through writing concise contracts, validating their syntax and valididity while changing
+code, and performing a bounded validity audit before commits and pull requests.
 
 ## Tooling
 
@@ -69,9 +69,10 @@ npm install --global @spolu/cc-check
 
 The `cc-check` command-line interface provides:
 
-- `cc-check check [file-like]`: validates `@cc` grammar and contract-ID uniqueness in a supported
-  source or `CONTRACTS` file. Without a path, it recursively checks every supported file in the
-  current directory.
+- `cc-check format [file-like]`: reports malformed `@cc` syntax and duplicate contract IDs in a
+  supported source or `CONTRACTS` file. Without a path, it recursively inspects every supported file
+  in the current directory. It never rewrites files or assesses contract prose or implementation
+  compliance.
 - `cc-check list <file-like|location-like>`: lists contracts attached to declarations throughout a
   supported source file, or contracts applicable to the declaration containing a source location
   and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
