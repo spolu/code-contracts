@@ -210,11 +210,10 @@ cc-check format path/to/file.ts
 cc-check format # inspects all supported files
 ```
 
-`cc-check format` reports malformed syntax and duplicate IDs within the selected files. It does not
-prove that the prose is true or that code complies. Use normal project formatting, type checking,
-tests, and review in addition to semantic contract inspection.
+`cc-check format` reports malformed syntax and duplicate IDs only. It does not prove that the prose
+is true or that code complies to it.
 
-## Performing a bounded final audit
+## Performing a final audit
 
 Before submitting a commit or pull request, perform a best-effort semantic audit of the exact diff.
 This is a focused risk check, not a claim of exhaustive verification.

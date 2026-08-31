@@ -58,8 +58,8 @@ npx skills add https://github.com/spolu/code-Contracts
 ```
 
 The reusable [$code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
-agents through writing concise contracts, validating their syntax while changing code, and
-performing a bounded semantic audit before commits and pull requests.
+agents through writing concise contracts, validating their syntax and valididity while changing
+code, and performing a bounded validity audit before commits and pull requests.
 
 ## Tooling
 
