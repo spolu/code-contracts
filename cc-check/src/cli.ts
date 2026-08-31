@@ -5,7 +5,7 @@ import { runFormatCommand } from "./format.js";
 import { runListCommand } from "./list.js";
 import { runReferencesCommand } from "./references.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 /**
  * @cc [author:spolu,label:product] format-command
