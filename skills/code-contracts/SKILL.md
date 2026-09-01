@@ -73,6 +73,13 @@ The `cc-check` command-line interface provides:
   and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
   included by default; pass `--no-global` to exclude them.
 
+```text
+cc-check format
+cc-check format path/file.rs
+cc-check list path/to/file.ts:42
+cc-check list path/to/file.go
+```
+
 ## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each
@@ -132,43 +139,33 @@ The identity of an attached contract is the language-specific identity of its de
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
 file plus its contract ID.
 
-## Discovering applicable contracts
+## Code contracts workflow
+
+### Discovering contracts
 
 Before changing or reviewing code, identify the contracts that govern the target. You can do so
-manually or with the `cc-check` tool.
+manually or with the `cc-check list` command.
 
 Treat all applicable local and directory contracts as simultaneous obligations. Surface conflicting,
 obsolete, or impossible contracts instead of choosing one silently.
 
-### `cc-check list`
+### Writing contracts
 
-The `list` command lists all code contracts related to a declaration or an entire file. The `list`
-command will output the locally defined code-contracts as well as the global ones from parent
-directories' `CONTRACTS` files.
+Code contracts are effective when they are simple, concise, and precise. Place a
+declaration-specific contract in that language's supported documentation comment or docstring. Place
+a contract governing a directory tree in `CONTRACTS`, normally for architectural, security, or
+coding constraints. Use the narrowest relevant declaration or directory boundary.
 
-```text
-cc-check list path/to/file.ts:42
-cc-check list path/to/file.ts
-```
-
-`--no-global` lets you intentionally isolate local contracts. Avoid using it as the basis for a
-compliance conclusion since `CONTRACTS` file contracts are deemed applicable.
-
-If `cc-check` is unavailable, inspect the target's documentation comments and every parent
-`CONTRACTS` file manually. State that automated discovery was not run; do not silently skip the
-step.
-
-## Writing effective contracts
-
-Code contracts are effective when they are simple, concise, and precise. Put a declaration-specific
-expectation in that language's supported documentation comment or docstring. Put a rule governing a
-directory tree in `CONTRACTS`, normally for architectural, security, or coding constraints.
-
-Each source documentation block contains exactly one directive. Keep attached IDs unique and stable
-within their declaration. Keep a `CONTRACTS` ID unique and stable within that file and its parent
+Each source documentation block contains exactly one contract. Keep contract IDs unique and stable
+within their declaration. Keep `CONTRACTS` IDs unique and stable within that file and its parent
 `CONTRACTS` files. Set `author` to the current user's GitHub username; use their authenticated
 GitHub identity when available, and ask rather than guessing when it cannot be determined. Preserve
 established repository metadata conventions.
+
+Validate contract syntax with `cc-check format`. The command reports malformed syntax and duplicate
+IDs only. It does not prove that the prose is true or that code complies with it. You are responsible
+for verifying contracts' validity and coherence and the code's compliance. Validate contract
+discoverability with `cc-check list`.
 
 Write contract prose so a human or agent reviewer can compare it directly with code:
 
@@ -190,50 +187,36 @@ Write contract prose so a human or agent reviewer can compare it directly with c
 For example, replace “Handles invalid amounts appropriately” with “`createInvoice` rejects a
 non-positive amount with `InvalidAmountError` and does not persist the invoice.”
 
-## Working against contracts
+A well-written contract should read as a specification. It should:
 
-While implementing or reviewing a change:
+- Be sufficient for consumers of the associated declaration to reason about its behavior.
+- Avoid prescribing implementation details.
 
-- Read applicable contracts before choosing the design.
-- Translate each contract into concrete code paths and observable outcomes affected by the change.
-- Reconcile the implementation, relevant tests, and contract prose after each meaningful behavior
-  change.
+Use specification styles such as BCP 14 / RFC 2119, JML, TLA+, EARS, and Gherkin rather than typical
+comments about code behavior.
+
+### Enforcing contracts
+
+You must ensure at all times that all discovered and introduced contracts related to a code change
+are valid, coherent, enforced, and respected. There is no automated semantic enforcement of
+contracts. Code changes are assumed to comply with all applicable contracts, so authors and
+reviewers must verify that compliance.
+
+Any contract violation is a finding. It must be fixed or surfaced clearly. Any contradictory
+contracts are a finding. They must be reconciled or surfaced clearly.
+
+When behavior intentionally changes, update the relevant contracts in the same change. Verify the
+impact of the contract change on consumers of the associated declaration.
+
+**CRITICAL REQUIREMENTS for all code changes**
+
+- Discover and review applicable contracts before choosing the technical design.
+- Introduce relevant contracts for new behavior.
+- Backfill missing contracts when material assumptions about pre-existing code are made.
+- Update or remove contracts for changed behavior.
+- Reconcile the implementation, relevant tests, and contract prose after each meaningful change.
 - When behavior intentionally changes, update the contract in the same change if that specification
-  change is in scope. Never delete or weaken a contract merely to make an implementation appear
-  compliant.
+  change is in scope.
+- Never delete or weaken a contract merely to make an implementation appear compliant.
 - Treat a code/contract mismatch as a finding. Fix it or surface it clearly; do not assume either
   side is automatically correct.
-- Validate edited contract syntax early and again after the final edit:
-
-```text
-cc-check format path/to/file.ts
-cc-check format # inspects all supported files
-```
-
-`cc-check format` reports malformed syntax and duplicate IDs only. It does not prove that the prose
-is true or that code complies to it.
-
-## Performing a final audit
-
-Before submitting a commit or pull request, perform a best-effort semantic audit of the exact diff.
-This is a focused risk check, not a claim of exhaustive verification.
-
-1. Identify changed declarations and behavior from the complete intended diff, including staged and
-   unstaged changes where relevant.
-2. Review applicable directory contracts for every changed file. This global review is mandatory and
-   does not consume the reference budget.
-3. For each materially changed declaration, list its applicable contracts and identify
-   callers/references when the change can affect consumers.
-4. Rank investigation targets by expected risk and information value (contract-bearing or
-   high-fanout symbols).
-5. Inspect at most 32 distinct declaration or caller/reference targets. Revisiting the same target
-   after a fix does not spend another slot. Automated grammar checking and applicable directory
-   contract review are outside this budget.
-6. When more than 32 candidates exist, use relationship results to understand the fanout, select the
-   most consequential and diverse sites, then stop at the bound. Do not imply that every reference
-   was reviewed.
-7. Run `cc-check format` and the relevant project quality gates after resolving findings.
-
-A known contract violation is not excused by the audit bound. Fix it before submission or report it
-as an explicit blocker. In the commit or pull-request validation summary, state the contract checks
-performed, any high-fanout sampling, and unresolved limitations when they are material.
