@@ -141,9 +141,11 @@ cc-check list --no-global src/example.ts:42:10
   > `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
 ```
 
-Contracts may have multiple owners and labels. Prefer semicolon-separated values, such as
-`[owner:spolu;tdraier,label:product;security]`, instead of repeating metadata keys. `list` preserves
-these values in its output.
+Contracts may have multiple owners, notification recipients, and labels. Prefer semicolon-separated
+values, such as `[owner:spolu;tdraier,notify:spolu;flvndvd,label:product;security]`, instead of
+repeating metadata keys. `list` preserves these values in its output. Review agents notify `owner`
+usernames when a contract changes and `notify` usernames on each contract violation; `cc-check`
+itself does not send notifications.
 
 Directory contracts are included by default; `--no-global` returns only declaration-attached
 contracts. Results are ordered from broadest to most specific scope. Unlike `callers` and

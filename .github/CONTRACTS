@@ -1,0 +1,43 @@
+@cc [owner:spolu,label:product] comment-only-contract-review
+Automated contract reviews submit only `COMMENT` reviews pinned to the inspected PR head; they
+never approve a PR or request changes.
+
+@cc [owner:spolu,label:product] contract-review-notifications
+Contract edits and removals cc their owners at the contract; introductions do not. Each discovered
+violation ccs the violated contract's `notify` recipients, without implicitly including its owners.
+
+@cc [owner:spolu,label:product] contract-review-callers
+New or changed contracts trigger inspection of at most 24 distinct callers/references per affected
+declaration, including each inspected caller's applicable contracts; limits materially affecting a
+finding are disclosed in that finding's comment.
+
+@cc [owner:spolu,label:product] contract-review-summary
+Review summaries are `cc: LGTM` when no violations are found, otherwise `cc:` followed by a blank
+line and bullets of `**{contract-name}**: {failure_short_description}`, with details in the
+associated comments.
+
+@cc [owner:spolu,label:product] contract-review-locations
+Every review finding identifies the violating source location; locations outside the commentable
+PR diff are retained in the review body with source permalinks.
+
+@cc [owner:spolu,label:security] review-host-services
+Review setup preserves permissions on host service sockets so the runner's DNS and reporting
+services remain usable.
+
+@cc [owner:spolu,label:product] contract-review-requests
+Reviews run on a standalone `r? cc` line, optionally with GitHub mentions between `r?` and `cc`,
+in a new PR description or conversation comment, or an edit introducing that request. Draft PRs
+are eligible; pushes and edits retaining an existing request do not request another review.
+
+@cc [owner:spolu,label:security] contract-review-request-access
+Only human requesters with repository write access can trigger reviews of open PRs whose head
+repository is this repository.
+
+@cc [owner:spolu,label:product] contract-review-request-identity
+A fresh request can review unchanged commits; an already-published request with the same base/head
+commits is skipped. Publishing skips closed PRs but remains pinned to the inspected head when new
+commits arrive or the base changes; review context and comment locations use the captured comparison.
+
+@cc [owner:spolu,label:architecture] contract-review-automation-source
+Review request handling, prompts, and publication use the workflow's revision; inspected source
+uses the PR head captured when resolving the request.

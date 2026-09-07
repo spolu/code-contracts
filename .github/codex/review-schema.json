@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "comments"],
+  "properties": {
+    "summary": { "type": "string", "minLength": 1 },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "line", "side", "body", "recipients"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["contract-change", "violation"]
+          },
+          "path": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "side": { "type": "string", "enum": ["LEFT", "RIGHT"] },
+          "body": { "type": "string" },
+          "recipients": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
