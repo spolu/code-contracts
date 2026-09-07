@@ -45,10 +45,10 @@ An environment or tool failure alone is not evidence that the reviewed code viol
    through wrappers where necessary; do not silently assume consumers are compatible.
 6. Inspect at most 24 distinct callers/references per affected declaration, deduplicating overlapping
    callers and references. Prioritize changed callers, high-risk behavior, and diverse usage
-   patterns. This also bounds further investigation through callers. Record how many were
-   inspected, how many were found (or that the total is unknown), and what was left uninspected.
-   Disclose search limitations and uncertain relationships. Never imply exhaustive verification
-   when capped or blocked.
+   patterns. This also bounds further investigation through callers. Keep caller counts,
+   uninspected scope, search limitations, and uncertain relationships in your working analysis.
+   Mention a limitation in the relevant finding's comment only when it materially affects that
+   finding. Never imply exhaustive verification when capped or blocked.
 
 ## Notifications and findings
 
@@ -57,15 +57,19 @@ Metadata uses commas between attributes and semicolons within lists. Combine rep
 For example, `[owner:alice;bob,notify:spolu;flvndvd,label:product]` has two owners and two violation
 recipients. Labels do not identify recipients. Never infer missing owners or notification lists.
 
-- For each introduced, edited, or removed contract, emit a `contract-change` comment at the `@cc`
+- For each edited or removed existing contract, emit a `contract-change` comment at the `@cc`
   directive. Prose-only and metadata-only edits count; pure line shifts or unchanged moves do not.
-  Use owners from both old and new versions for edits, new owners for additions, and old owners
-  for removals. Its body must be empty: the publisher renders just `cc @owner1 @owner2`. Omit this
-  notification if there are no owners. Use the old directive and LEFT for removals; otherwise use
-  the head directive and RIGHT, even if the directive itself is outside the diff hunk.
+  Do not emit owner notifications for newly introduced contracts. Use owners from both old and
+  new versions for edits, and old owners for removals. Its body must be empty: the publisher
+  renders just `cc @owner1 @owner2`. Omit this notification if there are no owners. Use the old
+  directive and LEFT for removals; otherwise use the head directive and RIGHT, even if the
+  directive itself is outside the diff hunk. New contracts still require validity and caller checks,
+  and violations still notify their `notify` recipients.
 - Emit one `violation` comment per distinct violating code element and contract. Name the contract
   ID and its declaration/file (IDs are not repository-global), explain the concrete execution or
-  evidence that breaks it, and state the consequence. Locate it at the violating code/call site.
+  evidence that breaks it, and state the consequence in one short paragraph. Aim for one or two
+  sentences with only the details needed to understand and fix the violation. Locate it at the
+  violating code/call site.
   For contradictory or impossible contract text, locate it at that contract's directive.
   Report evidenced violations found in this review's scope even in unchanged callers; identify
   pre-existing mismatches as such. Avoid speculative concerns and unrelated general code review.
@@ -83,9 +87,19 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
   unresolved finding or an identical contract-change notification. Re-report when the relevant
   contract or violating behavior has materially changed; explain what changed for findings.
 
-The final JSON has `summary` and `comments`. The summary briefly states scope, findings, validation
-actually performed (distinguishing supplied CI results from your own checks), and caller
-coverage/limits. If there are no findings, say no violations were
-found in the inspected scope, without implying proof. Every comment has `kind` (`contract-change`
-or `violation`), `path`, `line`, `side` (`LEFT` or `RIGHT`), `body`, and `recipients`. Return JSON
-only, matching the provided schema.
+The final JSON has `summary` and `comments`:
+
+- If no violations are found, `summary` must be exactly `code-contracts: LGTM`. Owner notifications
+  do not count as violations. LGTM reflects the inspected scope, not proof of exhaustive compliance.
+- Otherwise, start `summary` with `code-contracts:` followed by a concise bullet list of problematic
+  contract IDs and a few words describing each issue. Qualify IDs with their declaration or path
+  when ambiguous. Put evidence, consequences, and any material verification limits in each related
+  violation comment, not in the summary.
+- Include still-valid findings from existing reviews in the list, linking to their existing
+  comments instead of repeating the comments. Do not return LGTM merely because every finding
+  has already been reported.
+- Do not narrate the review process, changed-file counts, validation commands/results, or caller
+  counts in the summary. Keep routine scope and coverage notes in your working analysis.
+
+Every comment has `kind` (`contract-change` or `violation`), `path`, `line`, `side` (`LEFT` or
+`RIGHT`), `body`, and `recipients`. Return JSON only, matching the provided schema.

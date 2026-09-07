@@ -135,8 +135,9 @@ Repeated keys remain valid. Semicolon-separated lists are a metadata convention;
 preserves each value as a single token. `prose_line` is any line that does not begin with an `@cc`
 directive.
 
-`owner` lists GitHub usernames to notify when the contract itself is introduced, changed, or
-removed. `notify` lists GitHub usernames to notify on every discovered violation of that contract.
+`owner` lists GitHub usernames to notify when an existing contract is changed or removed. Contract
+introductions do not notify owners. `notify` lists GitHub usernames to notify on every discovered
+violation of that contract.
 For example, `[owner:spolu,notify:spolu;flvndvd,label:product]` notifies `spolu` about contract
 changes and both `spolu` and `flvndvd` about violations. Owners are not automatically notified about
 violations; include them in `notify` if they want both. Missing metadata means no notification for
