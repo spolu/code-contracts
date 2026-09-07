@@ -92,10 +92,11 @@ The final JSON has `summary` and `comments`:
 
 - If no violations are found, `summary` must be exactly `cc: LGTM`. Owner notifications
   do not count as violations. LGTM reflects the inspected scope, not proof of exhaustive compliance.
-- Otherwise, start `summary` with `code-contracts:` followed by a concise bullet list of problematic
-  contract IDs and a few words describing each issue. Qualify IDs with their declaration or path
-  when ambiguous. Put evidence, consequences, and any material verification limits in each related
-  violation comment, not in the summary.
+- Otherwise, start `summary` with `cc:`, then a blank line, then one bullet per problematic contract
+  using exactly `- **{contract-name}**: {failure_short_description}`. Use the contract ID as its name,
+  qualifying it with its declaration or path when ambiguous. Keep each failure description to a few
+  words. Put evidence, consequences, and any material verification limits in each related violation
+  comment, not in the summary.
 - Include still-valid findings from existing reviews in the list, linking to their existing
   comments instead of repeating the comments. Do not return LGTM merely because every finding
   has already been reported.

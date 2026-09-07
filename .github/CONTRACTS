@@ -12,8 +12,9 @@ declaration, including each inspected caller's applicable contracts; limits mate
 finding are disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
-Review summaries are `cc: LGTM` when no violations are found, otherwise a concise list
-of problematic contracts with details in their associated comments.
+Review summaries are `cc: LGTM` when no violations are found, otherwise `cc:` followed by a blank
+line and bullets of `**{contract-name}**: {failure_short_description}`, with details in the
+associated comments.
 
 @cc [owner:spolu,label:product] contract-review-locations
 Every review finding identifies the violating source location; locations outside the commentable
