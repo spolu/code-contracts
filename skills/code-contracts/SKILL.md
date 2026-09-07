@@ -175,8 +175,8 @@ within their declaration. Keep `CONTRACTS` IDs unique and stable within that fil
 `CONTRACTS` files. Set `owner` to the current user's GitHub username; use their authenticated
 GitHub identity when available, and ask rather than guessing when it cannot be determined. Multiple
 owners are possible; prefer separating their usernames with `;` in a single `owner` attribute.
-Use the same convention for multiple labels and `notify` recipients. Set `notify` only to the
-requested or established recipients; do not infer it from `owner`. Preserve established repository
+Use the same convention for multiple labels and `notify` recipients. Set `notify` only when
+explicitly requested by the user; do not infer it from `owner`. Preserve established repository
 metadata conventions.
 
 Validate contract syntax with `cc-check format`. The command reports malformed syntax and duplicate
