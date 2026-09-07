@@ -50,7 +50,7 @@ jobs:
               github.paginate(github.rest.pulls.listReviewComments, params),
               github.paginate(github.rest.pulls.listReviews, params),
             ]);
-            writeFileSync(`${process.env.RUNNER_TEMP}/contract-review-context.json`, JSON.stringify({
+            writeFileSync('.github/codex/review-context.json', JSON.stringify({
               base_sha: pr.base.sha,
               head_sha: pr.head.sha,
               merge_base: execFileSync('git', ['merge-base', pr.base.sha, pr.head.sha], { encoding: 'utf8' }).trim(),
@@ -64,18 +64,27 @@ jobs:
               ],
             }));
 
+      - name: Create unprivileged review user
+        run: |
+          sudo adduser --system --home /home/codex-review --shell /bin/bash --group codex-review
+          sudo usermod -a -G runner codex-review
+          sudo chmod 755 /home/codex-review
+          sudo chgrp -R codex-review "$GITHUB_WORKSPACE"
+          sudo chmod -R g+rX "$GITHUB_WORKSPACE"
+          sudo -u codex-review test -r "$GITHUB_WORKSPACE/.github/codex/review-context.json"
+
       - name: Review contracts with Codex
         id: codex
         uses: openai/codex-action@v1
-        env:
-          REVIEW_CONTEXT: ${{ runner.temp }}/contract-review-context.json
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           model: gpt-5.6-luna
           effort: xhigh
           prompt-file: .github/codex/review.md
           sandbox: read-only
-          safety-strategy: drop-sudo
+          # drop-sudo can break runner DNS: https://github.com/openai/codex-action/issues/160
+          safety-strategy: unprivileged-user
+          codex-user: codex-review
           codex-args: '["--output-schema", ".github/codex/review-schema.json"]'
 
   publish:

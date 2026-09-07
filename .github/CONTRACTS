@@ -13,3 +13,7 @@ declaration, including each inspected caller's applicable contracts; uninspected
 @cc [owner:spolu,label:product] contract-review-locations
 Every review finding identifies the violating source location; locations outside the commentable
 PR diff are retained in the review body with source permalinks.
+
+@cc [owner:spolu,label:security] review-host-services
+Review setup preserves permissions on host service sockets so the runner's DNS and reporting
+services remain usable.
