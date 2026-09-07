@@ -121,13 +121,21 @@ prose         = prose_line, { NL, prose_line } ;
 ```
 
 `token` is a non-empty sequence without whitespace, commas, colons, or square brackets. Metadata
-keys are extensible; `owner` and `label` are initially well-known. A contract may have multiple
-owners and labels. Prefer `;` to separate values within an attribute instead of repeating its key:
+keys are extensible; `owner`, `notify`, and `label` are well-known. A contract may have multiple
+owners, notification recipients, and labels. Prefer `;` to separate values within an attribute
+instead of repeating its key:
 `[owner:spolu;tdraier,label:product]` instead of
 `[owner:spolu,owner:tdraier,label:product]`, or `label:product;security` for multiple labels.
 Repeated keys remain valid. Semicolon-separated lists are a metadata convention; the parser
 preserves each value as a single token. `prose_line` is any line that does not begin with an `@cc`
 directive.
+
+`owner` lists GitHub usernames to notify when the contract itself is introduced, changed, or
+removed. `notify` lists GitHub usernames to notify on every discovered violation of that contract.
+For example, `[owner:spolu,notify:spolu;flvndvd,label:product]` notifies `spolu` about contract
+changes and both `spolu` and `flvndvd` about violations. Owners are not automatically notified about
+violations; include them in `notify` if they want both. Missing metadata means no notification for
+that role. Review agents split semicolon lists, combine repeated keys, and deduplicate usernames.
 
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
 directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any
@@ -166,7 +174,9 @@ within their declaration. Keep `CONTRACTS` IDs unique and stable within that fil
 `CONTRACTS` files. Set `owner` to the current user's GitHub username; use their authenticated
 GitHub identity when available, and ask rather than guessing when it cannot be determined. Multiple
 owners are possible; prefer separating their usernames with `;` in a single `owner` attribute.
-Use the same convention for multiple labels. Preserve established repository metadata conventions.
+Use the same convention for multiple labels and `notify` recipients. Set `notify` only to the
+requested or established recipients; do not infer it from `owner`. Preserve established repository
+metadata conventions.
 
 Validate contract syntax with `cc-check format`. The command reports malformed syntax and duplicate
 IDs only. It does not prove that the prose is true or that code complies with it. You are responsible

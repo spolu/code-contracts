@@ -1,0 +1,95 @@
+name: Contract review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      review: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: cc-check/.nvmrc
+          cache: npm
+          cache-dependency-path: cc-check/package-lock.json
+
+      - name: Build contract discovery tools
+        run: |
+          npm ci --prefix cc-check
+          npm run build --prefix cc-check
+          node --test .github/codex/publish-review.test.cjs
+
+      - name: Prepare review context
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execFileSync } = require('node:child_process');
+            const { writeFileSync } = require('node:fs');
+            const pr = context.payload.pull_request;
+            const params = { ...context.repo, pull_number: pr.number, per_page: 100 };
+            const [files, comments, reviews] = await Promise.all([
+              github.paginate(github.rest.pulls.listFiles, params),
+              github.paginate(github.rest.pulls.listReviewComments, params),
+              github.paginate(github.rest.pulls.listReviews, params),
+            ]);
+            writeFileSync(`${process.env.RUNNER_TEMP}/contract-review-context.json`, JSON.stringify({
+              base_sha: pr.base.sha,
+              head_sha: pr.head.sha,
+              merge_base: execFileSync('git', ['merge-base', pr.base.sha, pr.head.sha], { encoding: 'utf8' }).trim(),
+              files,
+              comments,
+              reviews,
+            }));
+
+      - name: Review contracts with Codex
+        id: codex
+        uses: openai/codex-action@v1
+        env:
+          REVIEW_CONTEXT: ${{ runner.temp }}/contract-review-context.json
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/review.md
+          sandbox: read-only
+          safety-strategy: drop-sudo
+          codex-args: '["--output-schema", ".github/codex/review-schema.json"]'
+
+  publish:
+    needs: review
+    if: needs.review.outputs.review != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Submit comment review
+        uses: actions/github-script@v7
+        env:
+          CONTRACT_REVIEW: ${{ needs.review.outputs.review }}
+        with:
+          script: |
+            const { publishReview } = require('./.github/codex/publish-review.cjs');
+            await publishReview({ github, context, core, review: JSON.parse(process.env.CONTRACT_REVIEW) });

@@ -1,0 +1,15 @@
+@cc [owner:spolu,label:product] comment-only-contract-review
+Automated contract reviews submit only `COMMENT` reviews pinned to the inspected PR head; they
+never approve a PR or request changes.
+
+@cc [owner:spolu,label:product] contract-review-notifications
+Contract additions, edits, and removals cc their owners at the contract; each discovered violation
+ccs the violated contract's `notify` recipients, without implicitly including its owners.
+
+@cc [owner:spolu,label:product] contract-review-callers
+New or changed contracts trigger inspection of at most 24 distinct callers/references per affected
+declaration, including each inspected caller's applicable contracts; uninspected scope is disclosed.
+
+@cc [owner:spolu,label:product] contract-review-locations
+Every review finding identifies the violating source location; locations outside the commentable
+PR diff are retained in the review body with source permalinks.
