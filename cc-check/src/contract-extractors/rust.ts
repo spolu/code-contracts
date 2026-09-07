@@ -537,7 +537,7 @@ const contractsForDeclaration = (
   });
 
 /**
- * @cc [author:spolu,label:architecture] rust-contract-document-extraction
+ * @cc [owner:spolu,label:architecture] rust-contract-document-extraction
  * Rust contract extraction parses the target source directly and never starts a language server.
  * Consecutive line doc comments form one document and each block doc comment forms another. Outer
  * docs may attach to declarations; inner docs are check-only. Non-doc comments are ignored.
@@ -636,7 +636,7 @@ const parseRustFile = async (
 
 class RustLocalContractExtractor implements LocalContractExtractor {
   /**
-   * @cc [author:spolu,label:product] rust-local-contract-scope
+   * @cc [owner:spolu,label:product] rust-local-contract-scope
    * Rust location discovery returns outer-doc contracts on the innermost containing declaration
    * and its applicable declaration ancestors. An impl also inherits its same-scope declared type by
    * syntactic name. A line uses whole-line containment; a column narrows it to the exact position.
@@ -663,7 +663,7 @@ class RustLocalContractExtractor implements LocalContractExtractor {
   }
 
   /**
-   * @cc [author:spolu,label:product] rust-file-contract-scope
+   * @cc [owner:spolu,label:product] rust-file-contract-scope
    * File-wide Rust discovery returns outer-doc contracts attached to supported items and named
    * members in source order.
    */

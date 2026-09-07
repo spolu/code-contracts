@@ -5,16 +5,16 @@ faster and better agent-driven software development.
 
 ```typescript
 /**
- * @cc [author:spolu,label:product] balance-pre-and-fail
+ * @cc [owner:spolu,label:product] balance-pre-and-fail
  * `from.balance` is expected to be greater than or equal to `invoice.amount`, fails with
  * `InsufficientBalanceError` otherwise.
  */
 /**
- * @cc [author:spolu,label:product] balance-post
+ * @cc [owner:spolu,label:product] balance-post
  * `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
  */
 /**
- * @cc [author:spolu,label:product] atomicity
+ * @cc [owner:spolu,label:product] atomicity
  * The operation is atomic: either `from.balance` is decreased and `invoice.status` is set to
  * `paid`, or neither is changed.
  */
@@ -99,10 +99,10 @@ dependency constraints, or security practices.
 `CONTRACTS` file example:
 
 ```text
-@cc [author:spolu,label:architecture] database-access-thru-resources
+@cc [owner:spolu,label:architecture] database-access-thru-resources
 Database accesses must happen exclusively through `Resource`-like interfaces.
 
-@cc [author:spolu,label:security] no-sensitive-data-logging
+@cc [owner:spolu,label:security] no-sensitive-data-logging
 Credentials, tokens, secrets and user data must not be logged.
 ```
 
@@ -126,8 +126,13 @@ prose         = prose_line, { NL, prose_line } ;
 ```
 
 `token` is a non-empty sequence without whitespace, commas, colons, or square brackets. Metadata
-keys are extensible; `author` and `label` are initially well-known, and `label` may occur more than
-once. `prose_line` is any line that does not begin with an `@cc` directive.
+keys are extensible; `owner` and `label` are initially well-known. A contract may have multiple
+owners and labels. Prefer `;` to separate values within an attribute instead of repeating its key:
+`[owner:spolu;tdraier,label:product]` instead of
+`[owner:spolu,owner:tdraier,label:product]`, or `label:product;security` for multiple labels.
+Repeated keys remain valid. Semicolon-separated lists are a metadata convention; the parser
+preserves each value as a single token. `prose_line` is any line that does not begin with an `@cc`
+directive.
 
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
 directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any

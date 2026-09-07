@@ -5,12 +5,12 @@ import { startStdioLanguageServer } from "./lsp.js";
 import { findProjectRoot } from "./project-root.js";
 
 /**
- * @cc [author:spolu,label:architecture] go-project-root
+ * @cc [owner:spolu,label:architecture] go-project-root
  * The Go adapter uses the nearest ancestor containing `go.work` or `go.mod` as the gopls workspace
  * and rejects files without either marker.
  */
 /**
- * @cc [author:spolu,label:product] go-language-server-scope
+ * @cc [owner:spolu,label:product] go-language-server-scope
  * Go callers and references use a fresh `gopls serve` process from `PATH` for `.go` files. No
  * server process is cached between invocations.
  */

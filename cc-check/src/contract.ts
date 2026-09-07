@@ -82,7 +82,7 @@ const parseDirective = (
 };
 
 /**
- * @cc [author:spolu,label:architecture] shared-contract-parser
+ * @cc [owner:spolu,label:architecture] shared-contract-parser
  * `CONTRACTS` files and language-specific documentation-comment extractors use the same parser for
  * the core `@cc` directive and prose grammar. The parser preserves attribute order and repeated
  * metadata keys and rejects malformed directives or empty prose instead of returning partial

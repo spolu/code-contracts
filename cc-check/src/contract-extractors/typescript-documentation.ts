@@ -48,7 +48,7 @@ export const normalizeDocumentationComment = (comment: string): string =>
   normalizeDocumentationCommentLines(comment).source;
 
 /**
- * @cc [author:spolu,label:architecture] typescript-contract-document-extraction
+ * @cc [owner:spolu,label:architecture] typescript-contract-document-extraction
  * TypeScript file checks scan every `/**` documentation comment containing a potential `@cc`
  * directive, including comments not attached to a supported declaration. Comment delimiters and
  * leading `*` decorations are removed before the shared grammar parser receives the document.

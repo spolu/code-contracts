@@ -199,7 +199,7 @@ def _assert_prompt_v4_smoke(
 def _assert_phase3_config(
     phase3_config: dict[str, Any], ablation_config: dict[str, Any], pilot: dict[str, Any]
 ) -> None:
-    """@cc [author:spolu,label:evaluation] frozen-phase3-config
+    """@cc [owner:spolu,label:evaluation] frozen-phase3-config
     Phase 3 differs from the frozen ablation config only by its job name, exactly three attempts,
     concurrency four, and a dataset containing the twelve pilot tasks in manifest order.
     """
@@ -231,7 +231,7 @@ def _assert_phase3_config(
 
 
 def _assert_phase4_config(phase4_config: dict[str, Any], phase3_config: dict[str, Any]) -> None:
-    """@cc [author:spolu,label:evaluation] frozen-phase4-config
+    """@cc [owner:spolu,label:evaluation] frozen-phase4-config
     The Terra pilot differs from Phase 3 only by job name, four attempts, concurrency eight,
     `openai/gpt-5.6-terra`, and `xhigh` reasoning in both arms.
     """
@@ -254,7 +254,7 @@ def _assert_phase4_config(phase4_config: dict[str, Any], phase3_config: dict[str
 
 
 def _assert_full_manifest(full_manifest: dict[str, Any], pilot: dict[str, Any]) -> None:
-    """@cc [author:spolu,label:evaluation] full-v1-selection
+    """@cc [owner:spolu,label:evaluation] full-v1-selection
     `full-v1` contains every TypeScript, Python, Go, and Rust task and excludes exactly the five
     JavaScript tasks from the pinned 113-task DeepSWE source manifest.
     """
@@ -311,7 +311,7 @@ def _assert_phase5_config(
     full_manifest: dict[str, Any],
     full_manifest_digest: str,
 ) -> None:
-    """@cc [author:spolu,label:evaluation] frozen-full-luna-config
+    """@cc [owner:spolu,label:evaluation] frozen-full-luna-config
     The full Luna job preserves Phase 3's two arms, model, reasoning, tools, limits, and three
     attempts while selecting all 108 included-language tasks and using concurrency eight.
     """

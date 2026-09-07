@@ -15,17 +15,17 @@ const LANGUAGE_IDS = new Map([
 ]);
 
 /**
- * @cc [author:spolu,label:architecture] typescript-project-root
+ * @cc [owner:spolu,label:architecture] typescript-project-root
  * The TypeScript adapter uses the nearest ancestor containing `tsconfig.json` or `jsconfig.json`
  * as the LSP workspace and rejects files without one rather than returning incomplete inferred-
  * project relationship results.
  */
 /**
- * @cc [author:spolu,label:product] typescript-prototype-scope
+ * @cc [owner:spolu,label:product] typescript-prototype-scope
  * The TypeScript language-server prototype supports `.ts`, `.tsx`, `.mts`, and `.cts` source files.
  */
 /**
- * @cc [author:spolu,label:architecture] typescript-semantic-server
+ * @cc [owner:spolu,label:architecture] typescript-semantic-server
  * The TypeScript adapter disables the separate syntax server so the first callers or references
  * request runs against the configured semantic project rather than returning partial results.
  */

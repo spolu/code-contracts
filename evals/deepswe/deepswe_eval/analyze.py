@@ -43,7 +43,7 @@ def _task_id(task_name: str) -> str:
 
 
 def _manifest_task_ids(manifest: dict[str, Any], source_manifest_path: Path) -> list[str]:
-    """@cc [author:spolu,label:evaluation] deterministic-manifest-tasks
+    """@cc [owner:spolu,label:evaluation] deterministic-manifest-tasks
     A manifest either lists unique `tasks` directly or selects them from a digest-pinned source
     manifest by exact exclusions, and the resolved count must match its declared task count.
     """
@@ -78,7 +78,7 @@ def _manifest_task_ids(manifest: dict[str, Any], source_manifest_path: Path) -> 
 def collect_outcomes(
     job_dirs: Path | list[Path], allowed_error_types: frozenset[str] = frozenset()
 ) -> tuple[list[TrialOutcome], list[TrialFailure]]:
-    """@cc [author:spolu,label:evaluation] aggregate-public-results
+    """@cc [owner:spolu,label:evaluation] aggregate-public-results
     Analysis reads only public per-trial `result.json` files, counts
     `verifier_result.rewards.reward` as the binary outcome, reports and excludes only explicitly
     allowed infrastructure errors, and rejects all other missing, duplicate, or invalid results.
@@ -137,7 +137,7 @@ def collect_outcomes(
 
 
 def _pass_at_k(n: int, successes: int, k: int) -> float:
-    """@cc [author:spolu,label:evaluation] finite-sample-pass-at-k
+    """@cc [owner:spolu,label:evaluation] finite-sample-pass-at-k
     For `n` attempts with `successes` passes, pass@k is the unbiased finite-sample estimator
     `1 - C(n - successes, k) / C(n, k)` for `1 <= k <= n`.
     """
@@ -157,7 +157,7 @@ def analyze_job(
     allowed_error_types: frozenset[str] = frozenset(),
     source_manifest_path: Path = DEFAULT_SOURCE_MANIFEST,
 ) -> dict[str, Any]:
-    """@cc [author:spolu,label:evaluation] balanced-pilot-analysis
+    """@cc [owner:spolu,label:evaluation] balanced-pilot-analysis
     Matched analysis requires exactly `expected_attempts` binary results for every manifest task and
     arm, then reports micro/macro pass rates and task-macro pass@k for every `1 <= k <= attempts`.
     """
@@ -249,7 +249,7 @@ def analyze_job(
 
 
 def render_markdown(analysis: dict[str, Any]) -> str:
-    """@cc [author:spolu,label:evaluation] complete-markdown-summary
+    """@cc [owner:spolu,label:evaluation] complete-markdown-summary
     Markdown output includes both arm aggregates, treatment-minus-control deltas, per-task pass
     totals, and every excluded infrastructure failure.
     """

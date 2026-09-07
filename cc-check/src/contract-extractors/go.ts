@@ -427,7 +427,7 @@ const contractsForDeclaration = (
   });
 
 /**
- * @cc [author:spolu,label:architecture] go-contract-document-extraction
+ * @cc [owner:spolu,label:architecture] go-contract-document-extraction
  * Go contract extraction parses the target source directly and never starts a language server.
  * Consecutive line comments form one contract document; each block comment forms another. Their
  * delimiters and conventional decoration are removed before the shared grammar parser receives
@@ -517,7 +517,7 @@ const parseGoFile = async (
 
 class GoLocalContractExtractor implements LocalContractExtractor {
   /**
-   * @cc [author:spolu,label:product] go-local-contract-scope
+   * @cc [owner:spolu,label:product] go-local-contract-scope
    * Go location discovery returns contracts attached to the innermost containing declaration and
    * its syntactic ancestors. For a method, it also includes its receiver type when that type is
    * declared in the same file. A line uses whole-line containment; a column narrows containment to
@@ -545,7 +545,7 @@ class GoLocalContractExtractor implements LocalContractExtractor {
   }
 
   /**
-   * @cc [author:spolu,label:product] go-file-contract-scope
+   * @cc [owner:spolu,label:product] go-file-contract-scope
    * File-wide Go discovery returns contracts attached to functions, methods, types, variables,
    * constants, fields, and interface methods in source order, including grouped declarations.
    */

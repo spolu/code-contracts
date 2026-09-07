@@ -11,12 +11,12 @@ const isQuiescentServerStatus = (params: unknown): boolean =>
   params.quiescent === true;
 
 /**
- * @cc [author:spolu,label:architecture] rust-project-root
+ * @cc [owner:spolu,label:architecture] rust-project-root
  * The Rust adapter uses the nearest ancestor containing `Cargo.toml` or `rust-project.json` as the
  * rust-analyzer workspace and rejects files without either marker.
  */
 /**
- * @cc [author:spolu,label:product] rust-language-server-scope
+ * @cc [owner:spolu,label:product] rust-language-server-scope
  * Rust callers and references use a fresh `rust-analyzer` process from `PATH` for `.rs` files. No
  * relationship query is sent until rust-analyzer reports that its initial background work is
  * quiescent. No server process is cached between invocations.

@@ -233,7 +233,7 @@ const contractDocuments = (
 };
 
 /**
- * @cc [author:spolu,label:architecture] python-contract-document-extraction
+ * @cc [owner:spolu,label:architecture] python-contract-document-extraction
  * Python contract extraction parses the target source directly and never starts a language server.
  * A first-statement triple-quoted module, class, or function docstring is dedented before the shared
  * grammar parser receives it. Module docstrings are check-only; other strings and docstrings without
@@ -358,7 +358,7 @@ const parsePythonFile = async (
 
 class PythonLocalContractExtractor implements LocalContractExtractor {
   /**
-   * @cc [author:spolu,label:product] python-local-contract-scope
+   * @cc [owner:spolu,label:product] python-local-contract-scope
    * Python location discovery returns contract docstrings on the innermost containing class or
    * function and its syntactic declaration ancestors. A line uses whole-line containment; a column
    * narrows containment to that exact source position.
@@ -385,7 +385,7 @@ class PythonLocalContractExtractor implements LocalContractExtractor {
   }
 
   /**
-   * @cc [author:spolu,label:product] python-file-contract-scope
+   * @cc [owner:spolu,label:product] python-file-contract-scope
    * File-wide Python discovery returns contract docstrings attached to every class and function in
    * source order, including methods and nested declarations.
    */

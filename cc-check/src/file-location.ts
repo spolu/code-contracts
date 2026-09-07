@@ -10,7 +10,7 @@ export interface FileOrLocation {
 }
 
 /**
- * @cc [author:spolu,label:product] location-like-format
+ * @cc [owner:spolu,label:product] location-like-format
  * A location-like value is `<path>:<line>` with an optional one-based `:<column>`. Relative paths
  * are resolved from the command's working directory.
  */
@@ -40,7 +40,7 @@ export function parseLocationLike(
 }
 
 /**
- * @cc [author:spolu,label:product] file-or-location-like-format
+ * @cc [owner:spolu,label:product] file-or-location-like-format
  * A file-or-location-like value is either a path or a location-like value. A trailing one-based
  * line, with an optional column, selects location mode; otherwise the path selects the entire file.
  */

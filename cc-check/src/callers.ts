@@ -24,14 +24,14 @@ const callerLocations = (caller: Caller): SourceRange[] =>
   caller.callSites.length > 0 ? caller.callSites : [caller.declaration];
 
 /**
- * @cc [author:spolu,label:product] callers-output
+ * @cc [owner:spolu,label:product] callers-output
  * The callers command prints one deterministic line per direct call site as
  * `<path>:<line>:<column>\t<caller-name>`, using paths relative to the working directory. It prints
  * nothing when the target has no callers and falls back to the caller declaration when a language
  * server omits call-site ranges.
  */
 /**
- * @cc [author:spolu,label:architecture] callers-session-ownership
+ * @cc [owner:spolu,label:architecture] callers-session-ownership
  * A callers invocation creates one language-server session and disposes it before returning,
  * including when location resolution or protocol requests fail.
  */

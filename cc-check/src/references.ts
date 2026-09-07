@@ -19,13 +19,13 @@ const formatLocation = (
 };
 
 /**
- * @cc [author:spolu,label:product] references-output
+ * @cc [owner:spolu,label:product] references-output
  * The references command prints each statically recognized usage except the declaration itself as
  * `<path>:<line>:<column>`, using paths relative to the working directory. It prints nothing when
  * the declaration has no references.
  */
 /**
- * @cc [author:spolu,label:architecture] references-session-ownership
+ * @cc [owner:spolu,label:architecture] references-session-ownership
  * A references invocation creates one language-server session and disposes it before returning,
  * including when location resolution or protocol requests fail.
  */

@@ -6,6 +6,9 @@ remain unmodified under ignored `jobs/`; this file records only public configura
 outcomes, and artifact hashes. Secret values are never recorded: `${OPENAI_API_KEY}` denotes the
 runtime environment variable, not its value.
 
+Prompt excerpts use the current `owner` metadata spelling. Recorded hashes refer to the original
+frozen inputs before this terminology update.
+
 ## Smoke v1 frozen inputs
 
 - Repository base commit: `06f5729391315f091bf742f58550c545c6b28150`
@@ -170,7 +173,7 @@ contracts exist, introduce them at the narrowest stable declaration or directory
 behavior-preserving mechanical change need not invent a new behavioral contract. Do not finish until
 `cc-check list` confirms the new or updated contracts are discoverable and `cc-check check` has
 validated each affected file separately; a passing check that discovers no contracts does not
-satisfy this requirement. In this non-interactive evaluation, omit `author` metadata when no
+satisfy this requirement. In this non-interactive evaluation, omit `owner` metadata when no
 authenticated GitHub identity is available.
 ```
 
@@ -248,7 +251,7 @@ task-relevant contracts; when no contracts exist, introduce them at the narrowes
 or directory perimeter. A behavior-preserving mechanical change need not invent a new behavioral
 contract. Do not finish until `cc-check list` confirms the new or updated contracts are discoverable
 and `cc-check check` has validated each affected file separately; a passing check that discovers no
-contracts does not satisfy this requirement. In this non-interactive evaluation, omit `author`
+contracts does not satisfy this requirement. In this non-interactive evaluation, omit `owner`
 metadata when no authenticated GitHub identity is available.
 ```
 
@@ -499,7 +502,7 @@ Complete this workflow for every task that changes code.
   workflow.
 - Do not invent speculative obligations; derive contracts from the task requirements and observable
   code behavior.
-- If no authenticated GitHub identity is available, omit `author` metadata.
+- If no authenticated GitHub identity is available, omit `owner` metadata.
 ```
 
 - Repository commit: `2a878bb7b1878a1cb078915a42d59d3804d29f2e` plus the uncommitted prompt-v4

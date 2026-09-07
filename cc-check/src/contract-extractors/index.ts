@@ -23,7 +23,7 @@ import { typeScriptScriptKind } from "./typescript-documentation.js";
 import { startTypeScriptLocalContractExtractor } from "./typescript.js";
 
 /**
- * @cc [author:spolu,label:architecture] local-extractor-selection
+ * @cc [owner:spolu,label:architecture] local-extractor-selection
  * Language selection for source contract documents and declaration attachment is isolated here.
  * The check and list commands depend only on language-neutral extraction interfaces, while
  * directory contract discovery remains separate and language-independent.
