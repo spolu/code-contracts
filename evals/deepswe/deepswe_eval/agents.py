@@ -57,7 +57,7 @@ Complete this workflow for every task that changes code.
   workflow.
 - Do not invent speculative obligations; derive contracts from the task requirements and observable
   code behavior.
-- If no authenticated GitHub identity is available, omit `author` metadata."""
+- If no authenticated GitHub identity is available, omit `owner` metadata."""
 
 
 def sha256_bytes(payload: bytes) -> str:
@@ -155,7 +155,7 @@ class _DeepSWEAgent(MiniSweAgent):
             raise ValueError(f"{label} digest mismatch: expected {expected}, got {actual}.")
 
     def render_instruction(self, instruction: str) -> str:
-        """@cc [author:spolu,label:evaluation] arm-prompt-boundary
+        """@cc [owner:spolu,label:evaluation] arm-prompt-boundary
         `control` returns the task instruction byte-for-byte; `code-contracts` appends exactly one
         frozen skill and activation-instruction extension with no task-specific or verifier-derived
         content.
@@ -163,7 +163,7 @@ class _DeepSWEAgent(MiniSweAgent):
         return instruction + self._prompt_extension
 
     def install_spec(self) -> AgentInstallSpec:
-        """@cc [author:spolu,label:evaluation] shared-install-parity
+        """@cc [owner:spolu,label:evaluation] shared-install-parity
         Both variants return identical install specifications that verify pinned Node and
         `cc-check` payload digests before placing the same executables on `PATH`.
         """
@@ -308,7 +308,7 @@ cc-check --help
         cwd: str | None = None,
         timeout_sec: int | None = None,
     ) -> Any:
-        """@cc [author:spolu,label:security] runtime-secret-redaction
+        """@cc [owner:spolu,label:security] runtime-secret-redaction
         Process environment values reach the sandbox unchanged, but secret values never appear in
         harness debug metadata, failure messages, or post-run provenance.
         """
@@ -338,7 +338,7 @@ cc-check --help
         return result
 
     def _write_provenance(self, instruction: str) -> None:
-        """@cc [author:spolu,label:reproducibility] post-run-agent-provenance
+        """@cc [owner:spolu,label:reproducibility] post-run-agent-provenance
         Post-run provenance contains only immutable identifiers, digests, and public configuration;
         it never contains task text, skill text, environment values, or credentials.
         """

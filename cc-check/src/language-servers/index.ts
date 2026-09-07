@@ -22,7 +22,7 @@ const LANGUAGE_SERVERS = new Map([
 ]);
 
 /**
- * @cc [author:spolu,label:architecture] language-adapter-selection
+ * @cc [owner:spolu,label:architecture] language-adapter-selection
  * Language selection is isolated in this factory. The callers and references commands depend only
  * on the language-agnostic `LanguageServer` interface.
  */

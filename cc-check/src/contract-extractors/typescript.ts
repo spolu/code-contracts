@@ -294,7 +294,7 @@ const parseTypeScriptFile = async (
 };
 
 /**
- * @cc [author:spolu,label:architecture] typescript-syntax-only-extraction
+ * @cc [owner:spolu,label:architecture] typescript-syntax-only-extraction
  * TypeScript local contract extraction parses the target source file directly and does not start
  * or query a language server. `@cc` comments attach to the next supported TypeScript declaration.
  * Multiple consecutive documentation comments attach to the same declaration; an intervening
@@ -302,7 +302,7 @@ const parseTypeScriptFile = async (
  */
 class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   /**
-   * @cc [author:spolu,label:product] typescript-local-contract-scope
+   * @cc [owner:spolu,label:product] typescript-local-contract-scope
    * TypeScript local contract discovery uses source containment only and never performs definition
    * resolution. It returns `@cc` documentation comments attached to the innermost declaration
    * containing the location and each syntactic declaration ancestor, including a containing class
@@ -323,7 +323,7 @@ class TypeScriptLocalContractExtractor implements LocalContractExtractor {
   }
 
   /**
-   * @cc [author:spolu,label:product] typescript-file-contract-scope
+   * @cc [owner:spolu,label:product] typescript-file-contract-scope
    * File-wide TypeScript discovery returns contracts attached to every supported declaration in
    * source order, including declarations nested within classes and other declarations.
    */

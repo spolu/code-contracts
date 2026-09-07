@@ -270,7 +270,7 @@ const inspectFormatFile = async (
 };
 
 /**
- * @cc [author:spolu,label:product] format-file-scope
+ * @cc [owner:spolu,label:product] format-file-scope
  * `format [file-like]` inspects the targeted `CONTRACTS` or supported source file. Without a file,
  * it recursively inspects every supported file under the current directory, excluding common
  * repository metadata, dependency, environment, and cache directories. Source documentation must
@@ -278,27 +278,27 @@ const inspectFormatFile = async (
  * types are rejected.
  */
 /**
- * @cc [author:spolu,label:product] format-contract-id-uniqueness
+ * @cc [owner:spolu,label:product] format-contract-id-uniqueness
  * Within the files selected for inspection, `format` rejects repeated IDs attached to one
  * declaration and repeated `CONTRACTS` IDs along an ancestor chain; IDs on distinct declarations
  * or sibling directory branches may repeat.
  */
 /**
- * @cc [author:spolu,label:product] format-progress-output
+ * @cc [owner:spolu,label:product] format-progress-output
  * An argument-free `format` writes each selected relative file path to stdout in deterministic
  * discovery order; a targeted inspection remains silent when no issue is found.
  */
 /**
- * @cc [author:spolu,label:product] format-result
+ * @cc [owner:spolu,label:product] format-result
  * Grammar or ID uniqueness failures reject `format` with source-relative
  * `<path>:<line>:<column>: error: <description>` diagnostics and a non-zero exit status.
  */
 /**
- * @cc [author:spolu,label:product] format-read-only
+ * @cc [owner:spolu,label:product] format-read-only
  * `format` reads selected files without modifying them.
  */
 /**
- * @cc [author:spolu,label:product] format-no-semantic-validation
+ * @cc [owner:spolu,label:product] format-no-semantic-validation
  * `format` performs structural grammar, directive-cardinality, and ID-uniqueness checks only; it
  * never assesses contract prose or whether code complies with a contract.
  */

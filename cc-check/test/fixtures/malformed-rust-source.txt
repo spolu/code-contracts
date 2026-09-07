@@ -1,2 +1,2 @@
-/// @cc [author:spolu,label:product] missing-prose
+/// @cc [owner:spolu,label:product] missing-prose
 pub fn malformed() {}

@@ -136,10 +136,14 @@ cc-check list --no-global src/example.ts:42:10
 => src/example.ts <=
 
 ◆ balance-post:12
-  scope:declaration function `payInvoice` · author:spolu · label:product
+  scope:declaration function `payInvoice` · owner:spolu · label:product
 
   > `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
 ```
+
+Contracts may have multiple owners and labels. Prefer semicolon-separated values, such as
+`[owner:spolu;tdraier,label:product;security]`, instead of repeating metadata keys. `list` preserves
+these values in its output.
 
 Directory contracts are included by default; `--no-global` returns only declaration-attached
 contracts. Results are ordered from broadest to most specific scope. Unlike `callers` and

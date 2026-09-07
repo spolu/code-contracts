@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, parse } from "node:path";
 
 /**
- * @cc [author:spolu,label:architecture] language-project-root
+ * @cc [owner:spolu,label:architecture] language-project-root
  * Project-scoped language adapters use the nearest ancestor containing one of their explicit
  * workspace markers. They reject files without a marker instead of querying an inferred workspace
  * that may return incomplete relationships.

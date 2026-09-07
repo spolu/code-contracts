@@ -612,7 +612,7 @@ class StdioLanguageServer implements LanguageServer {
 }
 
 /**
- * @cc [author:spolu,label:architecture] stdio-lsp-lifecycle
+ * @cc [owner:spolu,label:architecture] stdio-lsp-lifecycle
  * Starting a stdio language server performs the LSP initialize handshake before returning. Failed
  * process startup, initialization, or an adapter-declared readiness notification terminates the
  * child process and does not return a partial session.

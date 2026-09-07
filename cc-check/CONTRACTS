@@ -1,13 +1,13 @@
-@cc [author:spolu,label:architecture] language-specific-boundary
+@cc [owner:spolu,label:architecture] language-specific-boundary
 Language-specific integrations are limited to resolving source locations and symbols, identifying
 source contract documents, and determining local declaration attachment and applicability.
 Directory contract discovery, relationship traversal, grammar parsing, and presentation remain
 language-independent.
 
-@cc [author:spolu,label:coding] quality-gates
+@cc [owner:spolu,label:coding] quality-gates
 Changes keep formatting, type checking, linting, the production build, and integration tests
 passing.
 
-@cc [author:spolu,label:coding] integration-tests-only
+@cc [owner:spolu,label:coding] integration-tests-only
 Automated tests run only as built CLI integrations against smoke fixtures. Do not add unit tests or
 a test-runner dependency.

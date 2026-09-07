@@ -38,12 +38,12 @@ const discoverPythonFiles = async (directory: string): Promise<string[]> => {
 };
 
 /**
- * @cc [author:spolu,label:architecture] python-project-root
+ * @cc [owner:spolu,label:architecture] python-project-root
  * The Python adapter uses the nearest ancestor containing `pyrightconfig.json` or `pyproject.toml`
  * as the Pyright workspace and rejects files without either marker.
  */
 /**
- * @cc [author:spolu,label:product] python-language-server-scope
+ * @cc [owner:spolu,label:product] python-language-server-scope
  * Python callers and references use a fresh bundled Pyright language server for `.py` and `.pyi`
  * files. The MVP pre-opens workspace Python files, excluding common dependency and cache
  * directories, so cross-file relationships are available before the first query. No server process

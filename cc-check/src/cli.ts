@@ -8,7 +8,7 @@ import { runReferencesCommand } from "./references.js";
 const VERSION = "0.2.0";
 
 /**
- * @cc [author:spolu,label:product] format-command
+ * @cc [owner:spolu,label:product] format-command
  * `cc-check format [file-like]` reports malformed `@cc` syntax and duplicate contract IDs in the
  * targeted file or the current directory recursively when omitted, printing each recursively
  * selected file. It does not assess contract prose or implementation compliance.
@@ -25,7 +25,7 @@ function addFormatCommand(program: Command): void {
 }
 
 /**
- * @cc [author:spolu,label:product] callers-command
+ * @cc [owner:spolu,label:product] callers-command
  * `cc-check callers <location-like>` lists direct call sites to the call-hierarchy-capable
  * declaration identified by the source location, using a fresh language-server process for each
  * invocation.
@@ -39,7 +39,7 @@ function addCallersCommand(program: Command): void {
 }
 
 /**
- * @cc [author:spolu,label:product] references-command
+ * @cc [owner:spolu,label:product] references-command
  * `cc-check references <location-like>` lists every statically recognized usage of the declaration
  * identified by the source location, excluding the declaration itself.
  */
@@ -52,7 +52,7 @@ function addReferencesCommand(program: Command): void {
 }
 
 /**
- * @cc [author:spolu,label:product] list-command
+ * @cc [owner:spolu,label:product] list-command
  * `cc-check list <file-like|location-like>` lists every declaration-attached contract in a source
  * file or contracts attached to the declaration containing a location and its enclosing
  * declarations. It includes applicable directory contracts by default; `--no-global` excludes
@@ -75,7 +75,7 @@ function addListCommand(program: Command): void {
 }
 
 /**
- * @cc [author:spolu,label:product] command-surface
+ * @cc [owner:spolu,label:product] command-surface
  * The CLI exposes:
  * - `format [file-like]`
  * - `callers <location-like>`
@@ -83,7 +83,7 @@ function addListCommand(program: Command): void {
  * - `list <file-like|location-like>`
  */
 /**
- * @cc [author:spolu,label:product] relationship-target-resolution
+ * @cc [owner:spolu,label:product] relationship-target-resolution
  * For line-only locations, `callers` and `references` first resolve the innermost enclosing
  * declaration and use that declaration as the target of the relationship query. When a column is
  * provided, they use the symbol at that exact position instead.

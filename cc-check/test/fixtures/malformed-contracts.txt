@@ -1,2 +1,2 @@
-@cc [author:spolu label:product] malformed-metadata
+@cc [owner:spolu label:product] malformed-metadata
 Malformed metadata is rejected.

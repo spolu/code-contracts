@@ -13,7 +13,7 @@ export interface DeclarationContracts {
 }
 
 /**
- * @cc [author:spolu,label:architecture] local-contract-extractor
+ * @cc [owner:spolu,label:architecture] local-contract-extractor
  * A language-specific local extractor returns declaration-attached contracts for either a source
  * location or an entire file. Location results contain applicable declarations from broadest to
  * most specific, including language-defined ownership such as a Go receiver or Rust impl type;
