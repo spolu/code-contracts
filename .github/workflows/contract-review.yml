@@ -81,16 +81,17 @@ jobs:
             const { mkdirSync, writeFileSync } = require('node:fs');
             const request = JSON.parse(process.env.REVIEW_REQUEST);
             const params = { ...context.repo, pull_number: request.pull_number, per_page: 100 };
-            const [files, comments, reviews] = await Promise.all([
-              github.paginate(github.rest.pulls.listFiles, params),
+            const mergeBase = execFileSync('git', ['merge-base', request.base_sha, request.head_sha], { cwd: 'source', encoding: 'utf8' }).trim();
+            const [comparison, comments, reviews] = await Promise.all([
+              github.rest.repos.compareCommitsWithBasehead({ ...context.repo, basehead: `${mergeBase}...${request.head_sha}`, per_page: 1 }),
               github.paginate(github.rest.pulls.listReviewComments, params),
               github.paginate(github.rest.pulls.listReviews, params),
             ]);
             mkdirSync('source/.github/codex', { recursive: true });
             writeFileSync('source/.github/codex/review-context.json', JSON.stringify({
               ...request,
-              merge_base: execFileSync('git', ['merge-base', request.base_sha, request.head_sha], { cwd: 'source', encoding: 'utf8' }).trim(),
-              files,
+              merge_base: mergeBase,
+              files: comparison.data.files ?? [],
               comments,
               reviews,
               validation: [

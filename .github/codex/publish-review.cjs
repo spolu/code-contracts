@@ -75,12 +75,8 @@ async function publishReview({ github, context, core, review, request }) {
   const marker = reviewMarker(request);
   const params = { ...context.repo, pull_number: request.pull_number };
   const { data: current } = await github.rest.pulls.get(params);
-  if (
-    current.state !== "open" ||
-    current.head.sha !== request.head_sha ||
-    current.base.sha !== request.base_sha
-  ) {
-    core.info("Skipping review because the PR state or base/head changed.");
+  if (current.state !== "open") {
+    core.info("Skipping review because the PR is closed.");
     return;
   }
 
@@ -98,11 +94,14 @@ async function publishReview({ github, context, core, review, request }) {
   }
 
   const mergeBase = git("merge-base", request.base_sha, request.head_sha);
-  const files = await github.paginate(github.rest.pulls.listFiles, {
-    ...params,
-    per_page: 100,
-  });
-  const diffs = files.map((file) => ({
+  const { data: comparison } =
+    await github.rest.repos.compareCommitsWithBasehead({
+      ...context.repo,
+      basehead: `${mergeBase}...${request.head_sha}`,
+      per_page: 1,
+    });
+  // The first comparison page includes file patches; missing patches retain source permalinks.
+  const diffs = (comparison.files ?? []).map((file) => ({
     ...file,
     lines: diffLines(file.patch),
   }));
@@ -148,15 +147,11 @@ async function publishReview({ github, context, core, review, request }) {
   ]
     .filter(Boolean)
     .join("\n\n");
-  // Recheck after collecting locations so a push during preparation cannot redirect feedback.
+  // A newer commit does not invalidate a review pinned to the inspected commit.
   const { data: latest } = await github.rest.pulls.get(params);
-  if (
-    latest.state !== "open" ||
-    latest.head.sha !== request.head_sha ||
-    latest.base.sha !== request.base_sha
-  ) {
+  if (latest.state !== "open") {
     core.info(
-      "Skipping review because the PR changed during publication preparation.",
+      "Skipping review because the PR closed during publication preparation.",
     );
     return;
   }

@@ -60,6 +60,11 @@ const files = [
     ),
   },
 ];
+// Later commits remove and rename reviewed files; findings must still use the captured diff.
+git("rm", "--quiet", "source.ts");
+git("mv", "new-name.ts", "latest-name.ts");
+git("commit", "--quiet", "-m", "Later changes");
+const laterHead = git("rev-parse", "HEAD");
 const pr = {
   number: 7,
   state: "open",
@@ -89,17 +94,26 @@ function run(comments, options = {}) {
     const { publishReview } = require(${JSON.stringify(publisher)});
     const input = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
     const calls = [];
+    const comparisons = [];
     let reads = 0;
     const github = {
-      rest: { pulls: {
-        get: async () => ({ data: ++reads > 1 ? input.latest : input.current }),
-        listFiles: 'files', listReviews: 'reviews',
-        createReview: async (review) => calls.push(review),
-      } },
+      rest: {
+        pulls: {
+          get: async () => ({ data: ++reads > 1 ? input.latest : input.current }),
+          listReviews: 'reviews',
+          createReview: async (review) => calls.push(review),
+        },
+        repos: {
+          compareCommitsWithBasehead: async (params) => {
+            comparisons.push(params);
+            return { data: { files: input.files } };
+          },
+        },
+      },
       paginate: async (route) => input[route],
     };
     publishReview({ github, context: input.context, core: { info() {} }, review: input.review, request: input.request })
-      .then(() => process.stdout.write(JSON.stringify({ calls })))
+      .then(() => process.stdout.write(JSON.stringify({ calls, comparisons })))
       .catch((error) => process.stdout.write(JSON.stringify({ error: error.message, calls })));
   `;
   return JSON.parse(
@@ -198,10 +212,8 @@ test("keeps violations without recipients, skips empty owner notifications, and 
   );
 });
 
-test("skips stale, closed, already-reviewed requests, and concurrently updated PRs", () => {
+test("skips closed PRs and already-published requests", () => {
   for (const options of [
-    { current: { ...pr, head: { sha: base } } },
-    { current: { ...pr, base: { sha: head } } },
     { current: { ...pr, state: "closed" } },
     {
       reviews: [
@@ -211,11 +223,61 @@ test("skips stale, closed, already-reviewed requests, and concurrently updated P
         },
       ],
     },
-    { latest: { ...pr, head: { sha: base } } },
-    { latest: { ...pr, base: { sha: head } } },
     { latest: { ...pr, state: "closed" } },
   ])
     assert.deepEqual(run([comment()], options).calls, []);
+});
+
+test("publishes at the inspected commit after head/base changes, including concurrent pushes", () => {
+  for (const options of [
+    {
+      current: { ...pr, head: { sha: laterHead } },
+      latest: { ...pr, head: { sha: laterHead } },
+    },
+    {
+      current: { ...pr, base: { sha: head } },
+      latest: { ...pr, base: { sha: head } },
+    },
+    { latest: { ...pr, head: { sha: laterHead } } },
+    { latest: { ...pr, base: { sha: head } } },
+  ]) {
+    const result = run(
+      [
+        comment(),
+        comment({ path: "old-name.ts", line: 1, side: "LEFT" }),
+        comment({ path: "caller.ts", line: 1 }),
+      ],
+      options,
+    );
+    assert.equal(result.error, undefined);
+    assert.equal(result.calls.length, 1);
+    const review = result.calls[0];
+    assert.equal(review.commit_id, head);
+    assert.equal(review.event, "COMMENT");
+    assert.deepEqual(
+      review.comments.map(({ path, line, side }) => ({ path, line, side })),
+      [
+        { path: "source.ts", line: 2, side: "RIGHT" },
+        { path: "new-name.ts", line: 1, side: "LEFT" },
+      ],
+    );
+    assert.ok(review.body.includes(`/blob/${head}/caller.ts#L1`));
+    assert.deepEqual(result.comparisons, [
+      {
+        owner: "example",
+        repo: "contracts",
+        basehead: `${base}...${head}`,
+        per_page: 1,
+      },
+    ]);
+  }
+});
+
+test("publishes a clean summary after a new commit", () => {
+  const result = run([], { latest: { ...pr, head: { sha: laterHead } } });
+  assert.equal(result.error, undefined);
+  assert.equal(result.calls[0].commit_id, head);
+  assert.equal(result.calls[0].body, `${reviewMarker(request)}\n\ncc: LGTM`);
 });
 
 test("publishes requested reviews on drafts, including PRs changed to draft during review", () => {

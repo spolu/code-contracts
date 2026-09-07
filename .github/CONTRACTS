@@ -35,7 +35,8 @@ repository is this repository.
 
 @cc [owner:spolu,label:product] contract-review-request-identity
 A fresh request can review unchanged commits; an already-published request with the same base/head
-commits is skipped. Publishing skips PRs that have closed or changed base/head since request resolution.
+commits is skipped. Publishing skips closed PRs but remains pinned to the inspected head when new
+commits arrive or the base changes; review context and comment locations use the captured comparison.
 
 @cc [owner:spolu,label:architecture] contract-review-automation-source
 Review request handling, prompts, and publication use the workflow's revision; inspected source
