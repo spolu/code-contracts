@@ -81,7 +81,7 @@ async function resolveReviewRequest({ github, context, core }) {
   } catch (error) {
     if (error.status !== 404) throw error;
   }
-  if (!["write", "admin"].includes(permission)) {
+  if (!["write", "maintain", "admin"].includes(permission)) {
     core.info(
       "Skipping review: the requester does not have repository write access.",
     );

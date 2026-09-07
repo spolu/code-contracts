@@ -173,13 +173,14 @@ test("ordinary events and issue comments never request reviews", async () => {
 test("checks the requesting actor's write access, including comment edits", async () => {
   const context = event("issue_comment", "edited");
   context.payload.changes = { body: { from: "Old comment" } };
-  for (const permission of ["write", "admin"]) {
+  for (const permission of ["write", "maintain", "admin"]) {
     const { result, calls } = await resolve(context, { permission });
     assert.deepEqual(result, request);
     assert.equal(calls[0].username, "requester");
   }
   for (const options of [
     { permission: "read" },
+    { permission: "triage" },
     { permission: "none" },
     { error: { status: 404 } },
   ]) {
