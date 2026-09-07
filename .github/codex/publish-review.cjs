@@ -1,4 +1,5 @@
 const { execFileSync } = require("node:child_process");
+const { reviewMarker } = require("./review-request.cjs");
 
 function git(...args) {
   return execFileSync("git", args, { encoding: "utf8" }).trimEnd();
@@ -62,7 +63,7 @@ function renderComment(comment) {
   return [body.trim(), cc].filter(Boolean).join("\n\n");
 }
 
-async function publishReview({ github, context, core, review }) {
+async function publishReview({ github, context, core, review, request }) {
   if (
     !review ||
     typeof review.summary !== "string" ||
@@ -70,20 +71,18 @@ async function publishReview({ github, context, core, review }) {
   ) {
     throw new Error("Invalid contract review output");
   }
-  const expected = context.payload.pull_request;
-  const params = { ...context.repo, pull_number: expected.number };
+  const marker = reviewMarker(request);
+  const params = { ...context.repo, pull_number: request.pull_number };
   const { data: current } = await github.rest.pulls.get(params);
   if (
     current.state !== "open" ||
-    current.draft ||
-    current.head.sha !== expected.head.sha ||
-    current.base.sha !== expected.base.sha
+    current.head.sha !== request.head_sha ||
+    current.base.sha !== request.base_sha
   ) {
     core.info("Skipping review because the PR state or base/head changed.");
     return;
   }
 
-  const marker = `<!-- code-contract-review:${expected.base.sha}:${expected.head.sha} -->`;
   const reviews = await github.paginate(github.rest.pulls.listReviews, {
     ...params,
     per_page: 100,
@@ -93,13 +92,11 @@ async function publishReview({ github, context, core, review }) {
       (item) => item.user?.type === "Bot" && item.body?.includes(marker),
     )
   ) {
-    core.info(
-      "A contract review has already been published for this base/head pair.",
-    );
+    core.info("This request has already published a review for these commits.");
     return;
   }
 
-  const mergeBase = git("merge-base", expected.base.sha, expected.head.sha);
+  const mergeBase = git("merge-base", request.base_sha, request.head_sha);
   const files = await github.paginate(github.rest.pulls.listFiles, {
     ...params,
     per_page: 100,
@@ -115,7 +112,7 @@ async function publishReview({ github, context, core, review }) {
     const body = renderComment(finding);
     if (!body) continue;
     const { path, line, side } = finding;
-    const commit = side === "LEFT" ? mergeBase : expected.head.sha;
+    const commit = side === "LEFT" ? mergeBase : request.head_sha;
     // Validate source locations even when GitHub omitted a patch or the file is unchanged.
     const source = git("show", `${commit}:${path}`);
     if (line > source.split("\n").length)
@@ -155,9 +152,8 @@ async function publishReview({ github, context, core, review }) {
   const { data: latest } = await github.rest.pulls.get(params);
   if (
     latest.state !== "open" ||
-    latest.draft ||
-    latest.head.sha !== expected.head.sha ||
-    latest.base.sha !== expected.base.sha
+    latest.head.sha !== request.head_sha ||
+    latest.base.sha !== request.base_sha
   ) {
     core.info(
       "Skipping review because the PR changed during publication preparation.",
@@ -166,7 +162,7 @@ async function publishReview({ github, context, core, review }) {
   }
   await github.rest.pulls.createReview({
     ...params,
-    commit_id: expected.head.sha,
+    commit_id: request.head_sha,
     event: "COMMENT",
     body,
     comments,

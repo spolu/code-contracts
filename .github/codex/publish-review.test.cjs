@@ -4,6 +4,7 @@ const { mkdtempSync, writeFileSync, rmSync } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join } = require("node:path");
 const { after, test } = require("node:test");
+const { reviewMarker } = require("./review-request.cjs");
 
 const publisher = require.resolve("./publish-review.cjs");
 const directory = mkdtempSync(join(tmpdir(), "contract-review-test-"));
@@ -66,6 +67,12 @@ const pr = {
   base: { sha: base },
   head: { sha: head },
 };
+const request = {
+  id: "123",
+  pull_number: pr.number,
+  base_sha: base,
+  head_sha: head,
+};
 const comment = (overrides = {}) => ({
   kind: "violation",
   path: "source.ts",
@@ -91,7 +98,7 @@ function run(comments, options = {}) {
       } },
       paginate: async (route) => input[route],
     };
-    publishReview({ github, context: input.context, core: { info() {} }, review: input.review })
+    publishReview({ github, context: input.context, core: { info() {} }, review: input.review, request: input.request })
       .then(() => process.stdout.write(JSON.stringify({ calls })))
       .catch((error) => process.stdout.write(JSON.stringify({ error: error.message, calls })));
   `;
@@ -103,8 +110,9 @@ function run(comments, options = {}) {
         context: {
           repo: { owner: "example", repo: "contracts" },
           serverUrl: "https://github.com",
-          payload: { pull_request: pr },
+          payload: { issue: { number: pr.number, pull_request: {} } },
         },
+        request,
         current: pr,
         latest: pr,
         files,
@@ -186,23 +194,58 @@ test("keeps violations without recipients, skips empty owner notifications, and 
   );
 });
 
-test("skips stale, closed, draft, already-reviewed, and concurrently updated PRs", () => {
+test("skips stale, closed, already-reviewed requests, and concurrently updated PRs", () => {
   for (const options of [
     { current: { ...pr, head: { sha: base } } },
     { current: { ...pr, base: { sha: head } } },
     { current: { ...pr, state: "closed" } },
-    { current: { ...pr, draft: true } },
     {
       reviews: [
         {
           user: { type: "Bot" },
-          body: `<!-- code-contract-review:${base}:${head} -->`,
+          body: reviewMarker(request),
         },
       ],
     },
     { latest: { ...pr, head: { sha: base } } },
+    { latest: { ...pr, base: { sha: head } } },
+    { latest: { ...pr, state: "closed" } },
   ])
     assert.deepEqual(run([comment()], options).calls, []);
+});
+
+test("publishes requested reviews on drafts, including PRs changed to draft during review", () => {
+  for (const current of [pr, { ...pr, draft: true }]) {
+    const result = run([], { current, latest: { ...pr, draft: true } });
+    assert.equal(result.error, undefined);
+    assert.equal(result.calls.length, 1);
+    assert.equal(result.calls[0].event, "COMMENT");
+    assert.equal(result.calls[0].commit_id, head);
+  }
+});
+
+test("a fresh request can publish another review of the same commits", () => {
+  const result = run([], {
+    request: { ...request, id: "124" },
+    reviews: [{ user: { type: "Bot" }, body: reviewMarker(request) }],
+  });
+  assert.equal(result.error, undefined);
+  assert.equal(result.calls.length, 1);
+  assert.ok(
+    result.calls[0].body.includes(reviewMarker({ ...request, id: "124" })),
+  );
+});
+
+test("rejects missing or invalid request snapshots before publishing", () => {
+  for (const invalid of [
+    undefined,
+    { ...request, id: "bad-->" },
+    { ...request, head_sha: "main" },
+  ]) {
+    const result = run([], { request: invalid });
+    assert.match(result.error, /Invalid contract review request/);
+    assert.deepEqual(result.calls, []);
+  }
 });
 
 test("rejects invalid locations and recipients before posting any review", () => {

@@ -22,3 +22,20 @@ PR diff are retained in the review body with source permalinks.
 @cc [owner:spolu,label:security] review-host-services
 Review setup preserves permissions on host service sockets so the runner's DNS and reporting
 services remain usable.
+
+@cc [owner:spolu,label:product] contract-review-requests
+Reviews run on a standalone `r? cc` line, optionally with GitHub mentions between `r?` and `cc`,
+in a new PR description or conversation comment, or an edit introducing that request. Draft PRs
+are eligible; pushes and edits retaining an existing request do not request another review.
+
+@cc [owner:spolu,label:security] contract-review-request-access
+Only human requesters with repository write access can trigger reviews of open PRs whose head
+repository is this repository.
+
+@cc [owner:spolu,label:product] contract-review-request-identity
+A fresh request can review unchanged commits; an already-published request with the same base/head
+commits is skipped. Publishing skips PRs that have closed or changed base/head since request resolution.
+
+@cc [owner:spolu,label:architecture] contract-review-automation-source
+Review request handling, prompts, and publication use the workflow's revision; inspected source
+uses the PR head captured when resolving the request.
