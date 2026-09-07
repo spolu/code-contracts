@@ -67,6 +67,7 @@ async function publishReview({ github, context, core, review, request }) {
   if (
     !review ||
     typeof review.summary !== "string" ||
+    !review.summary.trim() ||
     !Array.isArray(review.comments)
   ) {
     throw new Error("Invalid contract review output");
@@ -139,8 +140,7 @@ async function publishReview({ github, context, core, review, request }) {
 
   const body = [
     marker,
-    review.summary.trim() ||
-      "Contract review completed for the inspected scope.",
+    review.summary.trim(),
     outsideDiff.length
       ? "Findings and notifications outside the PR diff:\n\n" +
         outsideDiff.join("\n\n---\n\n")

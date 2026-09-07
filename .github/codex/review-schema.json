@@ -3,7 +3,7 @@
   "additionalProperties": false,
   "required": ["summary", "comments"],
   "properties": {
-    "summary": { "type": "string" },
+    "summary": { "type": "string", "minLength": 1 },
     "comments": {
       "type": "array",
       "items": {

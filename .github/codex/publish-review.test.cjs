@@ -118,7 +118,9 @@ function run(comments, options = {}) {
         files,
         reviews: [],
         review: {
-          summary: "Inspected 24 of 30 callers; 6 remain uninspected.",
+          summary: comments.some((comment) => comment.kind === "violation")
+            ? "cc:\n\n- **positive-input**: invalid input."
+            : "cc: LGTM",
           comments,
         },
         ...options,
@@ -156,7 +158,9 @@ test("submits a COMMENT review at the head with separate owner and violation not
   );
   assert.equal(review.comments[2].side, "LEFT");
   assert.equal(review.comments[2].body, "cc @old-owner");
-  assert.match(review.body, /24 of 30/);
+  assert.ok(
+    review.body.includes("cc:\n\n- **positive-input**: invalid input."),
+  );
 });
 
 test("retains each unchanged caller finding with a permalink and its notification", () => {
@@ -246,6 +250,22 @@ test("rejects missing or invalid request snapshots before publishing", () => {
     assert.match(result.error, /Invalid contract review request/);
     assert.deepEqual(result.calls, []);
   }
+});
+
+test("rejects empty summaries instead of fabricating a review result", () => {
+  for (const summary of ["", " \n\t "]) {
+    for (const comments of [[], [comment()]]) {
+      const result = run(comments, { review: { summary, comments } });
+      assert.match(result.error, /Invalid contract review output/);
+      assert.deepEqual(result.calls, []);
+    }
+  }
+});
+
+test("publishes the exact clean summary with only its hidden request marker", () => {
+  const result = run([]);
+  assert.equal(result.error, undefined);
+  assert.equal(result.calls[0].body, `${reviewMarker(request)}\n\ncc: LGTM`);
 });
 
 test("rejects invalid locations and recipients before posting any review", () => {
