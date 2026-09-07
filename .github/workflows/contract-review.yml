@@ -66,6 +66,8 @@ jobs:
           REVIEW_CONTEXT: ${{ runner.temp }}/contract-review-context.json
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          model: gpt-5.6-luna
+          effort: xhigh
           prompt-file: .github/codex/review.md
           sandbox: read-only
           safety-strategy: drop-sudo
