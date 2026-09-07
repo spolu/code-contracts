@@ -57,6 +57,11 @@ jobs:
               files,
               comments,
               reviews,
+              validation: [
+                { command: 'npm ci --prefix cc-check', status: 'passed' },
+                { command: 'npm run build --prefix cc-check', status: 'passed' },
+                { command: 'node --test .github/codex/publish-review.test.cjs', status: 'passed' },
+              ],
             }));
 
       - name: Review contracts with Codex
