@@ -12,7 +12,7 @@ declaration, including each inspected caller's applicable contracts; limits mate
 finding are disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
-Review summaries are `code-contracts: LGTM` when no violations are found, otherwise a concise list
+Review summaries are `@cc LGTM` when no violations are found, otherwise a concise list
 of problematic contracts with details in their associated comments.
 
 @cc [owner:spolu,label:product] contract-review-locations

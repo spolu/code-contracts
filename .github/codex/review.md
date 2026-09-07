@@ -77,8 +77,9 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
   Do not include owners unless they are explicitly in `notify`. A caller's own violated contract
   uses that caller contract's recipients, not the callee's. Every finding gets its own recipients;
   do not move mentions to a single summary notification. Still report violations with no recipients.
-- Keep all mentions in `recipients`, as bare GitHub usernames without `@`. Do not add mentions in
-  `body` or `summary`. The publisher appends the `cc` line and deduplicates recipients.
+- Keep all notification recipients in `recipients`, as bare GitHub usernames without `@`. Do not add
+  notification mentions in `body` or `summary`. The publisher appends the `cc` line and deduplicates
+  recipients.
 - Use exact repository-relative paths and one-based source lines. RIGHT refers to the inspected
   head; LEFT refers to the merge base. For renamed files use the new path for RIGHT and the old
   path for LEFT. Do not invent an inline location or relocate a finding to unrelated changed code.
@@ -89,7 +90,7 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
 
 The final JSON has `summary` and `comments`:
 
-- If no violations are found, `summary` must be exactly `code-contracts: LGTM`. Owner notifications
+- If no violations are found, `summary` must be exactly `@cc LGTM`. Owner notifications
   do not count as violations. LGTM reflects the inspected scope, not proof of exhaustive compliance.
 - Otherwise, start `summary` with `code-contracts:` followed by a concise bullet list of problematic
   contract IDs and a few words describing each issue. Qualify IDs with their declaration or path
