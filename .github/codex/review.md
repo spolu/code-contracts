@@ -90,7 +90,7 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
 
 The final JSON has `summary` and `comments`:
 
-- If no violations are found, `summary` must be exactly `@cc LGTM`. Owner notifications
+- If no violations are found, `summary` must be exactly `cc: LGTM`. Owner notifications
   do not count as violations. LGTM reflects the inspected scope, not proof of exhaustive compliance.
 - Otherwise, start `summary` with `code-contracts:` followed by a concise bullet list of problematic
   contract IDs and a few words describing each issue. Qualify IDs with their declaration or path
