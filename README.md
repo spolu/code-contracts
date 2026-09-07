@@ -140,8 +140,8 @@ introductions do not notify owners. `notify` lists GitHub usernames to notify on
 violation of that contract.
 For example, `[owner:spolu,notify:spolu;flvndvd,label:product]` notifies `spolu` about contract
 changes and both `spolu` and `flvndvd` about violations. Owners are not automatically notified about
-violations; include them in `notify` if they want both. Missing metadata means no notification for
-that role. Review agents split semicolon lists, combine repeated keys, and deduplicate usernames.
+violations; include them in `notify` if they want both. Review agents split semicolon lists, combine
+repeated keys, and deduplicate usernames.
 
 The prose body is non-empty and extends to the end of the documentation comment, the next `@cc`
 directive in a `CONTRACTS` file, or the end of that file. It may contain any text and span any
