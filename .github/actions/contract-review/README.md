@@ -91,6 +91,8 @@ Only human actors with repository write, maintain, or admin access can review op
 in the same repository, including drafts. The calling bot decides whether text requests a review;
 this action checks access, captures the base/head, and skips requests already published for the same
 workflow run and commits. A fresh run may review the same commits again.
+For delegated requests, access is checked against the originating run's human actor before allowing
+`github-actions[bot]` to execute Codex.
 
 For `workflow_dispatch`, select the PR's head branch. The action inspects that workflow run's
 commit, even if the branch advances while queued or running. Later pushes do not cancel reviews

@@ -139,6 +139,8 @@ runs:
       uses: openai/codex-action@v1
       with:
         openai-api-key: ${{ inputs.openai-api-key }}
+        # The request step has already verified the originating human's write access.
+        allow-bots: ${{ inputs.request-run-id != '' }}
         model: ${{ inputs.model }}
         effort: ${{ inputs.effort }}
         working-directory: ${{ github.workspace }}/.contract-review/source
@@ -150,6 +152,7 @@ runs:
         output-schema-file: ${{ github.action_path }}/review-schema.json
 
     - name: Submit comment review
+      id: publish
       if: steps.codex.outputs.final-message != ''
       uses: actions/github-script@v7
       env:
@@ -170,10 +173,11 @@ runs:
       env:
         CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
         REVIEW_REQUEST: ${{ steps.request.outputs.request }}
-        REVIEW_JOB_STATUS: ${{ job.status }}
+        # job.status does not reflect failures inside this composite until it returns.
+        REVIEW_STATUS: ${{ job.status == 'cancelled' && 'cancelled' || steps.publish.outcome == 'success' && 'success' || 'failure' }}
       with:
         github-token: ${{ inputs.github-token }}
         script: |
           const path = require('node:path');
           const { publishReviewStatus } = require(path.join(process.env.CONTRACT_REVIEW_ACTION_PATH, 'review-status.cjs'));
-          await publishReviewStatus({ github, context, request: JSON.parse(process.env.REVIEW_REQUEST), state: process.env.REVIEW_JOB_STATUS });
+          await publishReviewStatus({ github, context, request: JSON.parse(process.env.REVIEW_REQUEST), state: process.env.REVIEW_STATUS });

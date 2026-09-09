@@ -3,6 +3,10 @@ The action reviews the supplied PR number in the caller's repository without req
 review scripts, prompts, skills, a Node project, or `cc-check`; its tooling and review instructions
 come from the action repository, and setup never executes package scripts from the inspected PR.
 
+@cc [owner:spolu,label:security] contract-review-delegated-execution
+Requests delegated by `github-actions[bot]` may execute Codex only after the originating run's
+human actor has been verified to have current repository write access.
+
 @cc [owner:spolu,label:architecture] contract-review-node-runtime
 Review setup selects the Node.js version in the action revision's `cc-check/.nvmrc` for both local
 action checkouts and remote action invocations.
@@ -16,3 +20,4 @@ Each workflow run reports review progress in its own `Contract review (<run-id>)
 on the inspected head, linked to that run; concurrent runs never overwrite one another's status.
 Statuses distinguish running, completed, failed, and cancelled execution; success means the review
 completed, not that it approves the PR.
+Failures in setup, Codex execution, or publication must never report successful completion.
