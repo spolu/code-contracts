@@ -87,10 +87,14 @@ const groupBySourceFile = (
 
 /**
  * @cc [owner:spolu,label:product] list-output
- * The list command groups applicable contracts under `=> <relative-file> <=`, with directory
- * scopes first and local declarations ordered from broadest to most specific applicability for a
- * location or by source for a whole file. Each entry shows `◆ <id>:<line>`, scope and metadata, then
- * quoted prose; it omits the `@cc` directive and prints nothing when no contracts apply.
+ * Output MUST group contracts under `=> <relative-file> <=` headers. Each entry MUST show
+ * `◆ <id>:<line>`, scope, metadata, and quoted prose without the `@cc` directive. When no contracts
+ * apply, the command MUST print nothing.
+ */
+/**
+ * @cc [owner:spolu,label:product] list-scope-order
+ * Directory contracts MUST precede declaration contracts. Declaration contracts MUST be ordered
+ * from broadest to most specific applicability for a location, or by source for a whole file.
  */
 /**
  * @cc [owner:spolu,label:product] list-global-option

@@ -1,7 +1,10 @@
 @cc [owner:spolu,label:architecture] contract-review-portability
-The action reviews the supplied PR number in the caller's repository without requiring caller-local
-review scripts, prompts, skills, a Node project, or `cc-check`; its tooling and review instructions
-come from the action repository, and setup never executes package scripts from the inspected PR.
+The action MUST accept a PR number in the caller's repository without requiring caller-local review
+scripts, prompts, skills, a Node project, or `cc-check`. Review instructions and tooling MUST come
+from the selected action revision.
+
+@cc [owner:spolu,label:security] contract-review-setup-source
+Setup MUST NOT execute package scripts from the checkout being reviewed.
 
 @cc [owner:spolu,label:security] contract-review-delegated-execution
 Requests delegated by `github-actions[bot]` may execute Codex only after the originating run's
@@ -12,12 +15,18 @@ Review setup selects the Node.js version in the action revision's `cc-check/.nvm
 action checkouts and remote action invocations.
 
 @cc [owner:spolu,label:product] contract-review-captured-context
-Review context contains the captured request, merge base, comparison files, existing comments and
-reviews, and passed action-tooling checks; those checks never claim to validate the inspected PR.
+Review context MUST include the captured request, merge base, comparison files, existing inline
+comments and review bodies, and passed action-tooling checks.
+
+@cc [owner:spolu,label:product] contract-review-validation-scope
+Validation results for bundled action tooling MUST NOT be represented as validation of the
+inspected PR.
 
 @cc [owner:spolu,label:product] contract-review-progress
-Each workflow run reports review progress in its own `Contract review (<run-id>)` commit status
-on the inspected head, linked to that run; concurrent runs never overwrite one another's status.
-Statuses distinguish running, completed, failed, and cancelled execution; success means the review
-completed, not that it approves the PR.
-Failures in setup, Codex execution, or publication must never report successful completion.
+Each workflow run MUST report progress in its own `Contract review (<run-id>)` commit status on the
+inspected head, linked to that run. Concurrent runs MUST NOT overwrite one another's status.
+
+@cc [owner:spolu,label:product] contract-review-progress-result
+Statuses MUST distinguish running, completed, failed, and cancelled execution. Setup, Codex, or
+publication failures MUST NOT report successful completion; success denotes a completed review
+and MUST NOT imply approval of the PR.

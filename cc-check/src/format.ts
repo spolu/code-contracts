@@ -271,11 +271,15 @@ const inspectFormatFile = async (
 
 /**
  * @cc [owner:spolu,label:product] format-file-scope
- * `format [file-like]` inspects the targeted `CONTRACTS` or supported source file. Without a file,
- * it recursively inspects every supported file under the current directory, excluding common
- * repository metadata, dependency, environment, and cache directories. Source documentation must
- * contain exactly one directive; documentation without `@cc` is ignored, and unsupported file
- * types are rejected.
+ * With an argument, `format` MUST inspect the targeted `CONTRACTS` or supported source file and
+ * reject unsupported file types. Without an argument, it MUST recursively inspect those file types
+ * under the working directory, excluding `.git`, `.venv`, `__pycache__`, `node_modules`, `vendor`,
+ * and `venv` directories.
+ */
+/**
+ * @cc [owner:spolu,label:product] format-source-document-cardinality
+ * Each source contract document MUST contain exactly one directive. `format` MUST reject documents
+ * with multiple directives and MUST ignore documentation without a potential `@cc` directive.
  */
 /**
  * @cc [owner:spolu,label:product] format-contract-id-uniqueness
