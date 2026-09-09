@@ -164,3 +164,5 @@ The [review bot](.github/actions/review-bot/README.md) detects `cc` in the leadi
 `r?` request and triggers [contract-review](.github/actions/contract-review/README.md). The latter
 is reusable from other repositories as `spolu/code-contracts/.github/actions/contract-review@main`;
 it bundles its own tooling and publishes a comment review pinned to the inspected PR head.
+The repository workflow dispatches each requested review on the PR's head branch so progress and
+results appear in its checks. Later pushes do not cancel the run or trigger another review.

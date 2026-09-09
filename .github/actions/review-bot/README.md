@@ -20,8 +20,19 @@ Pushes and title edits do not request reviews. Supports `pull_request` and `pull
 
 The composite action emits `pull-request-number` for a request, or an empty output otherwise.
 The caller passes nonempty outputs to [contract-review](../contract-review/README.md), which checks
-repository access and PR eligibility before running Codex. This detector makes no GitHub changes
-or Slack notifications; it can also run alongside an existing bot handling human reviewers.
+repository access and PR eligibility before running Codex. By default the detector makes no GitHub
+changes; it can also run alongside an existing bot handling human reviewers.
+
+Set `review-workflow` to a workflow filename to dispatch that workflow on the PR's head branch.
+The bot checks requester access and PR eligibility before dispatching, and passes
+`pull-request-number` and `request-run-id` inputs. The dispatched workflow passes both inputs to
+`contract-review`, which verifies the original human requester's access and reviews the workflow
+run's commit. This makes the actual review run visible in the PR's checks. Later pushes do not
+cancel the run or request another review.
+
+Dispatching needs `actions: write`, `contents: read`, and `pull-requests: read` on `github-token`
+(default: `github.token`). The target workflow must support `workflow_dispatch` with those two
+inputs and be registered in the repository before it can be dispatched.
 
 See [the repository workflow](../../workflows/review-bot.yml) for local action usage and the
 [contract-review README](../contract-review/README.md) for usage from another repository.

@@ -31,7 +31,13 @@ PRs are eligible; pushes and edits retaining an existing request do not request 
 
 @cc [owner:spolu,label:security] contract-review-request-access
 Only human requesters with repository write access can trigger reviews of open PRs whose head
-repository is this repository.
+repository is this repository. Delegated dispatches obtain the human requester's identity from
+the originating GitHub workflow run and recheck that user's access.
+
+@cc [owner:spolu,label:product] contract-review-head-workflow
+The repository workflow dispatches requested reviews on the PR's head branch, and each dispatched
+review inspects the workflow run's commit. Later pushes neither cancel that run nor trigger a new
+review; its results remain attached to the inspected commit.
 
 @cc [owner:spolu,label:product] contract-review-request-identity
 A fresh request can review unchanged commits; an already-published request with the same base/head

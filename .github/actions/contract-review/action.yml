@@ -9,8 +9,11 @@ inputs:
     description: OpenAI API key used for the contract review.
     required: true
   github-token:
-    description: Token with contents read and pull-requests write permissions in the caller's repository.
+    description: Token with contents read, pull-requests write, and actions read for delegated requests.
     default: ${{ github.token }}
+  request-run-id:
+    description: Original request workflow run ID when dispatched by a review bot; preserves the human requester.
+    required: false
   model:
     description: Codex model used for the review.
     default: gpt-5.6-luna
@@ -35,12 +38,13 @@ runs:
       env:
         CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
         REVIEW_PULL_NUMBER: ${{ inputs.pull-request-number }}
+        REVIEW_REQUEST_RUN_ID: ${{ inputs.request-run-id }}
       with:
         github-token: ${{ inputs.github-token }}
         script: |
           const path = require('node:path');
           const { resolveReviewRequest } = require(path.join(process.env.CONTRACT_REVIEW_ACTION_PATH, 'review-request.cjs'));
-          const request = await resolveReviewRequest({ github, context, core, pullNumber: Number(process.env.REVIEW_PULL_NUMBER) });
+          const request = await resolveReviewRequest({ github, context, core, pullNumber: Number(process.env.REVIEW_PULL_NUMBER), requestRunId: process.env.REVIEW_REQUEST_RUN_ID });
           if (request) core.setOutput('request', JSON.stringify(request));
 
     - uses: actions/checkout@v5

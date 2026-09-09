@@ -1,10 +1,22 @@
 name: Review bot
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && format('Contract review #{0}', inputs.pull-request-number) || 'Review request' }}
 
 on:
   pull_request:
     types: [opened, edited]
   issue_comment:
     types: [created, edited]
+  workflow_dispatch:
+    inputs:
+      pull-request-number:
+        description: PR to review; select its head branch when dispatching manually.
+        required: true
+        type: string
+      request-run-id:
+        description: Original request run ID when dispatched by the review bot.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -16,8 +28,10 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request)
     runs-on: ubuntu-latest
-    outputs:
-      pull-request-number: ${{ steps.request.outputs.pull-request-number }}
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -26,14 +40,16 @@ jobs:
 
       - id: request
         uses: ./.github/actions/review-bot
+        with:
+          review-workflow: review-bot.yml
 
   review:
-    needs: request
-    if: needs.request.outputs.pull-request-number != ''
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      actions: read
     steps:
       - uses: actions/checkout@v5
         with:
@@ -42,5 +58,6 @@ jobs:
 
       - uses: ./.github/actions/contract-review
         with:
-          pull-request-number: ${{ needs.request.outputs.pull-request-number }}
+          pull-request-number: ${{ inputs.pull-request-number }}
+          request-run-id: ${{ inputs.request-run-id }}
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}

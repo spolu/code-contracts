@@ -5,5 +5,10 @@ at the first other token. Only `cc` in that list requests a contract review; quo
 indented code, and HTML comments never introduce requests, including across hidden line breaks.
 
 @cc [owner:spolu,label:architecture] review-bot-output
-The review bot emits `pull-request-number` only for a human's eligible request; callers invoke
-`contract-review` only when that output is nonempty.
+The review bot emits `pull-request-number` only for a human's eligible request and requests no
+review when that output is empty.
+
+@cc [owner:spolu,label:product] review-bot-dispatch
+When a review workflow is configured, the bot dispatches it on the eligible PR's head branch only
+after verifying requester access and PR eligibility, passing the PR number and original request
+run ID. Without that configuration, the detector makes no GitHub changes.
