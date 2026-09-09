@@ -37,8 +37,8 @@ the originating GitHub workflow run and recheck that user's access.
 @cc [owner:spolu,label:product] contract-review-head-workflow
 The repository workflow dispatches requested reviews on the PR's head branch, and each dispatched
 review inspects the workflow run's commit. Later pushes neither cancel that run nor trigger a new
-review; its results remain attached to the inspected commit. Request handling and actual reviews
-use distinct check names so request-only runs cannot hide review progress.
+review; its results remain attached to the inspected commit. The progress status uses a distinct
+name from workflow jobs so request-only runs cannot hide review progress.
 
 @cc [owner:spolu,label:product] contract-review-request-identity
 A fresh request can review unchanged commits; an already-published request with the same base/head
