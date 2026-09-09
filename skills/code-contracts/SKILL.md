@@ -188,33 +188,27 @@ IDs only. It does not prove that the prose is true or that code complies with it
 for verifying contracts' validity and coherence and the code's compliance. Validate contract
 discoverability with `cc-check list`.
 
-Write contract prose so a human or agent reviewer can compare it directly with code:
+Write each contract around a concrete obligation:
 
-- Express one durable obligation per contract. Split independent requirements.
-- Prefer one concise, dense and clear sentence; add another only when a material exception or
-  failure behavior needs stating.
-- Name the subject and the observable behavior, outcome, boundary, or invariant.
-- Use decisive language. Prefer `must`, `never`, or a direct present-tense invariant; use `should`
-  only when discretion is intentional.
-- Name relevant identifiers, states, errors, or boundaries precisely, using backticks where helpful.
-- State preconditions, postconditions, failure behavior, atomicity, ordering, or side effects only
-  when they are part of the expectation.
-- Avoid vague terms such as "properly", "appropriately", "robust", "safe", or "as needed" unless
-  the contract defines what they mean.
-- Avoid rationale, implementation narration, examples, and restating types unless they materially
-  constrain acceptable code.
-- Do not encode speculative behavior or make a contract broader than the evidence or user intent.
+- **Identify the regression it prevents.** Name a plausible change that would violate the
+  requirement. A statement that only describes the function's purpose belongs in ordinary
+  documentation.
+- **State an observable requirement.** Prefer "[condition,] subject MUST/MUST NOT satisfy
+  requirement." Direct invariants are equally valid; normative keywords alone do not make prose
+  precise.
+- **Separate independent obligations.** Use one contract per requirement. Conditional cases
+  defining a single requirement may share a contract.
+- **Make decisive cases explicit.** Include missing-data, fallback, error, or side-effect behavior
+  when it determines compliance. Distinguish returning no result from failing to obtain a result.
+- **Specify the boundary precisely.** Identify the relevant inputs, outputs, fields, states, or
+  effects. Turn phrases such as "workspace-wide" into explicit preconditions or guarantees when
+  intended.
+- **Preserve intent across implementations.** Omit purpose statements, rationale, and algorithm
+  narration unless they impose an actual constraint. Do not promote incidental implementation
+  behavior into a requirement without evidence of intent.
 
-For example, replace “Handles invalid amounts appropriately” with “`createInvoice` rejects a
-non-positive amount with `InvalidAmountError` and does not persist the invoice.”
-
-A well-written contract should read as a specification. It should:
-
-- Be sufficient for consumers of the associated declaration to reason about its behavior.
-- Avoid prescribing implementation details.
-
-Use specification styles such as BCP 14 / RFC 2119, JML, TLA+, EARS, and Gherkin rather than typical
-comments about code behavior.
+Before keeping a contract, check that a reviewer can identify both a concrete violation and an
+alternative implementation that satisfies it.
 
 ### Enforcing contracts
 
