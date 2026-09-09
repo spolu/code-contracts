@@ -138,8 +138,9 @@ def collect_outcomes(
 
 def _pass_at_k(n: int, successes: int, k: int) -> float:
     """@cc [owner:spolu,label:evaluation] finite-sample-pass-at-k
-    For `n` attempts with `successes` passes, pass@k is the unbiased finite-sample estimator
-    `1 - C(n - successes, k) / C(n, k)` for `1 <= k <= n`.
+    For `1 <= k <= n` and `0 <= successes <= n`, the result MUST equal the finite-sample estimator
+    `1 - C(n - successes, k) / C(n, k)`, with `C(a, b) = 0` when `a < b`. Values outside those bounds
+    MUST raise `ValueError`.
     """
     if not 1 <= k <= n:
         raise ValueError(f"k must be between 1 and n; got k={k}, n={n}.")
@@ -158,8 +159,10 @@ def analyze_job(
     source_manifest_path: Path = DEFAULT_SOURCE_MANIFEST,
 ) -> dict[str, Any]:
     """@cc [owner:spolu,label:evaluation] balanced-pilot-analysis
-    Matched analysis requires exactly `expected_attempts` binary results for every manifest task and
-    arm, then reports micro/macro pass rates and task-macro pass@k for every `1 <= k <= attempts`.
+    Analysis MUST reject non-positive `expected_attempts`, unexpected tasks, or any manifest task/arm
+    cell without exactly `expected_attempts` binary outcomes. Accepted results MUST report micro/macro
+    pass rates and task-macro pass@k for every `1 <= k <= expected_attempts`; excluded infrastructure
+    failures MUST NOT count toward the required outcomes.
     """
     if expected_attempts < 1:
         raise ValueError("Expected attempts must be positive.")

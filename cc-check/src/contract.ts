@@ -83,10 +83,18 @@ const parseDirective = (
 
 /**
  * @cc [owner:spolu,label:architecture] shared-contract-parser
- * `CONTRACTS` files and language-specific documentation-comment extractors use the same parser for
- * the core `@cc` directive and prose grammar. The parser preserves attribute order and repeated
- * metadata keys and rejects malformed directives or empty prose instead of returning partial
- * results.
+ * `CONTRACTS` files and language-specific documentation-comment extractors MUST use this shared
+ * parser for the core `@cc` directive and prose grammar.
+ */
+/**
+ * @cc [owner:spolu,label:product] contract-metadata-preservation
+ * Parsed attributes MUST retain their original order and repeated keys; parsing MUST NOT merge or
+ * discard repeated metadata attributes.
+ */
+/**
+ * @cc [owner:spolu,label:product] contract-parse-failure
+ * Malformed directives or empty prose MUST throw `ContractParseError`; parsing MUST NOT return
+ * partial results when any contract is invalid.
  */
 export function parseContracts(
   source: string,

@@ -24,9 +24,9 @@ import { startTypeScriptLocalContractExtractor } from "./typescript.js";
 
 /**
  * @cc [owner:spolu,label:architecture] local-extractor-selection
- * Language selection for source contract documents and declaration attachment is isolated here.
- * The check and list commands depend only on language-neutral extraction interfaces, while
- * directory contract discovery remains separate and language-independent.
+ * Language selection for source documents and declaration attachment MUST remain in this module.
+ * The `format` and `list` commands MUST depend on language-neutral extraction interfaces and MUST
+ * NOT select language-specific implementations. Directory discovery MUST remain language-independent.
  */
 export const startLocalContractExtractor: LocalContractExtractorFactory = (
   filePath: string,
