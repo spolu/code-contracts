@@ -275,8 +275,7 @@ throughout the selected scope.
    contracts manually and disclose any resulting verification limit.
 3. Check each code element against its applicable contracts. Trace actual inputs, guards, errors,
    outputs, state changes, and side effects. For diff reviews, compare before and after to distinguish
-   new or worsened violations from pre-existing ones; editing a line does not make its existing
-   violations new.
+   new or worsened violations from pre-existing ones.
    Check contracts for validity and consistency with the implementation and with other applicable
    contracts. Apply the relevance rule above before reporting contradictions or evidenced mismatches;
    neither code nor contract is automatically correct. Do not excuse a violation because its contract
