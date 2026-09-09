@@ -53,10 +53,19 @@ runs:
         fetch-depth: 0
         persist-credentials: false
 
+    - name: Read bundled Node.js version
+      id: node-version
+      if: steps.request.outputs.request != ''
+      shell: bash
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        printf 'version=%s\n' "$(cat "$CONTRACT_REVIEW_ACTION_PATH/../../../cc-check/.nvmrc")" >> "$GITHUB_OUTPUT"
+
     - uses: actions/setup-node@v4
       if: steps.request.outputs.request != ''
       with:
-        node-version-file: ${{ github.action_path }}/../../../cc-check/.nvmrc
+        node-version: ${{ steps.node-version.outputs.version }}
 
     - name: Build bundled contract discovery tools
       if: steps.request.outputs.request != ''
