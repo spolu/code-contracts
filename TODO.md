@@ -12,10 +12,6 @@
 - [x] @cc definition and usage directives
 - [x] cc-check usage
 
-## DeepSWE eval
-
-- [ ] setup new agent with cc-check on top of mini-swe-agent to ablate presence of the skill
-
 ## Syntax inspiration
 
  - See JML https://www.openjml.org/tutorial/Syntax (syntax for logical conditions)
