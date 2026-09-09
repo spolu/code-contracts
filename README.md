@@ -85,6 +85,13 @@ cc-check list path/to/file.ts:42
 cc-check list path/to/file.go
 ```
 
+## GitHub review actions
+
+The [review bot](.github/actions/review-bot/README.md) detects `cc` in the leading handle list of an
+`r?` request and triggers [contract-review](.github/actions/contract-review/README.md). The latter
+is reusable from other repositories as `spolu/code-contracts/.github/actions/contract-review@main`;
+it bundles its own tooling and publishes a comment review pinned to the inspected PR head.
+
 ## Specification and grammar
 
 `@cc` directives are extracted from documentation comments in any supported source language. Each

@@ -1,0 +1,22 @@
+name: Review bot
+description: Detect contract review requests in PR descriptions and conversation comments.
+
+outputs:
+  pull-request-number:
+    description: PR number when a new leading r? handle list includes cc; empty otherwise.
+    value: ${{ steps.request.outputs.pull-request-number }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read review request
+      id: request
+      uses: actions/github-script@v7
+      env:
+        REVIEW_BOT_ACTION_PATH: ${{ github.action_path }}
+      with:
+        script: |
+          const path = require('node:path');
+          const { getReviewPullNumber } = require(path.join(process.env.REVIEW_BOT_ACTION_PATH, 'review-request.cjs'));
+          const number = getReviewPullNumber(context);
+          if (number) core.setOutput('pull-request-number', number);
