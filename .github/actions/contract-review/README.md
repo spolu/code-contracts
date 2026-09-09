@@ -5,8 +5,8 @@ This action bundles the review scripts, prompt, schema, code-contracts skill, an
 It builds its own tooling; the calling repository needs no Node project, review scripts, or local
 `cc-check` installation. Source is checked out into `.contract-review/source`.
 
-For example, Dust can call this action after its review bot has detected `cc` in an `r?` handle list
-and emitted a `pull-request-number` output:
+Call this action after your review bot has detected `cc` in an `r?` handle list and emitted a
+`pull-request-number` output:
 
 ```yaml
 name: Contract review
@@ -39,7 +39,7 @@ jobs:
 Select the desired action revision in both `uses` entries; a commit SHA pins it exactly. Remote
 actions need no preceding checkout. The companion detector accepts `pull_request` or
 `pull_request_target` events with `opened`/`edited`, and `issue_comment` with `created`/`edited`.
-Dust's existing bot may instead supply a PR number from any of its supported request events.
+An existing bot may instead supply a PR number from any of its supported request events.
 The detector only recognizes requests; GitHub reviewer assignment and Slack delivery remain the
 responsibility of the caller's bot.
 
