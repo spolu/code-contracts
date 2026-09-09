@@ -5,7 +5,7 @@ import type { SyntaxNode, Tree } from "@lezer/common";
 import { parser } from "@lezer/rust";
 
 import { parseContracts, type CodeContract } from "../contract.js";
-import type { SourcePosition, SourceRange } from "../language-server.js";
+import type { SourcePosition, SourceRange } from "../file-location.js";
 import type {
   ContractDeclaration,
   DeclarationContracts,

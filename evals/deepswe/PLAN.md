@@ -195,8 +195,8 @@ supported reasoning levels are recorded in the
 ### Treatment adoption
 
 - Whether the agent discovered, created, or edited contracts.
-- Whether created contracts pass `cc-check check`.
-- Number and timing of `cc-check list`, `check`, `callers`, and `references` invocations.
+- Whether created contracts pass `cc-check format`.
+- Number and timing of `cc-check list` and `format` invocations.
 - Whether contracts cover the task's independently stated behavioral requirements.
 
 Adoption metrics explain the mechanism but do not replace the intention-to-treat result.

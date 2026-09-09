@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import ts from "typescript";
 
 import { parseContracts, type CodeContract } from "../contract.js";
-import type { SourcePosition, SourceRange } from "../language-server.js";
+import type { SourcePosition, SourceRange } from "../file-location.js";
 import type {
   ContractDeclaration,
   DeclarationContracts,

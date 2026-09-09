@@ -1,5 +1,5 @@
 import type { CodeContract } from "./contract.js";
-import type { SourcePosition, SourceRange } from "./language-server.js";
+import type { SourcePosition, SourceRange } from "./file-location.js";
 
 export interface ContractDeclaration {
   name?: string;

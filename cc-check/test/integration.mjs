@@ -15,10 +15,6 @@ const projectDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = join(projectDirectory, "dist/cc-check.js");
 const fixtureDirectory = join(projectDirectory, "test/fixtures");
 const temporaryDirectory = mkdtempSync(join(tmpdir(), "cc-check-integration-"));
-const rustAnalyzerAvailable =
-  spawnSync("rust-analyzer", ["--version"], { stdio: "ignore" }).status === 0;
-const goplsAvailable =
-  spawnSync("gopls", ["version"], { stdio: "ignore" }).status === 0;
 
 try {
   copyFileSync(
@@ -105,7 +101,7 @@ try {
       workingDirectory: fixtureDirectory,
       status: 0,
       stdout:
-        "CONTRACTS\ncontracts.ts\ngo/contracts.go\ngo/library.go\ngo/usage.go\nno-contracts.ts\npython/contracts.py\npython/library.py\npython/usage.py\nrust/src/contracts.rs\nrust/src/lib.rs\nrust/src/library.rs\n",
+        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\npython/contracts.py\nrust/src/contracts.rs\n",
       stderr: "",
     },
     {
@@ -334,58 +330,6 @@ try {
       ),
       stderr: "",
     },
-    {
-      name: "callers queries Python through Pyright",
-      arguments: ["callers", "test/fixtures/python/library.py:1"],
-      status: 0,
-      stdout: "test/fixtures/python/usage.py:5:12\tcaller\n",
-      stderr: "",
-    },
-    {
-      name: "references queries Python through Pyright",
-      arguments: ["references", "test/fixtures/python/library.py:1"],
-      status: 0,
-      stdout:
-        "test/fixtures/python/usage.py:1:21\ntest/fixtures/python/usage.py:5:12\n",
-      stderr: "",
-    },
-    ...(rustAnalyzerAvailable
-      ? [
-          {
-            name: "callers queries Rust through rust-analyzer",
-            arguments: ["callers", "test/fixtures/rust/src/library.rs:1"],
-            status: 0,
-            stdout: "test/fixtures/rust/src/lib.rs:6:5\tcaller\n",
-            stderr: "",
-          },
-          {
-            name: "references queries Rust through rust-analyzer",
-            arguments: ["references", "test/fixtures/rust/src/library.rs:1"],
-            status: 0,
-            stdout:
-              "test/fixtures/rust/src/lib.rs:3:18\ntest/fixtures/rust/src/lib.rs:6:5\n",
-            stderr: "",
-          },
-        ]
-      : []),
-    ...(goplsAvailable
-      ? [
-          {
-            name: "callers queries Go through gopls",
-            arguments: ["callers", "test/fixtures/go/library.go:3"],
-            status: 0,
-            stdout: "test/fixtures/go/usage.go:4:9\tcaller\n",
-            stderr: "",
-          },
-          {
-            name: "references queries Go through gopls",
-            arguments: ["references", "test/fixtures/go/library.go:3"],
-            status: 0,
-            stdout: "test/fixtures/go/usage.go:4:9\n",
-            stderr: "",
-          },
-        ]
-      : []),
   ];
 
   for (const testCase of cases) {
