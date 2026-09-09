@@ -217,8 +217,9 @@ are valid, coherent, enforced, and respected. There is no automated semantic enf
 contracts. Code changes are assumed to comply with all applicable contracts, so authors and
 reviewers must verify that compliance.
 
-Any contract violation is a finding. It must be fixed or surfaced clearly. Any contradictory
-contracts are a finding. They must be reconciled or surfaced clearly.
+Any contract violation within the task's scope is a finding. It must be fixed or surfaced clearly.
+Contradictory contracts within that scope must be reconciled or surfaced clearly. For reviews, use
+the scope and relevance rules in [On-demand verification](#on-demand-verification).
 
 When behavior intentionally changes, update the relevant contracts in the same change. Verify the
 impact of the contract change on consumers of the associated declaration.
@@ -242,12 +243,25 @@ When invoked as `$code-contracts verify`, or when a review workflow requests thi
 perform a read-only contract review. Read applicable repository instructions. Do not edit files or
 post reviews or notifications unless separately requested.
 
-Use the requested PR, revision range, file, or directory as the scope. Without an explicit scope,
-review the current task's changes, including committed branch changes and staged, unstaged, and
+Use the requested PR, revision range, file, directory, or repository as the scope. Without an explicit
+scope, review the current task's changes, including committed branch changes and staged, unstaged, and
 untracked files. Infer the branch's comparison base from the task or repository context; ask for the
 scope if no target or baseline can be established. A file or directory can be verified against its
 current contracts without a diff. When a workflow supplies captured commits, use that exact
 comparison even if the branch advances.
+
+**Diff relevance.** When reviewing a diff, check the changes against all applicable contracts.
+Inspect unchanged code when needed to understand the changed behavior, verify its assumptions, or
+assess affected callers.
+
+Report a pre-existing violation only when it directly concerns behavior being changed, an
+assumption the change relies on, or a contract introduced or modified by the change. Explain that
+connection in the finding. Being in the same file, declaration, or call graph is not sufficient.
+Do not expand a focused change into a general audit of nearby code. Apply this rule to new findings
+and findings carried forward from earlier reviews.
+
+For an explicitly requested file, directory, or repository audit without a diff, report violations
+throughout the selected scope.
 
 1. Inspect the diff and surrounding implementation, or the full selected code when no diff applies.
    For a commit comparison, use `git diff --find-renames <merge_base> <head_sha>` and
@@ -260,20 +274,26 @@ comparison even if the branch advances.
    Use a caller-supplied `cc-check` executable when provided. If tooling is unavailable, inspect
    contracts manually and disclose any resulting verification limit.
 3. Check each code element against its applicable contracts. Trace actual inputs, guards, errors,
-   outputs, state changes, and side effects. Check contracts for validity and consistency with the
-   implementation and with other applicable contracts. Report contradictions and evidenced
-   mismatches; neither code nor contract is automatically correct. Do not excuse a violation
-   because its contract was weakened or deleted in the same change. Distinguish an intentional,
-   coherent specification change from a hidden regression.
+   outputs, state changes, and side effects. For diff reviews, compare before and after to distinguish
+   new or worsened violations from pre-existing ones; editing a line does not make its existing
+   violations new.
+   Check contracts for validity and consistency with the implementation and with other applicable
+   contracts. Apply the relevance rule above before reporting contradictions or evidenced mismatches;
+   neither code nor contract is automatically correct. Do not excuse a violation because its contract
+   was weakened or deleted in the same change. Distinguish an intentional, coherent specification
+   change from a hidden regression.
 4. For every introduced, changed, or explicitly targeted contract, inspect the implementing
-   declaration and its consumers, including unchanged callers. Find callers and references with
-   `rg` and source navigation. Trace imports, re-exports, aliases, wrappers, and type/member uses;
-   confirm each match refers to the affected declaration. For directory contracts, inspect the
-   affected code in their subtree and consumers of affected declarations.
+   declaration and its consumers, including unchanged callers. In a diff review, follow callers and
+   dependencies only to answer a concrete question about changed behavior, its assumptions, or an
+   introduced or modified contract. Find callers and references with `rg` and source navigation.
+   Trace imports, re-exports, aliases, wrappers, and type/member uses; confirm each match refers
+   to the affected declaration. For directory contracts, inspect the affected code in their subtree
+   and consumers of affected declarations.
 5. At each inspected caller/reference, discover its own applicable contracts using
-   `cc-check list <caller-location>` or manual inspection. Check both that the call respects the
-   callee's contract and that the callee's changed guarantees keep the caller compliant with its
-   own contracts. Follow evidence through wrappers; do not assume consumers are compatible.
+   `cc-check list <caller-location>` or manual inspection. Check its obligations in the context of
+   the behavior or contract being verified: both that the call respects the callee's contract and
+   that the callee's changed guarantees keep the caller compliant with its own contracts. Follow
+   evidence through wrappers; do not assume consumers are compatible.
 6. Inspect at most 64 distinct callers/references per affected declaration, deduplicating overlapping
    callers and references. Prioritize changed callers, high-risk behavior, and diverse usage
    patterns. This also bounds further investigation through callers. Keep caller counts,
@@ -287,6 +307,7 @@ and report material verification limits.
 
 Use the invoking workflow's output format when specified. Otherwise, report concise findings with
 the contract ID and declaration/file, exact source location, evidence, and consequence. Include
-pre-existing violations found within scope and identify them as such; avoid speculative or unrelated
-general review findings. If no violations are found, state that for the inspected scope, with any
-material limitations.
+pre-existing violations allowed by the scope and relevance rules above, identify them as such, and
+explain their connection to the change when reviewing a diff. Avoid speculative or unrelated general
+review findings. If no violations are found, state that for the inspected scope, with any material
+limitations.
