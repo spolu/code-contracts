@@ -1,6 +1,14 @@
 name: Review bot
 description: Detect contract review requests in PR descriptions and conversation comments.
 
+inputs:
+  review-workflow:
+    description: Optional workflow file to dispatch on the PR head branch with pull-request-number and request-run-id inputs.
+    required: false
+  github-token:
+    description: Token with actions write, contents read, and pull-requests read permissions when dispatching.
+    default: ${{ github.token }}
+
 outputs:
   pull-request-number:
     description: PR number when a new leading r? handle list includes cc; empty otherwise.
@@ -15,8 +23,23 @@ runs:
       env:
         REVIEW_BOT_ACTION_PATH: ${{ github.action_path }}
       with:
+        github-token: ${{ inputs.github-token }}
         script: |
           const path = require('node:path');
           const { getReviewPullNumber } = require(path.join(process.env.REVIEW_BOT_ACTION_PATH, 'review-request.cjs'));
           const number = getReviewPullNumber(context);
           if (number) core.setOutput('pull-request-number', number);
+
+    - name: Dispatch review on the PR head branch
+      if: steps.request.outputs.pull-request-number != '' && inputs.review-workflow != ''
+      uses: actions/github-script@v7
+      env:
+        REVIEW_BOT_ACTION_PATH: ${{ github.action_path }}
+        REVIEW_PULL_NUMBER: ${{ steps.request.outputs.pull-request-number }}
+        REVIEW_WORKFLOW: ${{ inputs.review-workflow }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const path = require('node:path');
+          const { dispatchReview } = require(path.join(process.env.REVIEW_BOT_ACTION_PATH, 'dispatch-review.cjs'));
+          await dispatchReview({ github, context, core, pullNumber: Number(process.env.REVIEW_PULL_NUMBER), workflow: process.env.REVIEW_WORKFLOW });

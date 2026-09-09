@@ -7,9 +7,9 @@ Contract edits and removals cc their owners at the contract; introductions do no
 violation ccs the violated contract's `notify` recipients, without implicitly including its owners.
 
 @cc [owner:spolu,label:product] contract-review-callers
-New or changed contracts trigger inspection of at most 24 distinct callers/references per affected
-declaration, including each inspected caller's applicable contracts; limits materially affecting a
-finding are disclosed in that finding's comment.
+New or changed contracts trigger inspection of callers/references for each affected declaration,
+including each inspected caller's applicable contracts; limits materially affecting a finding are
+disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
 Review summaries are `cc: LGTM` when no violations are found, otherwise `cc:` followed by a blank
@@ -31,7 +31,14 @@ PRs are eligible; pushes and edits retaining an existing request do not request 
 
 @cc [owner:spolu,label:security] contract-review-request-access
 Only human requesters with repository write access can trigger reviews of open PRs whose head
-repository is this repository.
+repository is this repository. Delegated dispatches obtain the human requester's identity from
+the originating GitHub workflow run and recheck that user's access.
+
+@cc [owner:spolu,label:product] contract-review-head-workflow
+The repository workflow dispatches requested reviews on the PR's head branch, and each dispatched
+review inspects the workflow run's commit. Later pushes neither cancel that run nor trigger a new
+review; its results remain attached to the inspected commit. The progress status uses a distinct
+name from workflow jobs so request-only runs cannot hide review progress.
 
 @cc [owner:spolu,label:product] contract-review-request-identity
 A fresh request can review unchanged commits; an already-published request with the same base/head
