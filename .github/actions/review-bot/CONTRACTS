@@ -1,8 +1,10 @@
 @cc [owner:spolu,label:product] review-bot-handle-list
 An `r?` line starts with at most three spaces and whitespace after `r?`; its handle list consists
 of consecutive whitespace-separated GitHub user mentions or bare `cc`, case-insensitively, and ends
-at the first other token. Only `cc` in that list requests a contract review; quotes, fenced or
-indented code, and HTML comments never introduce requests, including across hidden line breaks.
+at the first other token. Only `cc` in that list requests a contract review. Markdown exclusion is
+best-effort and line-based: explicit quote lines, simple fenced blocks, indented code, and HTML
+comments are skipped; lazy quote continuations, nested code blocks, code spans, and interactions
+between comments and Markdown may be misclassified.
 
 @cc [owner:spolu,label:architecture] review-bot-output
 The review bot emits `pull-request-number` only for a human's eligible request and requests no
