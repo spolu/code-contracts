@@ -1,0 +1,9 @@
+@cc [owner:spolu,label:product] review-bot-handle-list
+An `r?` line starts with at most three spaces and whitespace after `r?`; its handle list consists
+of consecutive whitespace-separated GitHub user mentions or bare `cc`, case-insensitively, and ends
+at the first other token. Only `cc` in that list requests a contract review; quotes, fenced or
+indented code, and HTML comments never introduce requests, including across hidden line breaks.
+
+@cc [owner:spolu,label:architecture] review-bot-output
+The review bot emits `pull-request-number` only for a human's eligible request; callers invoke
+`contract-review` only when that output is nonempty.

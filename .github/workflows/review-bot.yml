@@ -1,0 +1,46 @@
+name: Review bot
+
+on:
+  pull_request:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+    runs-on: ubuntu-latest
+    outputs:
+      pull-request-number: ${{ steps.request.outputs.pull-request-number }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - id: request
+        uses: ./.github/actions/review-bot
+
+  review:
+    needs: request
+    if: needs.request.outputs.pull-request-number != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/contract-review
+        with:
+          pull-request-number: ${{ needs.request.outputs.pull-request-number }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}

@@ -1,35 +1,3 @@
-function hasReviewRequest(body) {
-  if (typeof body !== "string") return false;
-  let fence;
-  for (const line of body
-    .replace(/<!--[\s\S]*?(?:-->|$)/g, "")
-    .split(/\r?\n/)) {
-    const delimiter = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
-    if (fence) {
-      if (
-        delimiter &&
-        delimiter[1][0] === fence[0] &&
-        delimiter[1].length >= fence.length &&
-        !delimiter[2].trim()
-      )
-        fence = undefined;
-      continue;
-    }
-    if (delimiter) {
-      fence = delimiter[1];
-      continue;
-    }
-    if (
-      /^ {0,3}r\?[ \t]+(?:@[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?[ \t]+)*cc[ \t]*$/i.test(
-        line,
-      )
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function reviewMarker(request) {
   if (
     !request ||
@@ -43,33 +11,10 @@ function reviewMarker(request) {
   return `<!-- code-contract-review:${request.id}:${request.base_sha}:${request.head_sha} -->`;
 }
 
-async function resolveReviewRequest({ github, context, core }) {
-  const { payload, eventName } = context;
-  let number;
-  let body;
-  if (
-    eventName === "issue_comment" &&
-    ["created", "edited"].includes(payload.action) &&
-    payload.issue?.pull_request
-  ) {
-    number = payload.issue.number;
-    body = payload.comment?.body;
-  } else if (
-    eventName === "pull_request" &&
-    ["opened", "edited"].includes(payload.action)
-  ) {
-    number = payload.pull_request?.number;
-    body = payload.pull_request?.body;
-  } else return null;
-
-  if (!number || !hasReviewRequest(body)) return null;
-  if (
-    payload.action === "edited" &&
-    (!Object.hasOwn(payload.changes?.body ?? {}, "from") ||
-      hasReviewRequest(payload.changes.body.from))
-  )
-    return null;
-  if (payload.sender?.type !== "User") return null;
+async function resolveReviewRequest({ github, context, core, pullNumber }) {
+  if (!Number.isSafeInteger(pullNumber) || pullNumber < 1)
+    throw new Error("Invalid pull request number");
+  if (context.payload.sender?.type !== "User") return null;
 
   let permission;
   try {
@@ -88,7 +33,7 @@ async function resolveReviewRequest({ github, context, core }) {
     return null;
   }
 
-  const params = { ...context.repo, pull_number: number };
+  const params = { ...context.repo, pull_number: pullNumber };
   const { data: pr } = await github.rest.pulls.get(params);
   if (
     pr.state !== "open" ||
@@ -123,4 +68,4 @@ async function resolveReviewRequest({ github, context, core }) {
   return request;
 }
 
-module.exports = { hasReviewRequest, reviewMarker, resolveReviewRequest };
+module.exports = { reviewMarker, resolveReviewRequest };

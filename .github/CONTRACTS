@@ -25,9 +25,9 @@ Review setup preserves permissions on host service sockets so the runner's DNS a
 services remain usable.
 
 @cc [owner:spolu,label:product] contract-review-requests
-Reviews run on a standalone `r? cc` line, optionally with GitHub mentions between `r?` and `cc`,
-in a new PR description or conversation comment, or an edit introducing that request. Draft PRs
-are eligible; pushes and edits retaining an existing request do not request another review.
+The review bot requests a contract review when `cc` appears in the leading handle list of an `r?`
+line in a new PR description or conversation comment, or an edit introducing that request. Draft
+PRs are eligible; pushes and edits retaining an existing request do not request another review.
 
 @cc [owner:spolu,label:security] contract-review-request-access
 Only human requesters with repository write access can trigger reviews of open PRs whose head
@@ -39,5 +39,6 @@ commits is skipped. Publishing skips closed PRs but remains pinned to the inspec
 commits arrive or the base changes; review context and comment locations use the captured comparison.
 
 @cc [owner:spolu,label:architecture] contract-review-automation-source
-Review request handling, prompts, and publication use the workflow's revision; inspected source
-uses the PR head captured when resolving the request.
+Review handling, prompts, contract tooling, and publication use the selected action revision;
+inspected source uses the PR head captured when resolving the request. Local action callers load
+the actions from the workflow's revision.

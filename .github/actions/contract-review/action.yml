@@ -1,0 +1,139 @@
+name: Contract review
+description: Review a PR's code contracts with Codex and publish a comment review.
+
+inputs:
+  pull-request-number:
+    description: PR number in the caller's repository, supplied by its review bot.
+    required: true
+  openai-api-key:
+    description: OpenAI API key used for the contract review.
+    required: true
+  github-token:
+    description: Token with contents read and pull-requests write permissions in the caller's repository.
+    default: ${{ github.token }}
+  model:
+    description: Codex model used for the review.
+    default: gpt-5.6-luna
+  effort:
+    description: Codex reasoning effort.
+    default: xhigh
+
+outputs:
+  request:
+    description: Captured request ID, PR number, and base/head commits; empty when skipped.
+    value: ${{ steps.request.outputs.request }}
+  review:
+    description: JSON contract review produced by Codex; empty when skipped.
+    value: ${{ steps.codex.outputs.final-message }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate requester and capture PR commits
+      id: request
+      uses: actions/github-script@v7
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+        REVIEW_PULL_NUMBER: ${{ inputs.pull-request-number }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const path = require('node:path');
+          const { resolveReviewRequest } = require(path.join(process.env.CONTRACT_REVIEW_ACTION_PATH, 'review-request.cjs'));
+          const request = await resolveReviewRequest({ github, context, core, pullNumber: Number(process.env.REVIEW_PULL_NUMBER) });
+          if (request) core.setOutput('request', JSON.stringify(request));
+
+    - uses: actions/checkout@v5
+      if: steps.request.outputs.request != ''
+      with:
+        repository: ${{ github.repository }}
+        token: ${{ inputs.github-token }}
+        ref: ${{ fromJSON(steps.request.outputs.request).head_sha }}
+        path: .contract-review/source
+        fetch-depth: 0
+        persist-credentials: false
+
+    - uses: actions/setup-node@v4
+      if: steps.request.outputs.request != ''
+      with:
+        node-version-file: ${{ github.action_path }}/../../../cc-check/.nvmrc
+
+    - name: Build bundled contract discovery tools
+      if: steps.request.outputs.request != ''
+      shell: bash
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        cd "$CONTRACT_REVIEW_ACTION_PATH/../../../cc-check"
+        npm ci
+        npm run build
+        node --test "$CONTRACT_REVIEW_ACTION_PATH/"*.test.cjs "$CONTRACT_REVIEW_ACTION_PATH/../review-bot/"*.test.cjs
+
+    - name: Prepare review context
+      id: prepare
+      if: steps.request.outputs.request != ''
+      uses: actions/github-script@v7
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+        REVIEW_REQUEST: ${{ steps.request.outputs.request }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const path = require('node:path');
+          const { prepareReview } = require(path.join(process.env.CONTRACT_REVIEW_ACTION_PATH, 'prepare-review.cjs'));
+          const directory = await prepareReview({
+            github, context,
+            request: JSON.parse(process.env.REVIEW_REQUEST),
+            source: path.join(process.env.GITHUB_WORKSPACE, '.contract-review/source'),
+            actionPath: process.env.CONTRACT_REVIEW_ACTION_PATH,
+            temp: process.env.RUNNER_TEMP,
+          });
+          core.setOutput('directory', directory);
+
+    - name: Create unprivileged review user
+      if: steps.request.outputs.request != ''
+      shell: bash
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+        REVIEW_DIRECTORY: ${{ steps.prepare.outputs.directory }}
+      run: |
+        sudo adduser --system --home /home/codex-review --shell /bin/bash --group codex-review
+        sudo usermod -a -G runner codex-review
+        sudo chmod 755 /home/codex-review
+        for review_path in "$GITHUB_WORKSPACE/.contract-review" "$CONTRACT_REVIEW_ACTION_PATH/../../.." "$REVIEW_DIRECTORY"; do
+          sudo find "$review_path" -type d -exec chgrp codex-review {} + -exec chmod g+rx {} +
+          sudo find "$review_path" -type f -exec chgrp codex-review {} + -exec chmod g+r {} +
+        done
+        sudo -u codex-review test -r "$REVIEW_DIRECTORY/review-context.json"
+        sudo -u codex-review test -r "$CONTRACT_REVIEW_ACTION_PATH/../../../cc-check/dist/cc-check.js"
+
+    - name: Review contracts with Codex
+      id: codex
+      if: steps.request.outputs.request != ''
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: ${{ inputs.openai-api-key }}
+        model: ${{ inputs.model }}
+        effort: ${{ inputs.effort }}
+        working-directory: ${{ github.workspace }}/.contract-review/source
+        prompt-file: ${{ steps.prepare.outputs.directory }}/review.md
+        sandbox: read-only
+        # drop-sudo can break runner DNS: https://github.com/openai/codex-action/issues/160
+        safety-strategy: unprivileged-user
+        codex-user: codex-review
+        output-schema-file: ${{ github.action_path }}/review-schema.json
+
+    - name: Submit comment review
+      if: steps.codex.outputs.final-message != ''
+      uses: actions/github-script@v7
+      env:
+        CONTRACT_REVIEW_ACTION_PATH: ${{ github.action_path }}
+        REVIEW_REQUEST: ${{ steps.request.outputs.request }}
+        CONTRACT_REVIEW: ${{ steps.codex.outputs.final-message }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const path = require('node:path');
+          const { publishReview } = require(path.join(process.env.CONTRACT_REVIEW_ACTION_PATH, 'publish-review.cjs'));
+          process.chdir(path.join(process.env.GITHUB_WORKSPACE, '.contract-review/source'));
+          await publishReview({ github, context, core, request: JSON.parse(process.env.REVIEW_REQUEST), review: JSON.parse(process.env.CONTRACT_REVIEW) });

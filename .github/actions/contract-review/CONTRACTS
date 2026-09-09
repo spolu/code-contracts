@@ -1,0 +1,8 @@
+@cc [owner:spolu,label:architecture] contract-review-portability
+The action reviews the supplied PR number in the caller's repository without requiring caller-local
+review scripts, prompts, skills, a Node project, or `cc-check`; its tooling and review instructions
+come from the action repository, and setup never executes package scripts from the inspected PR.
+
+@cc [owner:spolu,label:product] contract-review-captured-context
+Review context contains the captured request, merge base, comparison files, existing comments and
+reviews, and passed action-tooling checks; those checks never claim to validate the inspected PR.
