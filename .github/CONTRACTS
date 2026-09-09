@@ -14,7 +14,7 @@ be included unless explicitly listed in `notify`; missing recipients MUST NOT su
 @cc [owner:spolu,label:product] contract-review-repeat-notifications
 Reviews MUST NOT repeat an identical contract-change notification or an unresolved finding unless
 the relevant contract or violating behavior has materially changed. Still-valid prior findings
-MUST remain in the summary with links to their existing comments.
+that pass the skill's relevance rule MUST remain in the summary with links to their existing comments.
 
 @cc [owner:spolu,label:product] contract-review-callers
 New or changed contracts trigger inspection of callers/references for each affected declaration,
@@ -22,9 +22,9 @@ including each inspected caller's applicable contracts; limits materially affect
 disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
-Review summaries are `cc: LGTM` when no violations are found, otherwise `cc:` followed by a blank
-line and bullets of `**{contract-name}**: {failure_short_description}`, with details in the
-associated comments.
+Review summaries are `cc-check: LGTM` when no violations are found, otherwise
+`cc-check: violations found!` followed by a blank line and bullets of
+`**{contract-name}**: {failure_short_description}`, with details in the associated comments.
 
 @cc [owner:spolu,label:product] contract-review-locations
 Every review finding identifies the violating source location; locations outside the commentable

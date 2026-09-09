@@ -217,8 +217,8 @@ are valid, coherent, enforced, and respected. There is no automated semantic enf
 contracts. Code changes are assumed to comply with all applicable contracts, so authors and
 reviewers must verify that compliance.
 
-Any contract violation is a finding. It must be fixed or surfaced clearly. Any contradictory
-contracts are a finding. They must be reconciled or surfaced clearly.
+Contract violations and contradictions within the task's scope must be fixed or surfaced clearly.
+For reviews, follow [On-demand verification](#on-demand-verification).
 
 When behavior intentionally changes, update the relevant contracts in the same change. Verify the
 impact of the contract change on consumers of the associated declaration.
@@ -242,12 +242,20 @@ When invoked as `$code-contracts verify`, or when a review workflow requests thi
 perform a read-only contract review. Read applicable repository instructions. Do not edit files or
 post reviews or notifications unless separately requested.
 
-Use the requested PR, revision range, file, or directory as the scope. Without an explicit scope,
-review the current task's changes, including committed branch changes and staged, unstaged, and
+Use the requested PR, revision range, file, directory, or repository as the scope. Without an explicit
+scope, review the current task's changes, including committed branch changes and staged, unstaged, and
 untracked files. Infer the branch's comparison base from the task or repository context; ask for the
 scope if no target or baseline can be established. A file or directory can be verified against its
 current contracts without a diff. When a workflow supplies captured commits, use that exact
 comparison even if the branch advances.
+
+**Diff relevance.** Check changes against all applicable contracts. Inspect unchanged code and
+report pre-existing violations only when directly related to changed behavior, an assumption the
+change relies on, or an introduced or modified contract. Explain that connection in the finding.
+Being in the same file, declaration, or call graph is not sufficient. This rule also applies to
+findings carried forward from earlier reviews.
+
+Audits without a diff cover the full selected scope.
 
 1. Inspect the diff and surrounding implementation, or the full selected code when no diff applies.
    For a commit comparison, use `git diff --find-renames <merge_base> <head_sha>` and
@@ -266,10 +274,11 @@ comparison even if the branch advances.
    because its contract was weakened or deleted in the same change. Distinguish an intentional,
    coherent specification change from a hidden regression.
 4. For every introduced, changed, or explicitly targeted contract, inspect the implementing
-   declaration and its consumers, including unchanged callers. Find callers and references with
-   `rg` and source navigation. Trace imports, re-exports, aliases, wrappers, and type/member uses;
-   confirm each match refers to the affected declaration. For directory contracts, inspect the
-   affected code in their subtree and consumers of affected declarations.
+   declaration and its consumers, including unchanged callers, subject to the relevance rule above.
+   Find callers and references with `rg` and source navigation. Trace imports, re-exports, aliases,
+   wrappers, and type/member uses; confirm each match refers to the affected declaration. For
+   directory contracts, inspect the affected code in their subtree and consumers of affected
+   declarations.
 5. At each inspected caller/reference, discover its own applicable contracts using
    `cc-check list <caller-location>` or manual inspection. Check both that the call respects the
    callee's contract and that the callee's changed guarantees keep the caller compliant with its
@@ -286,7 +295,6 @@ unavailable or failed tool alone is not evidence of a contract violation. Contin
 and report material verification limits.
 
 Use the invoking workflow's output format when specified. Otherwise, report concise findings with
-the contract ID and declaration/file, exact source location, evidence, and consequence. Include
-pre-existing violations found within scope and identify them as such; avoid speculative or unrelated
-general review findings. If no violations are found, state that for the inspected scope, with any
-material limitations.
+the contract ID and declaration/file, exact source location, evidence, and consequence. Identify
+pre-existing violations as such; avoid speculative or unrelated general review findings. If no
+violations are found, state that for the inspected scope, with any material limitations.
