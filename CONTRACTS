@@ -5,3 +5,8 @@ that is useful beyond the title.
 @cc [owner:spolu,label:coding] pull-request-format
 Pull requests have a short descriptive sentence or title and a concise body summarizing the changes
 and how they were validated.
+
+@cc [owner:spolu,label:documentation] readme-skill-shared-prefix
+Ignoring the skill's YAML frontmatter, `README.md` and `skills/code-contracts/SKILL.md` must share
+an identical text prefix from `# Code Contracts` through the end of the
+`## Specification and grammar` section.
