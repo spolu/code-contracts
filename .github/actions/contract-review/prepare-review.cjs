@@ -46,11 +46,6 @@ async function prepareReview({
       validation: [
         { command: "npm ci", cwd: tooling, status: "passed" },
         { command: "npm run build", cwd: tooling, status: "passed" },
-        {
-          command: "node --test .github/actions/*/*.test.cjs",
-          cwd: resolve(actionPath, "../../.."),
-          status: "passed",
-        },
       ],
     }),
   );

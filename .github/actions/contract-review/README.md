@@ -65,9 +65,3 @@ The `request` output contains the captured request JSON; `review` contains Codex
 Skipped requests leave both outputs empty. Reviews never approve or request changes. Existing
 contract changes notify owners; violations notify only explicitly configured `notify` recipients.
 Findings outside the commentable diff retain source permalinks in the review body.
-
-Local validation:
-
-```sh
-node --test .github/actions/*/*.test.cjs
-```

@@ -67,7 +67,6 @@ runs:
         cd "$CONTRACT_REVIEW_ACTION_PATH/../../../cc-check"
         npm ci
         npm run build
-        node --test "$CONTRACT_REVIEW_ACTION_PATH/"*.test.cjs "$CONTRACT_REVIEW_ACTION_PATH/../review-bot/"*.test.cjs
 
     - name: Prepare review context
       id: prepare

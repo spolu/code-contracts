@@ -13,8 +13,7 @@ even if newer commits arrive while you work.
 
 The `validation` entries in the review context record checks of the action's bundled tools that
 already passed before Codex started; they do not validate the inspected PR. Reuse those results;
-do not rerun those commands. In particular, the publisher tests
-create temporary Git repositories and have already run outside your sandbox. You are in a read-only
+do not rerun those commands. You are in a read-only
 sandbox: inspect source and use read-only discovery commands. If an additional check is denied by
 the sandbox (`EPERM`, `EACCES`, or a read-only filesystem error), record the verification limit and
 continue source analysis. Do not retry it with different temporary directories or sandbox escapes.
