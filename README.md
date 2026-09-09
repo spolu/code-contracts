@@ -51,16 +51,6 @@ Code contracts enable:
 - Generative code analysis and verification that improves agent performance.
 - Maintenance at scale of invariants, product contracts, and security assumptions at code level.
 
-## Agent skill
-
-```
-npx skills add https://github.com/spolu/code-Contracts
-```
-
-The reusable [$code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
-agents through writing concise contracts, validating their syntax and semantic coherence while
-changing code, and enforcing them throughout implementation and review.
-
 ## Tooling
 
 ```sh
@@ -84,13 +74,6 @@ cc-check format path/file.rs
 cc-check list path/to/file.ts:42
 cc-check list path/to/file.go
 ```
-
-## GitHub review actions
-
-The [review bot](.github/actions/review-bot/README.md) detects `cc` in the leading handle list of an
-`r?` request and triggers [contract-review](.github/actions/contract-review/README.md). The latter
-is reusable from other repositories as `spolu/code-contracts/.github/actions/contract-review@main`;
-it bundles its own tooling and publishes a comment review pinned to the inspected PR head.
 
 ## Specification and grammar
 
@@ -164,3 +147,20 @@ across all parent `CONTRACTS` files.
 The identity of an attached contract is the language-specific identity of its declaration plus its
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
 file plus its contract ID.
+
+## Agent skill
+
+```
+npx skills add https://github.com/spolu/code-Contracts
+```
+
+The reusable [$code-contracts](skills/code-contracts/SKILL.md) skill guides coding and review
+agents through writing concise contracts, validating their syntax and semantic coherence while
+changing code, and enforcing them throughout implementation and review.
+
+## GitHub review actions
+
+The [review bot](.github/actions/review-bot/README.md) detects `cc` in the leading handle list of an
+`r?` request and triggers [contract-review](.github/actions/contract-review/README.md). The latter
+is reusable from other repositories as `spolu/code-contracts/.github/actions/contract-review@main`;
+it bundles its own tooling and publishes a comment review pinned to the inspected PR head.
