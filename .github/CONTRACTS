@@ -14,8 +14,7 @@ be included unless explicitly listed in `notify`; missing recipients MUST NOT su
 @cc [owner:spolu,label:product] contract-review-repeat-notifications
 Reviews MUST NOT repeat an identical contract-change notification or an unresolved finding unless
 the relevant contract or violating behavior has materially changed. Still-valid prior findings
-that remain relevant under the skill's verification scope MUST remain in the summary with links
-to their existing comments.
+that pass the skill's relevance rule MUST remain in the summary with links to their existing comments.
 
 @cc [owner:spolu,label:product] contract-review-callers
 New or changed contracts trigger inspection of callers/references for each affected declaration,

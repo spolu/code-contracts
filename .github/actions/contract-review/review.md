@@ -40,9 +40,7 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
   sentences with only the details needed to understand and fix the violation. Locate it at the
   violating code/call site.
   For contradictory or impossible contract text, locate it at that contract's directive.
-  Report evidenced violations permitted by the skill's scope and relevance rules. Identify
-  pre-existing mismatches as such and explain their direct connection to the change. Avoid
-  speculative concerns and unrelated general code review.
+  Apply the skill's relevance rule and label pre-existing findings.
 - For each violation, populate `recipients` only from the violated contract's `notify` metadata.
   Do not include owners unless they are explicitly in `notify`. A caller's own violated contract
   uses that caller contract's recipients, not the callee's. Every finding gets its own recipients;
@@ -67,9 +65,8 @@ The final JSON has `summary` and `comments`:
   qualifying it with its declaration or path when ambiguous. Keep each failure description to a few
   words. Put evidence, consequences, and any material verification limits in each related violation
   comment, not in the summary.
-- Include still-valid findings from existing reviews that remain relevant under the skill's scope
-  rules, linking to their existing comments instead of repeating the comments. Do not return LGTM
-  merely because every relevant finding has already been reported.
+- Include still-valid findings from existing reviews that pass the relevance rule, linking to their
+  existing comments. Do not return LGTM merely because every relevant finding was already reported.
 - Do not narrate the review process, changed-file counts, validation commands/results, or caller
   counts in the summary. Keep routine scope and coverage notes in your working analysis.
 

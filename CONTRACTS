@@ -17,8 +17,5 @@ an identical text prefix from `# Code Contracts` through the end of the
 provides workflow-specific context, notification, and output rules.
 
 @cc [owner:spolu,label:product] contract-verification-relevance
-Diff reviews MUST report pre-existing violations only when directly related to changed behavior,
-an assumption the change relies on, or an introduced or modified contract, and MUST explain that
-connection. File, declaration, or call-graph proximity alone MUST NOT qualify. The same relevance
-rule MUST apply to findings carried forward from earlier reviews. Explicit audits without a diff
-MUST cover the selected scope.
+Diff reviews MUST apply the `Diff relevance` rule in `skills/code-contracts/SKILL.md` to caller
+inspection and reported findings, including findings carried forward from earlier reviews.
