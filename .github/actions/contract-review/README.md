@@ -46,6 +46,7 @@ jobs:
           review-workflow: contract-review.yml
 
   review:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Contract review' || 'Review dispatch' }}
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
