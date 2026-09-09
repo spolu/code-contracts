@@ -1,6 +1,32 @@
 import { resolve } from "node:path";
 
-import type { SourcePosition } from "./language-server.js";
+/**
+ * @cc [owner:spolu,label:architecture] source-position-coordinates
+ * Source positions use absolute file paths and one-based lines and columns. A missing column
+ * denotes the whole source line; consumers define how they resolve that line to a target.
+ */
+export interface SourcePosition {
+  filePath: string;
+  line: number;
+  column?: number;
+}
+
+/**
+ * @cc [owner:spolu,label:architecture] source-range-coordinates
+ * Source ranges use absolute file paths and one-based coordinates, and their end position is
+ * exclusive.
+ */
+export interface SourceRange {
+  filePath: string;
+  start: {
+    line: number;
+    column: number;
+  };
+  end: {
+    line: number;
+    column: number;
+  };
+}
 
 const LOCATION_PATTERN = /^(.*?):([1-9]\d*)(?::([1-9]\d*))?$/;
 

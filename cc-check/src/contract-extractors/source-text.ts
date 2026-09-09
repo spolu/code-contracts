@@ -1,4 +1,4 @@
-import type { SourcePosition, SourceRange } from "../language-server.js";
+import type { SourcePosition, SourceRange } from "../file-location.js";
 
 export interface SourceLine {
   start: number;

@@ -1,4 +1,4 @@
-import type { SourceRange } from "./language-server.js";
+import type { SourceRange } from "./file-location.js";
 
 const TOKEN_SOURCE = String.raw`[^\s,:\[\]]+`;
 const ATTRIBUTE_PATTERN = new RegExp(`^(${TOKEN_SOURCE}):(${TOKEN_SOURCE})$`);
