@@ -10,3 +10,8 @@ action checkouts and remote action invocations.
 @cc [owner:spolu,label:product] contract-review-captured-context
 Review context contains the captured request, merge base, comparison files, existing comments and
 reviews, and passed action-tooling checks; those checks never claim to validate the inspected PR.
+
+@cc [owner:spolu,label:product] contract-review-progress
+Review progress uses a `Contract review` commit status on the inspected head, linked to the actual
+workflow run. Statuses distinguish running, completed, failed, and cancelled execution; success
+means the review completed, not that it approves the PR.

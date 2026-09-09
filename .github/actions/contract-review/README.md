@@ -5,7 +5,7 @@ This action bundles the review scripts, prompt, schema, code-contracts skill, an
 It builds its own tooling; the calling repository needs no Node project, review scripts, or local
 `cc-check` installation. Source is checked out into `.contract-review/source`.
 
-Dispatch the review on the PR's head branch so its workflow run appears in the PR's checks.
+Dispatch the review on the PR's head branch and report its progress in the PR's checks.
 For example, save this as `.github/workflows/contract-review.yml`:
 
 ```yaml
@@ -46,13 +46,14 @@ jobs:
           review-workflow: contract-review.yml
 
   review:
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Contract review' || 'Review dispatch' }}
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Review execution' || 'Review dispatch' }}
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
       actions: read
+      statuses: write
     steps:
       - uses: spolu/code-contracts/.github/actions/contract-review@main
         with:
@@ -74,14 +75,14 @@ responsibility of the caller's bot.
 Use a fresh GitHub-hosted Ubuntu runner with sudo available. The action creates `codex-review` and
 runs Codex as that unprivileged user in a read-only sandbox. Allow one invocation per job. Both
 review and publication run in the action's job, which needs `contents: read` and
-`pull-requests: write`, plus `actions: read` for delegated requests. The caller supplies
+`pull-requests: write` and `statuses: write`, plus `actions: read` for delegated requests. The caller supplies
 `OPENAI_API_KEY` as a repository secret.
 
 | Input                 | Default        | Purpose                                                         |
 | --------------------- | -------------- | --------------------------------------------------------------- |
 | `pull-request-number` | Required       | PR in the caller's repository.                                  |
 | `openai-api-key`      | Required       | OpenAI API key.                                                 |
-| `github-token`        | `github.token` | Read source and publish PR reviews.                             |
+| `github-token`        | `github.token` | Read source and publish PR reviews and commit statuses.         |
 | `request-run-id`      | Empty          | Original human request's workflow run, when delegated by a bot. |
 | `model`               | `gpt-5.6-luna` | Codex model.                                                    |
 | `effort`              | `xhigh`        | Reasoning effort.                                               |
@@ -96,6 +97,11 @@ commit, even if the branch advances while queued or running. Later pushes do not
 or request new ones; send another `r? cc` to review the newer commit. Delegated retries keep the
 original request ID. For a direct manual dispatch, omit `request-run-id` to use the dispatching
 human's identity and create a fresh request.
+
+The `Contract review` commit status links to the actual workflow run and reports progress and
+completion on the inspected head, including failures and cancellations. This keeps the run visible
+in the PR's status summary even when GitHub omits `workflow_dispatch` jobs there. A successful
+status means the review completed; findings remain in the `COMMENT` review.
 
 The `request` output contains the captured request JSON; `review` contains Codex's review JSON.
 Skipped requests leave both outputs empty. Reviews never approve or request changes. Existing
