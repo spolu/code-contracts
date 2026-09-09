@@ -155,13 +155,17 @@ file plus its contract ID.
 
 ## Code contracts workflow
 
+For `$code-contracts verify`, follow [On-demand verification](#on-demand-verification).
+
 ### Discovering contracts
 
-Before changing or reviewing code, identify the contracts that govern the target. You can do so
-manually or with the `cc-check list` command.
+Before changing or reviewing code, identify every local, enclosing-declaration, and ancestor
+`CONTRACTS`-file obligation governing the target, manually or with `cc-check list`. Resolve called
+symbols and inspect their contracts too: a call can violate a contract declared in another file.
 
 Treat all applicable local and directory contracts as simultaneous obligations. Surface conflicting,
-obsolete, or impossible contracts instead of choosing one silently.
+obsolete, or impossible contracts instead of choosing one silently. Documentation examples and
+intentionally malformed test fixtures are not production contract declarations.
 
 ### Writing contracts
 
@@ -237,3 +241,58 @@ impact of the contract change on consumers of the associated declaration.
 - Never delete or weaken a contract merely to make an implementation appear compliant.
 - Treat a code/contract mismatch as a finding. Fix it or surface it clearly; do not assume either
   side is automatically correct.
+
+### On-demand verification
+
+When invoked as `$code-contracts verify`, or when a review workflow requests this procedure,
+perform a read-only contract review. Read applicable repository instructions. Do not edit files or
+post reviews or notifications unless separately requested.
+
+Use the requested PR, revision range, file, or directory as the scope. Without an explicit scope,
+review the current task's changes, including committed branch changes and staged, unstaged, and
+untracked files. Infer the branch's comparison base from the task or repository context; ask for the
+scope if no target or baseline can be established. A file or directory can be verified against its
+current contracts without a diff. When a workflow supplies captured commits, use that exact
+comparison even if the branch advances.
+
+1. Inspect the diff and surrounding implementation, or the full selected code when no diff applies.
+   For a commit comparison, use `git diff --find-renames <merge_base> <head_sha>` and
+   `git show <merge_base>:<path>` for old code and contracts. Include local changes when in scope.
+   Discover changed files locally even when a supplied file list may be truncated. Inspect additions,
+   modifications, and the effects of deletions. Compare entire contract bodies and metadata;
+   searching added `@cc` lines alone misses prose-only changes and removed contracts.
+2. Apply [Discovering contracts](#discovering-contracts) to the code in scope. Validate relevant
+   contract syntax with `cc-check format`; it checks syntax, not semantic validity or compliance.
+   Use a caller-supplied `cc-check` executable when provided. If tooling is unavailable, inspect
+   contracts manually and disclose any resulting verification limit.
+3. Check each code element against its applicable contracts. Trace actual inputs, guards, errors,
+   outputs, state changes, and side effects. Check contracts for validity and consistency with the
+   implementation and with other applicable contracts. Report contradictions and evidenced
+   mismatches; neither code nor contract is automatically correct. Do not excuse a violation
+   because its contract was weakened or deleted in the same change. Distinguish an intentional,
+   coherent specification change from a hidden regression.
+4. For every introduced, changed, or explicitly targeted contract, inspect the implementing
+   declaration and its consumers, including unchanged callers. Find callers and references with
+   `rg` and source navigation. Trace imports, re-exports, aliases, wrappers, and type/member uses;
+   confirm each match refers to the affected declaration. For directory contracts, inspect the
+   affected code in their subtree and consumers of affected declarations.
+5. At each inspected caller/reference, discover its own applicable contracts using
+   `cc-check list <caller-location>` or manual inspection. Check both that the call respects the
+   callee's contract and that the callee's changed guarantees keep the caller compliant with its
+   own contracts. Follow evidence through wrappers; do not assume consumers are compatible.
+6. Inspect at most 64 distinct callers/references per affected declaration, deduplicating overlapping
+   callers and references. Prioritize changed callers, high-risk behavior, and diverse usage
+   patterns. This also bounds further investigation through callers. Keep caller counts,
+   uninspected scope, search limitations, and uncertain relationships in your working analysis.
+   Disclose limitations that materially affect a conclusion, with the relevant finding when
+   applicable. Never imply exhaustive verification when capped or blocked.
+
+Reuse applicable validation results for the inspected revision. Respect sandbox restrictions; an
+unavailable or failed tool alone is not evidence of a contract violation. Continue source analysis
+and report material verification limits.
+
+Use the invoking workflow's output format when specified. Otherwise, report concise findings with
+the contract ID and declaration/file, exact source location, evidence, and consequence. Include
+pre-existing violations found within scope and identify them as such; avoid speculative or unrelated
+general review findings. If no violations are found, state that for the inspected scope, with any
+material limitations.

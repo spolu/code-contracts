@@ -7,9 +7,9 @@ Contract edits and removals cc their owners at the contract; introductions do no
 violation ccs the violated contract's `notify` recipients, without implicitly including its owners.
 
 @cc [owner:spolu,label:product] contract-review-callers
-New or changed contracts trigger inspection of at most 24 distinct callers/references per affected
-declaration, including each inspected caller's applicable contracts; limits materially affecting a
-finding are disclosed in that finding's comment.
+New or changed contracts trigger inspection of callers/references for each affected declaration,
+including each inspected caller's applicable contracts; limits materially affecting a finding are
+disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
 Review summaries are `cc: LGTM` when no violations are found, otherwise `cc:` followed by a blank
