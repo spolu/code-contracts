@@ -83,8 +83,8 @@
           </div>
 
           <div class="anatomy" aria-label="Structure of a code contract">
-            <div class="anatomy-line"><code><span class="anatomy-directive">@cc</span> <span class="anatomy-metadata">[owner:spolu,label:product]</span> <span class="anatomy-id">payment-atomicity</span></code></div>
-            <div class="anatomy-body">A payment MUST update the balance and invoice together,<br class="desktop-break"> or leave both unchanged.</div>
+            <div class="anatomy-line"><code><span class="anatomy-directive">@cc</span> <span class="anatomy-metadata">[owner:spolu,notify:spolu,label:security]</span> <span class="anatomy-id">workspace-isolation</span></code></div>
+            <div class="anatomy-body">Code MUST NOT allow a workspace to read or modify another workspace's data.</div>
           </div>
           <dl class="anatomy-key">
             <div><dt><span class="key-dot orange" aria-hidden="true"></span>Directive</dt><dd><code>@cc</code> makes the requirement discoverable.</dd></div>
@@ -110,7 +110,7 @@
           </div>
 
           <details class="grammar">
-            <summary><span><span class="hash" aria-hidden="true">#</span> For the grammar nerds</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <summary><span><span class="hash" aria-hidden="true">#</span> Formal grammar</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
             <div class="grammar-content">
               <p>One <code>@cc</code> per documentation comment. In a <code>CONTRACTS</code> file, the next directive starts the next contract.</p>
               <pre tabindex="0" aria-label="Contract grammar in EBNF"><code>contracts_file = { contract, NL } ;
@@ -155,7 +155,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
             <article class="workflow">
               <div class="workflow-label"><span class="workflow-number">B</span> In your pull request</div>
               <h3>Review pull requests.</h3>
-              <p>With the GitHub bot installed, add <code>cc</code> to the leading handle list of an <code>r?</code> request.</p>
+              <p>Review agents notify <code>owner</code> recipients when existing contracts change or are removed, and <code>notify</code> recipients when they find violations.</p>
               <div class="pr-preview" aria-label="Illustrative GitHub review">
                 <div class="pr-bar"><span><span class="pr-symbol" aria-hidden="true">⑂</span> Simplify payment updates</span><span>example</span></div>
                 <div class="pr-thread">
@@ -167,7 +167,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
               <p class="workflow-foot">A comment review on the inspected commit. Relevant findings stay with the PR.</p>
             </article>
           </div>
-          <div class="verification-notes"><p><span aria-hidden="true">↳</span> Changed contracts notify owners. Violations notify explicit <code>notify</code> recipients.</p><a class="text-link" href="https://github.com/spolu/code-contracts/tree/main/.github/actions/contract-review">Set up the review bot <span aria-hidden="true">↗</span></a></div>
+          <div class="verification-notes"><a class="text-link" href="https://github.com/spolu/code-contracts/tree/main/.github/actions/contract-review">Set up the review bot <span aria-hidden="true">↗</span></a></div>
         </section>
 
         <section id="start" class="section start-section" aria-labelledby="start-title">
@@ -180,7 +180,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
           <details class="tooling">
             <summary><span>Want syntax checks and contract discovery from the CLI?</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
             <div class="tooling-content"><div class="install-heading"><span>Optional tooling</span><button class="copy-button" type="button" data-copy="tooling-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div><pre tabindex="0"><code id="tooling-command">npm install --global @spolu/cc-check</code></pre><pre tabindex="0"><code>cc-check format
-cc-check list payments/pay.ts:42</code></pre><p><code>format</code> checks contract syntax and duplicate IDs. <code>list</code> discovers applicable contracts. Your agent reviews the requirements and implementation.</p></div>
+cc-check list payments/pay.ts:42</code></pre><p><code>format</code> checks contract syntax and duplicate IDs. <code>list</code> discovers applicable contracts for a declaration. Your agent reviews the requirements and implementation.</p></div>
           </details>
           <p class="copy-feedback" role="status" aria-live="polite"></p>
         </section>
