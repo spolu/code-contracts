@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="description" content="Like AGENTS.md, for specifications, invariants, and coding rules. An open format for requirements that live with your code and can be reviewed by your agent.">
+    <meta property="og:title" content="$code_contracts -- invariants part of the code">
+    <meta property="og:description" content="Specifications, invariants, and coding rules. Written for humans. Verifiable by agents. Kept with the code.">
+    <meta property="og:type" content="website">
+    <title>$code_contracts -- invariants part of the code</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css">
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="page">
+      <header class="masthead">
+        <a class="wordmark" href="#" aria-label="Code Contracts home"><span class="mark" aria-hidden="true">@cc</span> $code-contracts<span class="cursor" aria-hidden="true">_</span></a>
+        <nav aria-label="Main navigation">
+          <a href="#format">Format</a>
+          <a href="#verify">Verify</a>
+          <a href="https://github.com/spolu/code-contracts">GitHub <span aria-hidden="true">↗</span></a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="signal" aria-hidden="true"></span> An open format for code requirements and invariants</p>
+            <h1 id="hero-title">Invariants<br>part of<br><span>the code.</span></h1>
+            <p class="hero-description">Like <code>AGENTS.md</code>, for specifications and invariants,<br>colocated with code.</p>
+            <p class="hero-detail">Write down what must stay true.<br>Give humans and agents something to verify.</p>
+            <a class="button button-primary" href="#start">Add to your agent <span aria-hidden="true">↗</span></a>
+          </div>
+
+          <div class="hero-specimen">
+            <div class="specimen-note"><span aria-hidden="true">↓</span> Small enough to live next to your code.</div>
+            <div class="editor">
+              <div class="editor-bar"><span><span class="file-dot" aria-hidden="true"></span><span id="example-file">payments.ts</span></span><span id="example-scope">function scope</span></div>
+              <div class="example-picker" role="group" aria-label="Contract examples" hidden>
+                <button type="button" data-example="specification" aria-pressed="true">Specification</button>
+                <button type="button" data-example="invariant" aria-pressed="false">Invariant</button>
+                <button type="button" data-example="rule" aria-pressed="false">Coding rule</button>
+              </div>
+              <pre class="source" tabindex="0" aria-label="Contract example"><code id="example-code"><span class="syntax-comment">/**
+ * </span><span class="syntax-directive">@cc</span> <span class="syntax-metadata">[owner:spolu,label:product]</span> <span class="syntax-id">insufficient-funds</span>
+<span class="syntax-comment"> * If the balance is less than the amount,
+ * payment MUST fail with InsufficientFunds
+ * and leave the balance unchanged.
+ */</span>
+<span class="syntax-keyword">async function</span> pay(account, amount) {
+  <span class="syntax-comment">// implementation</span>
+}</code></pre>
+              <div class="editor-foot"><span><span class="tiny-cross" aria-hidden="true">+</span> Plain text. Versioned with your code.</span><span aria-hidden="true">UTF-8</span></div>
+            </div>
+            <p id="example-caption" class="example-caption" aria-live="polite"><span class="caption-arrow" aria-hidden="true">↳</span> Specify the failure, and what it must leave untouched.</p>
+          </div>
+        </section>
+
+        <section class="principles" aria-label="Why code contracts">
+          <article>
+            <h2><span aria-hidden="true">01 /</span> Specification</h2>
+            <p>Specifications stay next to code, easy to discover and less likely to drift. Humans can reason about behavior without reading implementations; agents get explicit assumptions to guide changes.</p>
+          </article>
+          <article>
+            <h2><span aria-hidden="true">02 /</span> Attention</h2>
+            <p>Surface important assumptions and invariants before anyone has to rediscover them. Reduce the effort of reasoning about code and free human attention for the decisions that matter.</p>
+          </article>
+          <article>
+            <h2><span aria-hidden="true">03 /</span> Verification</h2>
+            <p>Structured, granular requirements make compliance easier to check and maintain over time. That verification signal helps agents catch mistakes and improve their implementations.</p>
+          </article>
+        </section>
+
+        <section id="format" class="section format-section" aria-labelledby="format-title">
+          <div class="section-heading">
+            <p class="eyebrow">01 / The format</p>
+            <h2 id="format-title">Contract format</h2>
+            <p>One directive. One obligation. Right where it applies.</p>
+          </div>
+
+          <div class="anatomy" aria-label="Structure of a code contract">
+            <div class="anatomy-line"><code><span class="anatomy-directive">@cc</span> <span class="anatomy-metadata">[owner:spolu,label:product]</span> <span class="anatomy-id">payment-atomicity</span></code></div>
+            <div class="anatomy-body">A payment MUST update the balance and invoice together,<br class="desktop-break"> or leave both unchanged.</div>
+          </div>
+          <dl class="anatomy-key">
+            <div><dt><span class="key-dot orange" aria-hidden="true"></span>Directive</dt><dd><code>@cc</code> makes the requirement discoverable.</dd></div>
+            <div><dt><span class="key-dot blue" aria-hidden="true"></span>Metadata <span class="optional">/ optional</span></dt><dd>Owners, notification recipients, and labels.</dd></div>
+            <div><dt><span class="key-dot green" aria-hidden="true"></span>Stable ID</dt><dd>A name to reference across changes and reviews.</dd></div>
+            <div><dt><span class="key-dot graphite" aria-hidden="true"></span>Requirement</dt><dd>Plain language. Concrete enough to find a violation.</dd></div>
+          </dl>
+
+          <div class="scope-grid">
+            <div class="scope-copy">
+              <h3>Put the rule where it belongs.</h3>
+              <p>Use a documentation comment for a function, class, or method. Use a <code>CONTRACTS</code> file for rules that apply to a directory and everything beneath it.</p>
+              <p>Colocation gives humans and agents the requirements where they work, so code and intent can be reviewed together.</p>
+              <p class="supported">Tooling for TypeScript, Python, Go, and Rust.</p>
+            </div>
+            <div class="tree" aria-label="Example contract scopes">
+              <div><span class="tree-path">your-repo/</span></div>
+              <div><span class="tree-lines">├── </span><strong>CONTRACTS</strong><span class="tree-label">repository rules</span></div>
+              <div><span class="tree-lines">└── </span><span class="tree-path">payments/</span></div>
+              <div><span class="tree-lines">&nbsp;&nbsp;&nbsp; ├── </span><strong>CONTRACTS</strong><span class="tree-label">payments rules</span></div>
+              <div><span class="tree-lines">&nbsp;&nbsp;&nbsp; └── </span><span class="tree-path">pay.ts</span><span class="tree-label"><span class="accent">@cc</span> function contract</span></div>
+            </div>
+          </div>
+
+          <details class="grammar">
+            <summary><span><span class="hash" aria-hidden="true">#</span> For the grammar nerds</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <div class="grammar-content">
+              <p>One <code>@cc</code> per documentation comment. In a <code>CONTRACTS</code> file, the next directive starts the next contract.</p>
+              <pre tabindex="0" aria-label="Contract grammar in EBNF"><code>contracts_file = { contract, NL } ;
+contract       = directive, NL, prose ;
+directive      = "@cc", SP, [ metadata, SP ], contract_id ;
+
+metadata       = "[", attribute, { ",", attribute }, "]" ;
+attribute      = key, ":", value ;
+
+contract_id    = token ;
+key            = token ;
+value          = token ;
+prose          = prose_line, { NL, prose_line } ;</code></pre>
+              <p><code>SP</code> is one or more spaces; <code>NL</code> is a line break. A token contains no whitespace, commas, colons, or square brackets. Comment decorations are removed before parsing. Prose is non-empty.</p>
+              <p>IDs are stable and unique within their declaration, or within a <code>CONTRACTS</code> file and its ancestors. Separate multiple metadata values with <code>;</code>, for example <code>owner:alice;bob</code>.</p>
+              <a class="text-link" href="https://github.com/spolu/code-contracts#specification-and-grammar">Read the full specification <span aria-hidden="true">↗</span></a>
+            </div>
+          </details>
+        </section>
+
+        <section id="verify" class="section verification-section" aria-labelledby="verify-title">
+          <div class="section-heading heading-split">
+            <div><p class="eyebrow">02 / Verify</p><h2 id="verify-title">Agentic contract verification</h2></div>
+            <p>Contracts give your agent a specification to work from—and your next review something precise to check.</p>
+          </div>
+          <div class="workflow-grid">
+            <article class="workflow">
+              <div class="workflow-label"><span class="workflow-number">A</span> In your agent</div>
+              <h3>Verify on demand.</h3>
+              <p>Ask your agent to check a diff, file, directory, or repository against its applicable contracts.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><span>agent session</span><span>example</span></div>
+                <div class="terminal-content">
+                  <div class="terminal-command"><span class="prompt" aria-hidden="true">›</span> <code>$code-contracts verify</code><span class="terminal-cursor" aria-hidden="true"></span></div>
+                  <div class="terminal-output"><span class="terminal-line">Read the diff and applicable contracts</span><span class="terminal-line">Trace changed behavior and its callers</span><span class="terminal-line terminal-result">↳ payment-atomicity <span class="result-tag">violation</span></span></div>
+                  <p class="terminal-finding">The balance is debited before the invoice update. If that update fails, the payment is only partially applied.</p>
+                  <div class="terminal-location">payments/pay.ts:42</div>
+                </div>
+              </div>
+              <p class="workflow-foot">Evidence, a source location, and a concrete consequence.</p>
+            </article>
+            <article class="workflow">
+              <div class="workflow-label"><span class="workflow-number">B</span> In your pull request</div>
+              <h3>Review pull requests.</h3>
+              <p>With the GitHub bot installed, add <code>cc</code> to the leading handle list of an <code>r?</code> request.</p>
+              <div class="pr-preview" aria-label="Illustrative GitHub review">
+                <div class="pr-bar"><span><span class="pr-symbol" aria-hidden="true">⑂</span> Simplify payment updates</span><span>example</span></div>
+                <div class="pr-thread">
+                  <div class="thread-entry"><span class="avatar" aria-hidden="true">sp</span><div><span class="thread-author">you <span>commented</span></span><p class="request-text">r? @teammate <span>cc</span></p></div></div>
+                  <div class="pr-progress"><span class="status-check" aria-hidden="true">✓</span> Review Code Contracts <span>(…)</span></div>
+                  <div class="thread-entry"><span class="avatar bot-avatar" aria-hidden="true">@cc</span><div class="bot-result"><span class="thread-author">github-actions <span class="bot-badge">bot</span></span><p class="review-outcome">cc-verify: violations found!</p><ul class="review-finding"><li><strong>payment-atomicity</strong>: Partial payment.</li></ul></div></div>
+                </div>
+              </div>
+              <p class="workflow-foot">A comment review on the inspected commit. Relevant findings stay with the PR.</p>
+            </article>
+          </div>
+          <div class="verification-notes"><p><span aria-hidden="true">↳</span> Changed contracts notify owners. Violations notify explicit <code>notify</code> recipients.</p><a class="text-link" href="https://github.com/spolu/code-contracts/tree/main/.github/actions/contract-review">Set up the review bot <span aria-hidden="true">↗</span></a></div>
+        </section>
+
+        <section id="start" class="section start-section" aria-labelledby="start-title">
+          <div class="section-heading"><p class="eyebrow">03 / Setup</p><h2 id="start-title">Install the skill</h2><p>Add the skill. Write a contract. Run <code>$code-contracts verify</code>.</p></div>
+          <div class="install-box">
+            <div class="install-heading"><span>01 / Install the skill</span><button class="copy-button" type="button" data-copy="install-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div>
+            <pre tabindex="0"><code id="install-command">npx skills add https://github.com/spolu/code-contracts</code></pre>
+          </div>
+          <div class="start-followup"><p><span>02 / In your agent</span><code>$code-contracts verify</code></p><a class="text-link" href="https://github.com/spolu/code-contracts/blob/main/skills/code-contracts/SKILL.md">Read the skill <span aria-hidden="true">↗</span></a></div>
+          <details class="tooling">
+            <summary><span>Want syntax checks and contract discovery from the CLI?</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <div class="tooling-content"><div class="install-heading"><span>Optional tooling</span><button class="copy-button" type="button" data-copy="tooling-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div><pre tabindex="0"><code id="tooling-command">npm install --global @spolu/cc-check</code></pre><pre tabindex="0"><code>cc-check format
+cc-check list payments/pay.ts:42</code></pre><p><code>format</code> checks contract syntax and duplicate IDs. <code>list</code> discovers applicable contracts. Your agent reviews the requirements and implementation.</p></div>
+          </details>
+          <p class="copy-feedback" role="status" aria-live="polite"></p>
+        </section>
+      </main>
+
+      <footer><a class="footer-brand" href="#"><span class="accent">@cc</span> code-contracts</a><span>Plain text. Shared intent.</span><div><a href="https://spolu.sh">by @spolu <span aria-hidden="true">↗</span></a><a href="https://github.com/spolu/code-contracts">Source <span aria-hidden="true">↗</span></a></div></footer>
+    </div>
+
+    <template id="example-specification"><span class="syntax-comment">/**
+ * </span><span class="syntax-directive">@cc</span> <span class="syntax-metadata">[owner:spolu,label:product]</span> <span class="syntax-id">insufficient-funds</span>
+<span class="syntax-comment"> * If the balance is less than the amount,
+ * payment MUST fail with InsufficientFunds
+ * and leave the balance unchanged.
+ */</span>
+<span class="syntax-keyword">async function</span> pay(account, amount) {
+  <span class="syntax-comment">// implementation</span>
+}</template>
+    <template id="example-invariant"><span class="syntax-comment">/**
+ * </span><span class="syntax-directive">@cc</span> <span class="syntax-metadata">[owner:spolu,label:product]</span> <span class="syntax-id">payment-atomicity</span>
+<span class="syntax-comment"> * A payment MUST update the balance and
+ * invoice together, or leave both unchanged.
+ */</span>
+<span class="syntax-keyword">async function</span> pay(account, amount) {
+  <span class="syntax-comment">// implementation</span>
+}</template>
+    <template id="example-rule"><span class="syntax-directive">@cc</span> <span class="syntax-metadata">[owner:spolu,label:security]</span> <span class="syntax-id">no-secret-logging</span>
+<span class="syntax-comment">Logs MUST NOT contain credentials,
+API keys, or access tokens.</span>
+
+<span class="syntax-directive">@cc</span> <span class="syntax-metadata">[owner:spolu,label:architecture]</span> <span class="syntax-id">database-access</span>
+<span class="syntax-comment">Database access MUST go through
+Resource interfaces.</span></template>
+  </body>
+</html>

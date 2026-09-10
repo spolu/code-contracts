@@ -74,3 +74,7 @@ captured comparison.
 Review handling, prompts, contract tooling, and publication use the selected action revision;
 inspected source uses the PR head captured when resolving the request. Local action callers load
 the actions from the workflow's revision.
+
+@cc [owner:spolu,label:security] website-publish-source
+Website deployments MUST publish only the `docs/` tree from `main`. Pull requests and manual runs
+on other branches MUST NOT publish the website.
