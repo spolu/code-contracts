@@ -100,7 +100,7 @@ or request new ones; send another `r? cc` to review the newer commit. Delegated 
 original request ID. For a direct manual dispatch, omit `request-run-id` to use the dispatching
 human's identity and create a fresh request.
 
-Each `Contract review (<run-id>)` commit status links to its workflow run and reports progress and
+Each `Review Code Contracts (<run-id>)` commit status links to its workflow run and reports progress and
 completion on the inspected head, including failures and cancellations. This keeps the run visible
 in the PR's status summary even when GitHub omits `workflow_dispatch` jobs there. A successful
 status means the review completed; findings remain in the `COMMENT` review. Each run has its own

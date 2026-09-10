@@ -23,8 +23,8 @@ Validation results for bundled action tooling MUST NOT be represented as validat
 inspected PR.
 
 @cc [owner:spolu,label:product] contract-review-progress
-Each workflow run MUST report progress in its own `Contract review (<run-id>)` commit status on the
-inspected head, linked to that run. Concurrent runs MUST NOT overwrite one another's status.
+Each workflow run MUST report progress in its own `Review Code Contracts (<run-id>)` commit status
+on the inspected head, linked to that run. Concurrent runs MUST NOT overwrite one another's status.
 
 @cc [owner:spolu,label:product] contract-review-progress-result
 Statuses MUST distinguish running, completed, failed, and cancelled execution. Setup, Codex, or

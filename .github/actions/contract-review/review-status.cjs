@@ -14,7 +14,7 @@ async function publishReviewStatus({ github, context, request, state }) {
   await github.rest.repos.createCommitStatus({
     ...context.repo,
     sha: request.head_sha,
-    context: `Contract review (${context.runId})`,
+    context: `Review Code Contracts (${context.runId})`,
     state: ["failure", "cancelled"].includes(state) ? "error" : state,
     target_url: url,
     description: descriptions[state],
