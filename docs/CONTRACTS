@@ -7,6 +7,9 @@ Website examples MUST match the shared skill and review actions. Illustrative re
 be identified as an example; interactions MUST NOT imply that a review has actually run.
 Syntax validation MUST NOT be presented as verification of contract compliance.
 
+@cc [owner:spolu,label:product] website-code-example-content
+Syntax highlighting and line numbers MUST preserve an example's source text when read or copied.
+
 @cc [owner:spolu,label:accessibility] website-progressive-interactions
 The pitch, default contract example, setup instructions, and grammar MUST remain readable without
 JavaScript. Interactive controls MUST be keyboard accessible. Copy controls MUST report success

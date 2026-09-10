@@ -21,10 +21,40 @@ const examples = {
 const picker = document.querySelector(".example-picker");
 const exampleCode = document.querySelector("#example-code");
 
+function numberCodeLines() {
+  const lines = [document.createElement("span")];
+  function appendLines(node, parentClass = "") {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const parts = node.textContent.split("\n");
+      for (const [index, part] of parts.entries()) {
+        if (index > 0) lines.push(document.createElement("span"));
+        const text = document.createElement("span");
+        text.className = parentClass;
+        text.textContent = part;
+        lines.at(-1).append(text);
+      }
+    } else {
+      for (const child of node.childNodes) {
+        appendLines(child, node.className || parentClass);
+      }
+    }
+  }
+  for (const node of exampleCode.childNodes) appendLines(node);
+  const output = document.createDocumentFragment();
+  for (const [index, line] of lines.entries()) {
+    line.className = "source-line";
+    line.dataset.line = String(index + 1).padStart(2, "0");
+    output.append(line);
+    if (index < lines.length - 1) output.append("\n");
+  }
+  exampleCode.replaceChildren(output);
+}
+
 function selectExample(name) {
   const example = examples[name];
   const template = document.querySelector(`#example-${name}`);
   exampleCode.replaceChildren(template.content.cloneNode(true));
+  numberCodeLines();
   document.querySelector("#example-file").textContent = example.file;
   document.querySelector("#example-scope").textContent = example.scope;
   document.querySelector("#example-caption").textContent = `↳ ${example.caption}`;
@@ -33,6 +63,7 @@ function selectExample(name) {
   }
 }
 
+numberCodeLines();
 for (const button of picker.querySelectorAll("button")) {
   button.addEventListener("click", () => selectExample(button.dataset.example));
 }

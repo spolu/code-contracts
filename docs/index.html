@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f6f5f1">
-    <meta name="description" content="Like AGENTS.md, for specifications, invariants, and coding rules. An open format for requirements that live with your code and can be reviewed by your agent.">
+    <meta name="theme-color" content="#171b17">
+    <meta name="description" content="An open format for specifying structured assumptions and requirements about code to support faster and better agent-driven software development.">
     <meta property="og:title" content="$code_contracts -- invariants part of the code">
     <meta property="og:description" content="Specifications, invariants, and coding rules. Written for humans. Verifiable by agents. Kept with the code.">
     <meta property="og:type" content="website">
@@ -17,7 +17,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <div class="page">
       <header class="masthead">
-        <a class="wordmark" href="#" aria-label="Code Contracts home"><span class="mark" aria-hidden="true">@cc</span> $code-contracts<span class="cursor" aria-hidden="true">_</span></a>
+        <a class="wordmark" href="#" aria-label="Code Contracts home">$code-contracts<span class="cursor" aria-hidden="true">_</span></a>
         <nav aria-label="Main navigation">
           <a href="#format">Format</a>
           <a href="#verify">Verify</a>
@@ -28,10 +28,8 @@
       <main id="main">
         <section class="hero" aria-labelledby="hero-title">
           <div class="hero-copy">
-            <p class="eyebrow"><span class="signal" aria-hidden="true"></span> An open format for code requirements and invariants</p>
-            <h1 id="hero-title">Invariants<br>part of<br><span>the code.</span></h1>
-            <p class="hero-description">Like <code>AGENTS.md</code>, for specifications and invariants,<br>colocated with code.</p>
-            <p class="hero-detail">Write down what must stay true.<br>Give humans and agents something to verify.</p>
+            <h1 id="hero-title"><span class="heading-prompt" aria-hidden="true">&gt; </span>Invariants<br>part of<br><span>the code.</span></h1>
+            <p class="hero-description">An open format for specifying structured assumptions and requirements about code to support faster and better agent-driven software development.</p>
             <a class="button button-primary" href="#start">Add to your agent <span aria-hidden="true">↗</span></a>
           </div>
 
@@ -66,7 +64,7 @@
           </article>
           <article>
             <h2><span aria-hidden="true">02 /</span> Attention</h2>
-            <p>Surface important assumptions and invariants before anyone has to rediscover them. Reduce the effort of reasoning about code and free human attention for the decisions that matter.</p>
+            <p>Human attention for code review is scarce. Contracts make assumptions and invariants explicit, so reviewers can understand changes and check their requirements with less effort.</p>
           </article>
           <article>
             <h2><span aria-hidden="true">03 /</span> Verification</h2>
@@ -77,7 +75,7 @@
         <section id="format" class="section format-section" aria-labelledby="format-title">
           <div class="section-heading">
             <p class="eyebrow">01 / The format</p>
-            <h2 id="format-title">Contract format</h2>
+            <h2 id="format-title"><span class="heading-prefix" aria-hidden="true">## </span>Contract format</h2>
             <p>One directive. One obligation. Right where it applies.</p>
           </div>
 
@@ -132,7 +130,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
 
         <section id="verify" class="section verification-section" aria-labelledby="verify-title">
           <div class="section-heading heading-split">
-            <div><p class="eyebrow">02 / Verify</p><h2 id="verify-title">Agentic contract verification</h2></div>
+            <div><p class="eyebrow">02 / Verify</p><h2 id="verify-title"><span class="heading-prefix" aria-hidden="true">## </span>Agentic contract verification</h2></div>
             <p>Contracts give your agent a specification to work from—and your next review something precise to check.</p>
           </div>
           <div class="workflow-grid">
@@ -170,7 +168,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
         </section>
 
         <section id="start" class="section start-section" aria-labelledby="start-title">
-          <div class="section-heading"><p class="eyebrow">03 / Setup</p><h2 id="start-title">Install the skill</h2><p>Add the skill. Write a contract. Run <code>$code-contracts verify</code>.</p></div>
+          <div class="section-heading"><p class="eyebrow">03 / Setup</p><h2 id="start-title"><span class="heading-prefix" aria-hidden="true">## </span>Install the skill</h2><p>Add the skill. Write a contract. Run <code>$code-contracts verify</code>.</p></div>
           <div class="install-box">
             <div class="install-heading"><span>01 / Install the skill</span><button class="copy-button" type="button" data-copy="install-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div>
             <pre tabindex="0"><code id="install-command">npx skills add https://github.com/spolu/code-contracts</code></pre>
@@ -185,7 +183,7 @@ cc-check list payments/pay.ts:42</code></pre><p><code>format</code> checks contr
         </section>
       </main>
 
-      <footer><a class="footer-brand" href="#"><span class="accent">@cc</span> code-contracts</a><span>Plain text. Shared intent.</span><div><a href="https://spolu.sh">by @spolu <span aria-hidden="true">↗</span></a><a href="https://github.com/spolu/code-contracts">Source <span aria-hidden="true">↗</span></a></div></footer>
+      <footer><a class="footer-brand" href="#"><span class="accent">@cc</span> code-contracts</a><span aria-hidden="true">[EOF]</span><div><a href="https://spolu.sh">by @spolu <span aria-hidden="true">↗</span></a><a href="https://github.com/spolu/code-contracts">Source <span aria-hidden="true">↗</span></a></div></footer>
     </div>
 
     <template id="example-specification"><span class="syntax-comment">/**
