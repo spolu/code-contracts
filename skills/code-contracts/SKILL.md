@@ -5,8 +5,8 @@ description: Define, use, and enforce @cc code-contracts across a codebase.
 
 # Code Contracts
 
-A simple open format for specifying structured assumptions and requirements about code to support
-faster and better agent-driven software development.
+A simple open format for specifying structured assumptions and requirements colocated with code to
+support faster and better agent-driven software development.
 
 ```typescript
 /**

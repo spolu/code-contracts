@@ -31,19 +31,18 @@ p code { font-size: .96em; }
 .skip-link { position: fixed; top: -80px; left: 20px; z-index: 10; background: var(--ink); color: var(--paper); padding: 12px 20px; }
 .skip-link:focus { top: 12px; }
 .masthead { min-height: 110px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.wordmark { display: flex; align-items: center; font-size: 15px; font-weight: 600; letter-spacing: -.6px; }
-.cursor { color: var(--accent); margin-left: 2px; }
+.wordmark { display: flex; align-items: baseline; gap: 10px; color: var(--ink); font-size: 12px; white-space: nowrap; }
 nav { display: flex; align-items: center; gap: 30px; font-size: 12px; }
 nav a { padding: 10px 0; }
 nav a::before { content: "["; margin-right: 5px; color: var(--muted); }
 nav a::after { content: "]"; margin-left: 5px; color: var(--muted); }
 nav a:last-child span { margin-left: 5px; color: var(--accent); }
 .hero { display: grid; grid-template-columns: .94fr 1.06fr; gap: 44px; align-items: center; padding: 76px 0 78px; }
+.hero-copy { min-width: 0; }
 .eyebrow { display: flex; align-items: center; gap: 9px; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--muted); }
-h1 { margin-top: 25px; font-size: clamp(42px, 5vw, 62px); letter-spacing: -4.2px; font-weight: 500; line-height: 1.08; }
-h1 > span { color: var(--accent); }
-h1 { position: relative; }
-h1 > .heading-prompt { position: absolute; left: -.7em; top: .15em; font-size: .55em; letter-spacing: 0; }
+h1 { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; column-gap: .18em; margin-top: 25px; font-size: clamp(28px, 4.7vw, 58px); letter-spacing: -.06em; font-weight: 500; line-height: 1.08; }
+.heading-prompt { align-self: center; color: var(--accent); font-size: .75em; line-height: 1; letter-spacing: 0; }
+.hero-title-line { white-space: nowrap; }
 .hero-description { margin-top: 26px; font-size: 14px; line-height: 1.8; letter-spacing: -.4px; }
 .button { display: inline-flex; gap: 40px; align-items: center; padding: 12px 17px; font-size: 12px; border: 1px solid transparent; transition: background .15s, transform .15s; }
 .button-primary { margin-top: 30px; border-color: var(--accent); background: #252f1e; color: var(--accent); }
@@ -178,7 +177,6 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 @media (max-width: 1000px) {
   .page { padding: 0 32px; }
   .hero { gap: 28px; }
-  h1 { font-size: 48px; letter-spacing: -3.5px; }
   .hero-description { font-size: 12px; }
   .source { font-size: 10px; padding: 20px 15px; }
   .example-picker { padding-left: 12px; }.example-picker button { padding: 4px 6px; font-size: 9px; }
@@ -189,13 +187,14 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 @media (max-width: 760px) {
   .page { max-width: 600px; padding: 0 23px; }
-  .masthead { min-height: 85px; }.wordmark { font-size: 12px; }
+  .masthead { min-height: 85px; }
   nav { gap: 17px; font-size: 10px; }nav a:first-child { display: none; }
   nav a::before, nav a::after { content: none; }
-  .hero { grid-template-columns: 1fr; gap: 25px; padding: 46px 0 30px; }
-  h1 { font-size: clamp(46px, 14vw, 62px); }.hero-description { font-size: 13px; }
-  h1 > .heading-prompt { left: -.7em; top: .25em; font-size: .4em; }
-  .hero-specimen { margin-top: 13px; }.source { font-size: 11px; min-height: 285px; padding: 20px 18px; }
+  .hero { grid-template-columns: 1fr; gap: 28px; padding: 32px 0 30px; }
+  h1 { margin-top: 0; font-size: clamp(28px, 9.5vw, 52px); }
+  .hero-description { margin-top: 20px; font-size: 13px; }
+  .hero-copy .button-primary { margin-top: 22px; }
+  .hero-specimen { margin-top: 8px; }.source { font-size: 11px; min-height: 285px; padding: 20px 18px; }
   .example-picker { padding-left: 14px; }.example-picker button { font-size: 10px; padding: 5px 8px; }
   .principles { grid-template-columns: 1fr; gap: 24px; padding: 28px 0; }
   .principles article + article { border-left: 0; padding-left: 0; border-top: 1px dashed var(--line); padding-top: 24px; }
@@ -214,7 +213,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 }
 
 @media (max-width: 380px) {
-  .page { padding: 0 17px; }h1 { font-size: 46px; }.wordmark { font-size: 11px; }nav { gap: 12px; }
+  .page { padding: 0 17px; }.wordmark { font-size: 11px; }nav { gap: 12px; }
   .source { font-size: 10px; }.editor-foot { font-size: 8px; }.tree { padding: 13px; font-size: 9px; }.tree-label { font-size: 8px; padding-left: 8px; }
   .pr-progress { font-size: 9px; }.review-outcome { font-size: 11px; }.start-followup p { font-size: 11px; }
 }
