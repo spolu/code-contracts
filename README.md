@@ -166,8 +166,3 @@ is reusable from other repositories as `spolu/code-contracts/.github/actions/con
 it bundles its own tooling and publishes a comment review pinned to the inspected PR head.
 The repository workflow dispatches each requested review on the PR's head branch so progress and
 results appear in its checks. Later pushes do not cancel the run or trigger another review.
-
-## Website
-
-The [one-page website](site/README.md) lives in `site/` and publishes to GitHub Pages. It can also be
-served by any static host, including Vercel.
