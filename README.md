@@ -169,5 +169,5 @@ results appear in its checks. Later pushes do not cancel the run or trigger anot
 
 ## Website
 
-The [one-page website](docs/README.md) lives in `docs/` and publishes to GitHub Pages. It can also be
+The [one-page website](site/README.md) lives in `site/` and publishes to GitHub Pages. It can also be
 served by any static host, including Vercel.

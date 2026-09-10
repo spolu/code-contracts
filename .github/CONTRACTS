@@ -76,5 +76,5 @@ inspected source uses the PR head captured when resolving the request. Local act
 the actions from the workflow's revision.
 
 @cc [owner:spolu,label:security] website-publish-source
-Website deployments MUST publish only the `docs/` tree from `main`. Pull requests and manual runs
+Website deployments MUST publish only the `site/` tree from `main`. Pull requests and manual runs
 on other branches MUST NOT publish the website.
