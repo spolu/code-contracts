@@ -22,8 +22,8 @@ including each inspected caller's applicable contracts; limits materially affect
 disclosed in that finding's comment.
 
 @cc [owner:spolu,label:product] contract-review-summary
-Review summaries are `cc-check: LGTM` when no violations are found, otherwise
-`cc-check: violations found!` followed by a blank line and bullets of
+Review summaries are `cc-verify: LGTM` when no violations are found, otherwise
+`cc-verify: violations found!` followed by a blank line and bullets of
 `**{contract-name}**: {failure_short_description}`, with details in the associated comments.
 
 @cc [owner:spolu,label:product] contract-review-locations

@@ -58,9 +58,9 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
 
 The final JSON has `summary` and `comments`:
 
-- If no violations are found, `summary` must be exactly `cc-check: LGTM`. Owner notifications
+- If no violations are found, `summary` must be exactly `cc-verify: LGTM`. Owner notifications
   do not count as violations. LGTM reflects the inspected scope, not proof of exhaustive compliance.
-- Otherwise, start `summary` with `cc-check: violations found!`, then a blank line, then one bullet
+- Otherwise, start `summary` with `cc-verify: violations found!`, then a blank line, then one bullet
   per problematic contract using exactly `- **{contract-name}**: {failure_short_description}`.
   Use the contract ID as its name, qualifying it with its declaration or path when ambiguous.
   Keep each failure description to a few words. Put evidence, consequences, and any material
