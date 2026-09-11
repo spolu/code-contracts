@@ -1,8 +1,8 @@
 ## cc-check
 
-- [x] `cc-check format [file-like]` (TypeScript, Python, Rust, and Go prototypes)
+- [x] `cc-check format [file-like]` (TypeScript, Python, PHP, Rust, and Go prototypes)
        Report malformed @cc directives and duplicate contract IDs
-- [x] `cc-check list <file-like|location-like>` (TypeScript, Python, Rust, and Go prototypes)
+- [x] `cc-check list <file-like|location-like>` (TypeScript, Python, PHP, Rust, and Go prototypes)
        Lists all declaration contracts in a file or those related to a pointed location (local
        declaration and potential parent declaration, such as a class), plus directory contracts.
 - [x] make format ensure IDs are unique within the selected files

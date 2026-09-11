@@ -1,0 +1,71 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-invoice-service-fixture:4
+  scope:declaration class `InvoiceService` · owner:spolu · label:product
+
+  > Represents a PHP service used by the CLI integration tests.
+
+◆ php-amount-fixture:10
+  scope:declaration property `$amount` · owner:spolu · label:product
+
+  > Provides a property used to exercise nested PHP contract listing.
+
+◆ php-default-amount-fixture:16
+  scope:declaration constant `DEFAULT_AMOUNT` · owner:spolu · label:product
+
+  > Defines a class constant in the PHP fixture.
+
+◆ php-constructor-fixture:22
+  scope:declaration constructor `__CONSTRUCT` · owner:spolu · label:product
+
+  > Defines a constructor with a promoted property.
+
+◆ php-promoted-property-fixture:27
+  scope:declaration property `$invoiceId` · owner:spolu · label:product
+
+  > Defines a contract on a constructor-promoted property.
+
+◆ php-payment-fixture:34
+  scope:declaration method `for` · owner:spolu · label:product
+
+  > Provides a keyword-named method used to exercise PHP parser recovery.
+
+◆ php-payment-result-fixture:38
+  scope:declaration method `for` · owner:spolu · label:product
+
+  > Leaves the invoice in its expected paid state.
+
+◆ php-payer-fixture:49
+  scope:declaration interface `Payer` · owner:spolu · label:product
+
+  > Represents an interface used to exercise PHP declaration listing.
+
+◆ php-payer-signature-fixture:55
+  scope:declaration method-signature `pay` · owner:spolu · label:product
+
+  > Defines a contract on an interface method.
+
+◆ php-shared-behavior-fixture:62
+  scope:declaration trait `SharedBehavior` · owner:spolu · label:product
+
+  > Represents a trait used to exercise PHP declaration listing.
+
+◆ php-helper-fixture:68
+  scope:declaration method `helper` · owner:spolu · label:product
+
+  > Defines a contract on a trait method.
+
+◆ php-state-fixture:75
+  scope:declaration enum `State` · owner:spolu · label:product
+
+  > Represents an enum used to exercise PHP declaration listing.
+
+◆ php-paid-case-fixture:81
+  scope:declaration enum-case `Paid` · owner:spolu · label:product
+
+  > Defines a contract on an enum case.
+
+◆ php-report-fixture:88
+  scope:declaration function `reportInvoices` · owner:spolu · label:product
+
+  > Provides a separate PHP function for whole-file listing.

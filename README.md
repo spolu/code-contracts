@@ -73,6 +73,7 @@ cc-check format
 cc-check format path/file.rs
 cc-check list path/to/file.ts:42
 cc-check list path/to/file.go
+cc-check list path/to/file.php
 ```
 
 ## Specification and grammar

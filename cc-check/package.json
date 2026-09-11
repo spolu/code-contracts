@@ -49,6 +49,7 @@
   "dependencies": {
     "@lezer/common": "^1.5.2",
     "@lezer/go": "^1.0.1",
+    "@lezer/php": "^1.0.6",
     "@lezer/python": "^1.1.19",
     "@lezer/rust": "^1.0.2",
     "commander": "^15.0.0",
