@@ -172,7 +172,12 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
           <div class="section-heading"><p class="eyebrow">03 / Setup</p><h2 id="start-title"><span class="heading-prefix" aria-hidden="true">## </span>Install the skill</h2><p>Add the skill. Write a contract. Run <code>$code-contracts verify</code>.</p></div>
           <div class="install-box">
             <div class="install-heading"><span>01 / Install the skill</span><button class="copy-button" type="button" data-copy="install-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div>
-            <pre tabindex="0"><code id="install-command">npx skills add https://github.com/spolu/code-contracts</code></pre>
+            <pre class="shell-command" tabindex="0"><code id="install-command">npx skills add https://github.com/spolu/code-contracts</code></pre>
+          </div>
+          <div class="install-box">
+            <div class="install-heading"><span>02 / Add to AGENTS.md</span><button class="copy-button" type="button" data-copy="agent-instructions" hidden>Copy <span aria-hidden="true">⧉</span></button></div>
+            <pre class="instructions" tabindex="0"><code id="agent-instructions">Use the `code-contracts` skill for every code change and code review. Follow its contract discovery,
+writing, and enforcement procedures before submitting commits or pull requests.</code></pre>
           </div>
           <div class="start-followup"><a class="text-link" href="https://github.com/spolu/code-contracts/blob/main/skills/code-contracts/SKILL.md">Read the skill <span aria-hidden="true">↗</span></a></div>
           <details class="tooling">
