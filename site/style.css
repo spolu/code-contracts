@@ -67,7 +67,8 @@ p code { font-size: .96em; }
 .skip-link:focus { top: 12px; }
 .masthead { min-height: 94px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .wordmark { display: flex; align-items: baseline; gap: 12px; color: var(--ink); font: 24px/1 var(--display); white-space: nowrap; }
-.wordmark > .accent, .footer-brand > .accent { color: var(--green); }
+.wordmark > .accent { padding: 3px 5px; color: var(--paper); background: var(--accent); }
+.footer-brand > .accent { color: var(--green); }
 nav { display: flex; align-items: center; gap: 20px; font: 12px/1.4 var(--mono); }
 nav a { padding: 8px 4px; }
 nav a::before { content: "["; margin-right: 5px; color: var(--blue); }
@@ -122,7 +123,7 @@ h1 { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-ite
 h2 { font: 48px/1.05 var(--display); color: var(--ink); letter-spacing: -.02em; margin-top: 18px; }
 .heading-prefix { font-size: .65em; color: var(--muted); }
 .section-heading > p:last-child { color: var(--muted); font-size: 13px; margin-top: 14px; }
-.anatomy { border: 1px solid var(--line); border-left: 3px solid var(--amber); background: var(--code-background); padding: 28px; font-size: 16px; box-shadow: 8px 8px 0 var(--shadow); }
+.anatomy { border: 1px solid var(--line); background: var(--code-background); padding: 28px; font-size: 16px; box-shadow: 8px 8px 0 var(--shadow); }
 .anatomy-line { margin-bottom: 18px; line-height: 2; overflow-wrap: anywhere; }
 .anatomy-line span { display: inline-block; max-width: 100%; padding: 1px 6px; margin: 0 0 6px; }
 .anatomy-directive { color: var(--paper); background: var(--amber); border: 1px solid var(--amber); }
@@ -138,7 +139,6 @@ h2 { font: 48px/1.05 var(--display); color: var(--ink); letter-spacing: -.02em; 
 .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; padding: 32px 0; }
 h3 { font: 28px/1.15 var(--display); color: var(--ink); }
 .scope-copy p { margin-top: 14px; color: var(--muted); font-size: 12px; }
-.scope-copy .supported { color: var(--blue); font: 19px/1.4 var(--display); }
 .tree { font-size: 12px; line-height: 2.2; white-space: nowrap; padding: 20px; border: 1px solid var(--line); background: var(--code-background); }
 .tree > div { display: flex; align-items: baseline; }
 .tree-lines { color: var(--muted); white-space: pre; }
@@ -168,7 +168,7 @@ details[open] > summary .disclosure-icon { transform: rotate(45deg); }
 .workflow-number { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--paper); background: var(--accent); }
 .workflow h3 { font-size: 30px; margin-bottom: 12px; }
 .workflow > p { font-size: 12px; color: var(--muted); min-height: 65px; }
-.workflow > p code { padding: 1px 4px; color: var(--blue); background: var(--surface); border: 1px solid var(--line); white-space: nowrap; }
+.workflow > p code, .tooling-content > p code { padding: 1px 4px; color: var(--blue); background: var(--surface); border: 1px solid var(--line); white-space: nowrap; }
 .terminal, .pr-preview { margin-top: 20px; min-height: 340px; border: 1px solid var(--line); box-shadow: 6px 6px 0 var(--shadow); background: var(--code-background); }
 .terminal-bar, .pr-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 4px 14px; font: 21px/1.2 var(--display); background: var(--surface); color: var(--accent); border-bottom: 1px solid var(--line); }
 .terminal-bar > span:last-child, .pr-bar > span:last-child { font-size: 17px; text-transform: uppercase; }
