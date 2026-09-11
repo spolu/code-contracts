@@ -69,6 +69,12 @@ for (const button of picker.querySelectorAll("button")) {
 }
 picker.hidden = false;
 
+const installLink = document.querySelector(".hero-actions > .button-primary");
+installLink.addEventListener("click", () => installLink.classList.add("theme-dismissed"));
+for (const event of ["pointerenter", "focus"]) {
+  installLink.addEventListener(event, () => installLink.classList.remove("theme-dismissed"));
+}
+
 for (const button of document.querySelectorAll("[data-copy]")) {
   button.hidden = false;
   button.addEventListener("click", async () => {

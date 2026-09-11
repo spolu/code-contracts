@@ -211,8 +211,8 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 .footer-brand { color: var(--ink); }.footer-brand > span { margin-right: 7px; }footer > span { color: var(--accent); }footer > div { display: flex; gap: 24px; }
 
 @media (hover: hover) {
-  :root:has(.hero-actions > .button-primary:is(:hover, :focus-visible)),
-  :root:has(.hero-actions > .button-primary:is(:hover, :focus-visible)) :is(.editor, .anatomy, .tree, .terminal, .pr-preview, .install-box, .grammar-content pre, .tooling-content pre) {
+  :root:has(.hero-actions > .button-primary:not(.theme-dismissed):is(:hover, :focus-visible)),
+  :root:has(.hero-actions > .button-primary:not(.theme-dismissed):is(:hover, :focus-visible)) :is(.editor, .anatomy, .tree, .terminal, .pr-preview, .install-box, .grammar-content pre, .tooling-content pre) {
     color-scheme: dark;
     --paper: #040904;
     --surface: #091408;
@@ -228,8 +228,8 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
     --desktop-a: #010301;
     --desktop-b: #071006;
   }
-  :root:has(.hero-actions > .button-primary:is(:hover, :focus-visible)) .anatomy-metadata { background: var(--surface); border-color: var(--line); }
-  .hero-actions > .button-primary:is(:hover, :focus-visible) { background: var(--accent); border-color: var(--accent); }
+  :root:has(.hero-actions > .button-primary:not(.theme-dismissed):is(:hover, :focus-visible)) .anatomy-metadata { background: var(--surface); border-color: var(--line); }
+  .hero-actions > .button-primary:not(.theme-dismissed):is(:hover, :focus-visible) { background: var(--accent); border-color: var(--accent); }
 }
 
 @media (max-width: 1080px) {
