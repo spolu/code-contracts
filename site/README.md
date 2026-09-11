@@ -2,6 +2,9 @@
 
 The one-page site is static HTML, CSS, and JavaScript. No dependencies or build step.
 
+The bundled [VT323 typeface](https://github.com/google/fonts/tree/main/ofl/vt323) is distributed
+under the [SIL Open Font License](fonts/OFL.txt).
+
 Preview from the repository root:
 
 ```sh

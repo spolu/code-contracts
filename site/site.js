@@ -57,7 +57,7 @@ function selectExample(name) {
   numberCodeLines();
   document.querySelector("#example-file").textContent = example.file;
   document.querySelector("#example-scope").textContent = example.scope;
-  document.querySelector("#example-caption").textContent = `↳ ${example.caption}`;
+  document.querySelector("#example-caption-text").textContent = example.caption;
   for (const button of picker.querySelectorAll("button")) {
     button.setAttribute("aria-pressed", String(button.dataset.example === name));
   }

@@ -3,13 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#171b17">
+    <meta name="theme-color" content="#e4e4e4">
     <meta name="description" content="An open format for specifying structured assumptions and requirements colocated with code to support faster and better agent-driven software development.">
     <meta property="og:title" content="Code Contracts">
     <meta property="og:description" content="Specifications, invariants, and coding rules. Written for humans. Verifiable by agents. Kept with the code.">
     <meta property="og:type" content="website">
     <title>$code-contracts</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preload" href="fonts/VT323-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="stylesheet" href="style.css">
     <script src="site.js" defer></script>
   </head>
@@ -18,11 +19,6 @@
     <div class="page">
       <header class="masthead">
         <a class="wordmark" href="#" aria-label="Code Contracts home"><span class="accent" aria-hidden="true">@cc</span><span class="brand-name">$code-contracts</span></a>
-        <nav aria-label="Main navigation">
-          <a href="#format">Format</a>
-          <a href="#verify">Verify</a>
-          <a href="https://github.com/spolu/code-contracts">GitHub <span aria-hidden="true">↗</span></a>
-        </nav>
       </header>
 
       <main id="main">
@@ -59,7 +55,7 @@
 }</code></pre>
               <div class="editor-foot"><span><span class="tiny-cross" aria-hidden="true">+</span> Plain text. Versioned with your code.</span><span aria-hidden="true">UTF-8</span></div>
             </div>
-            <p id="example-caption" class="example-caption" aria-live="polite"><span class="caption-arrow" aria-hidden="true">↳</span> Specify the failure, and what it must leave untouched.</p>
+            <p id="example-caption" class="example-caption" aria-live="polite"><span class="caption-arrow" aria-hidden="true">↳</span> <span id="example-caption-text">Specify the failure, and what it must leave untouched.</span></p>
           </div>
         </section>
 
@@ -101,19 +97,18 @@
               <h3>Put the rule where it belongs.</h3>
               <p>Use a documentation comment for a function, class, or method. Use a <code>CONTRACTS</code> file for rules that apply to a directory and everything beneath it.</p>
               <p>Colocation gives humans and agents the requirements where they work, so code and intent can be reviewed together.</p>
-              <p class="supported">Tooling for TypeScript, Python, Go, and Rust.</p>
             </div>
             <div class="tree" aria-label="Example contract scopes">
               <div><span class="tree-path">your-repo/</span></div>
               <div><span class="tree-lines">├── </span><strong>CONTRACTS</strong><span class="tree-label">repository rules</span></div>
               <div><span class="tree-lines">└── </span><span class="tree-path">payments/</span></div>
               <div><span class="tree-lines">&nbsp;&nbsp;&nbsp; ├── </span><strong>CONTRACTS</strong><span class="tree-label">payments rules</span></div>
-              <div><span class="tree-lines">&nbsp;&nbsp;&nbsp; └── </span><span class="tree-path">pay.ts</span><span class="tree-label"><span class="accent">@cc</span> function contract</span></div>
+              <div><span class="tree-lines">&nbsp;&nbsp;&nbsp; └── </span><span class="tree-path">pay.rs</span><span class="tree-label"><span class="accent">@cc</span> function contract</span></div>
             </div>
           </div>
 
           <details class="grammar">
-            <summary><span><span class="hash" aria-hidden="true">#</span> Formal grammar</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <summary><span><span class="hash" aria-hidden="true">#</span> Contracts grammar</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
             <div class="grammar-content">
               <p>One <code>@cc</code> per documentation comment. In a <code>CONTRACTS</code> file, the next directive starts the next contract.</p>
               <pre tabindex="0" aria-label="Contract grammar in EBNF"><code>contracts_file = { contract, NL } ;
@@ -145,7 +140,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
               <h3>Verify on demand.</h3>
               <p>Ask your agent to check a diff, file, directory, or repository against its applicable contracts.</p>
               <div class="terminal">
-                <div class="terminal-bar"><span>agent session</span><span>example</span></div>
+                <div class="terminal-bar"><span><span class="terminal-symbol" aria-hidden="true">&gt;_</span> agent session</span><span>example</span></div>
                 <div class="terminal-content">
                   <div class="terminal-command"><span class="prompt" aria-hidden="true">›</span> <code>$code-contracts verify</code><span class="terminal-cursor" aria-hidden="true"></span></div>
                   <div class="terminal-output"><span class="terminal-line">Read the diff and applicable contracts</span><span class="terminal-line">Trace changed behavior and its callers</span><span class="terminal-line terminal-result">↳ payment-atomicity <span class="result-tag">violation</span></span></div>
@@ -153,7 +148,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
                   <div class="terminal-location">payments/pay.ts:42</div>
                 </div>
               </div>
-              <p class="workflow-foot">Evidence, a source location, and a concrete consequence.</p>
+              <p class="workflow-foot"><span class="caption-arrow" aria-hidden="true">↳</span> Evidence, a source location, and a concrete consequence.</p>
             </article>
             <article class="workflow">
               <div class="workflow-label"><span class="workflow-number">B</span> In your pull request</div>
@@ -167,7 +162,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
                   <div class="thread-entry"><span class="avatar bot-avatar" aria-hidden="true">@cc</span><div class="bot-result"><span class="thread-author">github-actions <span class="bot-badge">bot</span></span><p class="review-outcome">cc-verify: violations found!</p><ul class="review-finding"><li><strong>payment-atomicity</strong>: Partial payment.</li></ul></div></div>
                 </div>
               </div>
-              <p class="workflow-foot">A comment review on the inspected commit. Relevant findings stay with the PR.</p>
+              <p class="workflow-foot"><span class="caption-arrow" aria-hidden="true">↳</span> A comment review on the inspected commit. Relevant findings stay with the PR.</p>
             </article>
           </div>
           <div class="verification-notes"><a class="text-link" href="https://github.com/spolu/code-contracts/tree/main/.github/actions/contract-review">Set up the review bot <span aria-hidden="true">↗</span></a></div>
@@ -179,9 +174,9 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
             <div class="install-heading"><span>01 / Install the skill</span><button class="copy-button" type="button" data-copy="install-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div>
             <pre tabindex="0"><code id="install-command">npx skills add https://github.com/spolu/code-contracts</code></pre>
           </div>
-          <div class="start-followup"><p><span>02 / In your agent</span><code>$code-contracts verify</code></p><a class="text-link" href="https://github.com/spolu/code-contracts/blob/main/skills/code-contracts/SKILL.md">Read the skill <span aria-hidden="true">↗</span></a></div>
+          <div class="start-followup"><a class="text-link" href="https://github.com/spolu/code-contracts/blob/main/skills/code-contracts/SKILL.md">Read the skill <span aria-hidden="true">↗</span></a></div>
           <details class="tooling">
-            <summary><span>Want syntax checks and contract discovery from the CLI?</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <summary><span>CLI tooling</span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
             <div class="tooling-content"><div class="install-heading"><span>Optional tooling</span><button class="copy-button" type="button" data-copy="tooling-command" hidden>Copy <span aria-hidden="true">⧉</span></button></div><pre tabindex="0"><code id="tooling-command">npm install --global @spolu/cc-check</code></pre><pre tabindex="0"><code>cc-check format
 cc-check list payments/pay.ts:42</code></pre><p><code>format</code> checks contract syntax and duplicate IDs. <code>list</code> discovers applicable contracts for a declaration. Your agent reviews the requirements and implementation.</p></div>
           </details>
