@@ -78,7 +78,7 @@ for (const button of document.querySelectorAll("[data-copy]")) {
     try {
       await navigator.clipboard.writeText(command.textContent.trim());
       button.textContent = "Copied ✓";
-      feedback.textContent = "Command copied to clipboard.";
+      feedback.textContent = "Copied to clipboard.";
     } catch {
       const selection = window.getSelection();
       const range = document.createRange();
@@ -86,7 +86,7 @@ for (const button of document.querySelectorAll("[data-copy]")) {
       selection.removeAllRanges();
       selection.addRange(range);
       button.textContent = "Select & copy";
-      feedback.textContent = "Copy was unavailable. The command is selected; copy it manually.";
+      feedback.textContent = "Copy was unavailable. The text is selected; copy it manually.";
     } finally {
       button.disabled = false;
     }
