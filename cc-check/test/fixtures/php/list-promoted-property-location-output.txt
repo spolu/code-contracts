@@ -1,0 +1,16 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-invoice-service-fixture:4
+  scope:declaration class `InvoiceService` · owner:spolu · label:product
+
+  > Represents a PHP service used by the CLI integration tests.
+
+◆ php-constructor-fixture:22
+  scope:declaration constructor `__CONSTRUCT` · owner:spolu · label:product
+
+  > Defines a constructor with a promoted property.
+
+◆ php-promoted-property-fixture:27
+  scope:declaration property `$invoiceId` · owner:spolu · label:product
+
+  > Defines a contract on a constructor-promoted property.

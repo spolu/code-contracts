@@ -38,6 +38,10 @@ try {
     join(temporaryDirectory, "malformed.go"),
   );
   copyFileSync(
+    join(fixtureDirectory, "malformed-php-source.txt"),
+    join(temporaryDirectory, "malformed.php"),
+  );
+  copyFileSync(
     join(fixtureDirectory, "malformed-rust-source.txt"),
     join(temporaryDirectory, "malformed.rs"),
   );
@@ -56,6 +60,10 @@ try {
   copyFileSync(
     join(fixtureDirectory, "duplicate-go-source-ids.txt"),
     join(temporaryDirectory, "duplicate-source-ids.go"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-php-source-ids.txt"),
+    join(temporaryDirectory, "duplicate-source-ids.php"),
   );
   copyFileSync(
     join(fixtureDirectory, "duplicate-rust-source-ids.txt"),
@@ -101,7 +109,7 @@ try {
       workingDirectory: fixtureDirectory,
       status: 0,
       stdout:
-        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\npython/contracts.py\nrust/src/contracts.rs\n",
+        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\nphp/contracts.php\npython/contracts.py\nrust/src/contracts.rs\n",
       stderr: "",
     },
     {
@@ -149,6 +157,15 @@ try {
         'cc-check: malformed.go:3:4: error: Contract "missing-prose" has no prose body\n',
     },
     {
+      name: "format rejects malformed PHP contracts",
+      arguments: ["format", "malformed.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.php:3:4: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
       name: "format rejects malformed Rust contracts",
       arguments: ["format", "malformed.rs"],
       workingDirectory: temporaryDirectory,
@@ -191,6 +208,15 @@ try {
       stdout: "",
       stderr:
         'cc-check: duplicate-source-ids.go:7:1: error: Contract ID "duplicate-go-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects duplicate PHP IDs on one declaration",
+      arguments: ["format", "duplicate-source-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-source-ids.php:6:1: error: Contract ID "duplicate-php-source-id" is not unique within its declaration\n',
     },
     {
       name: "format rejects duplicate Rust IDs on one declaration",
@@ -302,6 +328,57 @@ try {
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "go/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list prints every contract in a PHP file",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts to a source location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:45"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts to a promoted property",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:31:25",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(
+          fixtureDirectory,
+          "php/list-promoted-property-location-output.txt",
+        ),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a backed enum value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:85:18",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-backed-enum-location-output.txt"),
         "utf8",
       ),
       stderr: "",

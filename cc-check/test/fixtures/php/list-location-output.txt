@@ -1,0 +1,16 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-invoice-service-fixture:4
+  scope:declaration class `InvoiceService` · owner:spolu · label:product
+
+  > Represents a PHP service used by the CLI integration tests.
+
+◆ php-payment-fixture:34
+  scope:declaration method `for` · owner:spolu · label:product
+
+  > Provides a keyword-named method used to exercise PHP parser recovery.
+
+◆ php-payment-result-fixture:38
+  scope:declaration method `for` · owner:spolu · label:product
+
+  > Leaves the invoice in its expected paid state.

@@ -1,0 +1,11 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-state-fixture:75
+  scope:declaration enum `State` · owner:spolu · label:product
+
+  > Represents an enum used to exercise PHP declaration listing.
+
+◆ php-paid-case-fixture:81
+  scope:declaration enum-case `Paid` · owner:spolu · label:product
+
+  > Defines a contract on an enum case.
