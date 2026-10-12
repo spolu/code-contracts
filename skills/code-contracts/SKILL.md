@@ -111,6 +111,10 @@ contracts_file
 contract      = directive, NL, prose ;
 directive     = "@cc", SP, [ metadata, SP ], contract_id ;
 
+ignore        = ignore_directive, NL, prose ;
+ignore_directive
+              = "@cc-ignore", SP, [ metadata, SP ], contract_id ;
+
 metadata      = "[", attribute, { ",", attribute }, "]" ;
 attribute     = key, ":", value ;
 
@@ -128,10 +132,10 @@ instead of repeating its key:
 `[owner:spolu,owner:tdraier,label:product]`, or `label:product;security` for multiple labels.
 Repeated keys remain valid. Semicolon-separated lists are a metadata convention; the parser
 preserves each value as a single token. `prose_line` is any line that does not begin with an `@cc`
-directive.
+or `@cc-ignore` directive.
 
-`owner` lists GitHub usernames to notify when an existing contract is changed or removed. Contract
-introductions do not notify owners. `notify` lists GitHub usernames to notify on every discovered
+`owner` lists GitHub usernames to notify when an existing contract is changed or removed, or when
+an ignore of that contract is introduced or changed. Contract introductions do not notify owners. `notify` lists GitHub usernames to notify on every discovered
 violation of that contract.
 For example, `[owner:spolu,notify:spolu;flvndvd,label:product]` notifies `spolu` about contract
 changes and both `spolu` and `flvndvd` about violations. Owners are not automatically notified about
@@ -143,7 +147,7 @@ directive in a `CONTRACTS` file, or the end of that file. It may contain any tex
 number of lines. The core format does not prescribe vocabulary, sentence shape, modality, or a
 requirements notation, but Markdown is generally expected.
 
-A documentation comment contains one `@cc` directive. Multiple consecutive contract comments may
+A documentation comment contains one `@cc` or `@cc-ignore` directive. Multiple consecutive contract comments may
 attach to the same declaration. Contract IDs are unique and stable within the declaration to which
 they are attached; the same ID may be used on a different declaration. Contracts in a `CONTRACTS`
 file are not attached to a declaration, and their IDs are unique and stable within that file and
@@ -152,6 +156,34 @@ across all parent `CONTRACTS` files.
 The identity of an attached contract is the language-specific identity of its declaration plus its
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
 file plus its contract ID.
+
+### Ignoring contracts
+
+A declaration may exceptionally opt out of a contract inherited from an enclosing declaration or an
+ancestor `CONTRACTS` file with an `@cc-ignore` directive in its documentation comment. Its prose is
+the non-empty justification for the exception.
+
+```typescript
+/**
+ * @cc-ignore database-access-thru-resources
+ * Schema bootstrap runs before `Resource` interfaces are initialized.
+ */
+export async function bootstrapSchema(): Promise<void> {
+  ...
+}
+```
+
+An unqualified ignore targets the contract with that ID on the nearest enclosing declaration that
+has one, otherwise the directory contract with that ID from an ancestor `CONTRACTS` file. The
+well-known `from` attribute instead targets the directory contract in the given repository-relative
+`CONTRACTS` file, which must be an ancestor of the declaration's file:
+`@cc-ignore [from:src/db/CONTRACTS] database-access-thru-resources`. An ignore that does not resolve
+to an inherited contract is invalid; a declaration cannot ignore its own contracts. A declaration
+ignores a given contract at most once. `@cc-ignore` directives are not valid in `CONTRACTS` files.
+
+The ignored contract does not apply to the ignoring declaration or the declarations nested within
+it. All other applicable contracts still apply, and code outside the ignoring declaration, including
+its callers, remains bound by the ignored contract.
 
 ## Code contracts workflow
 
@@ -162,6 +194,8 @@ For `$code-contracts verify`, follow [On-demand verification](#on-demand-verific
 Before changing or reviewing code, identify every local, enclosing-declaration, and ancestor
 `CONTRACTS`-file obligation governing the target, manually or with `cc-check list`. Resolve called
 symbols and inspect their contracts too: a call can violate a contract declared in another file.
+Exclude contracts ignored by the target or an enclosing declaration with `@cc-ignore`, after
+checking that each such ignore resolves to an inherited contract.
 
 Treat all applicable local and directory contracts as simultaneous obligations. Surface conflicting,
 obsolete, or impossible contracts instead of choosing one silently. Documentation examples and
@@ -181,7 +215,8 @@ GitHub identity when available, and ask rather than guessing when it cannot be d
 owners are possible; prefer separating their usernames with `;` in a single `owner` attribute.
 Use the same convention for multiple labels and `notify` recipients. Set `notify` only when
 explicitly requested by the user; do not infer it from `owner`. Preserve established repository
-metadata conventions.
+metadata conventions. Add `@cc-ignore` only when the user explicitly requests that exception, and
+state the user's justification as its prose.
 
 Validate contract syntax with `cc-check format`. The command reports malformed syntax and duplicate
 IDs only. It does not prove that the prose is true or that code complies with it. You are responsible
@@ -232,7 +267,7 @@ impact of the contract change on consumers of the associated declaration.
 - Reconcile the implementation, relevant tests, and contract prose after each meaningful change.
 - When behavior intentionally changes, update the contract in the same change if that specification
   change is in scope.
-- Never delete or weaken a contract merely to make an implementation appear compliant.
+- Never delete, weaken, or ignore a contract merely to make an implementation appear compliant.
 - Treat a code/contract mismatch as a finding. Fix it or surface it clearly; do not assume either
   side is automatically correct.
 
@@ -261,8 +296,8 @@ Audits without a diff cover the full selected scope.
    For a commit comparison, use `git diff --find-renames <merge_base> <head_sha>` and
    `git show <merge_base>:<path>` for old code and contracts. Include local changes when in scope.
    Discover changed files locally even when a supplied file list may be truncated. Inspect additions,
-   modifications, and the effects of deletions. Compare entire contract bodies and metadata;
-   searching added `@cc` lines alone misses prose-only changes and removed contracts.
+   modifications, and the effects of deletions. Compare entire contract and ignore bodies and
+   metadata; searching added `@cc` lines alone misses prose-only changes and removed contracts.
 2. Apply [Discovering contracts](#discovering-contracts) to the code in scope. Validate relevant
    contract syntax with `cc-check format`; it checks syntax, not semantic validity or compliance.
    Use a caller-supplied `cc-check` executable when provided. If tooling is unavailable, inspect
@@ -272,9 +307,13 @@ Audits without a diff cover the full selected scope.
    implementation and with other applicable contracts. Report contradictions and evidenced
    mismatches; neither code nor contract is automatically correct. Do not excuse a violation
    because its contract was weakened or deleted in the same change. Distinguish an intentional,
-   coherent specification change from a hidden regression.
+   coherent specification change from a hidden regression. Do not report violations of a contract
+   within the scope of a valid ignore. Report an ignore that does not resolve to an inherited
+   contract, or whose prose does not justify an exception to that contract.
 4. For every introduced, changed, or explicitly targeted contract, inspect the implementing
    declaration and its consumers, including unchanged callers, subject to the relevance rule above.
+   For every removed or retargeted ignore, check the previously ignoring declaration against the
+   contracts that apply to it again.
    Find callers and references with `rg` and source navigation. Trace imports, re-exports, aliases,
    wrappers, and type/member uses; confirm each match refers to the affected declaration. For
    directory contracts, inspect the affected code in their subtree and consumers of affected

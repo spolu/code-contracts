@@ -106,6 +106,10 @@ contracts_file
 contract      = directive, NL, prose ;
 directive     = "@cc", SP, [ metadata, SP ], contract_id ;
 
+ignore        = ignore_directive, NL, prose ;
+ignore_directive
+              = "@cc-ignore", SP, [ metadata, SP ], contract_id ;
+
 metadata      = "[", attribute, { ",", attribute }, "]" ;
 attribute     = key, ":", value ;
 
@@ -123,10 +127,10 @@ instead of repeating its key:
 `[owner:spolu,owner:tdraier,label:product]`, or `label:product;security` for multiple labels.
 Repeated keys remain valid. Semicolon-separated lists are a metadata convention; the parser
 preserves each value as a single token. `prose_line` is any line that does not begin with an `@cc`
-directive.
+or `@cc-ignore` directive.
 
-`owner` lists GitHub usernames to notify when an existing contract is changed or removed. Contract
-introductions do not notify owners. `notify` lists GitHub usernames to notify on every discovered
+`owner` lists GitHub usernames to notify when an existing contract is changed or removed, or when
+an ignore of that contract is introduced or changed. Contract introductions do not notify owners. `notify` lists GitHub usernames to notify on every discovered
 violation of that contract.
 For example, `[owner:spolu,notify:spolu;flvndvd,label:product]` notifies `spolu` about contract
 changes and both `spolu` and `flvndvd` about violations. Owners are not automatically notified about
@@ -138,7 +142,7 @@ directive in a `CONTRACTS` file, or the end of that file. It may contain any tex
 number of lines. The core format does not prescribe vocabulary, sentence shape, modality, or a
 requirements notation, but Markdown is generally expected.
 
-A documentation comment contains one `@cc` directive. Multiple consecutive contract comments may
+A documentation comment contains one `@cc` or `@cc-ignore` directive. Multiple consecutive contract comments may
 attach to the same declaration. Contract IDs are unique and stable within the declaration to which
 they are attached; the same ID may be used on a different declaration. Contracts in a `CONTRACTS`
 file are not attached to a declaration, and their IDs are unique and stable within that file and
@@ -147,6 +151,34 @@ across all parent `CONTRACTS` files.
 The identity of an attached contract is the language-specific identity of its declaration plus its
 contract ID. The identity of a directory contract is the repository-relative path of its `CONTRACTS`
 file plus its contract ID.
+
+### Ignoring contracts
+
+A declaration may exceptionally opt out of a contract inherited from an enclosing declaration or an
+ancestor `CONTRACTS` file with an `@cc-ignore` directive in its documentation comment. Its prose is
+the non-empty justification for the exception.
+
+```typescript
+/**
+ * @cc-ignore database-access-thru-resources
+ * Schema bootstrap runs before `Resource` interfaces are initialized.
+ */
+export async function bootstrapSchema(): Promise<void> {
+  ...
+}
+```
+
+An unqualified ignore targets the contract with that ID on the nearest enclosing declaration that
+has one, otherwise the directory contract with that ID from an ancestor `CONTRACTS` file. The
+well-known `from` attribute instead targets the directory contract in the given repository-relative
+`CONTRACTS` file, which must be an ancestor of the declaration's file:
+`@cc-ignore [from:src/db/CONTRACTS] database-access-thru-resources`. An ignore that does not resolve
+to an inherited contract is invalid; a declaration cannot ignore its own contracts. A declaration
+ignores a given contract at most once. `@cc-ignore` directives are not valid in `CONTRACTS` files.
+
+The ignored contract does not apply to the ignoring declaration or the declarations nested within
+it. All other applicable contracts still apply, and code outside the ignoring declaration, including
+its callers, remains bound by the ignored contract.
 
 ## Agent skill
 

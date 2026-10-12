@@ -115,6 +115,10 @@
 contract       = directive, NL, prose ;
 directive      = "@cc", SP, [ metadata, SP ], contract_id ;
 
+ignore         = ignore_directive, NL, prose ;
+ignore_directive
+               = "@cc-ignore", SP, [ metadata, SP ], contract_id ;
+
 metadata       = "[", attribute, { ",", attribute }, "]" ;
 attribute      = key, ":", value ;
 
@@ -124,6 +128,7 @@ value          = token ;
 prose          = prose_line, { NL, prose_line } ;</code></pre>
               <p><code>SP</code> is one or more spaces; <code>NL</code> is a line break. A token contains no whitespace, commas, colons, or square brackets. Comment decorations are removed before parsing. Prose is non-empty.</p>
               <p>IDs are stable and unique within their declaration, or within a <code>CONTRACTS</code> file and its ancestors. Separate multiple metadata values with <code>;</code>, for example <code>owner:alice;bob</code>.</p>
+              <p>A declaration can exceptionally opt out of an inherited contract with <code>@cc-ignore &lt;contract_id&gt;</code> followed by a justification. <code>[from:path/CONTRACTS]</code> selects a directory contract explicitly.</p>
               <a class="text-link" href="https://github.com/spolu/code-contracts#specification-and-grammar">Read the full specification <span aria-hidden="true">↗</span></a>
             </div>
           </details>
@@ -153,7 +158,7 @@ prose          = prose_line, { NL, prose_line } ;</code></pre>
             <article class="workflow">
               <div class="workflow-label"><span class="workflow-number">B</span> In your pull request</div>
               <h3>Review pull requests.</h3>
-              <p>Review agents notify <code>owner</code> recipients when existing contracts change or are removed, and notify <code>notify</code> recipients when they find violations.</p>
+              <p>Review agents notify <code>owner</code> recipients when existing contracts change or are removed, or when a contract is ignored, and notify <code>notify</code> recipients when they find violations.</p>
               <div class="pr-preview" aria-label="Illustrative GitHub review">
                 <div class="pr-bar"><span><span class="pr-symbol" aria-hidden="true">⑂</span> Simplify payment updates</span><span>example</span></div>
                 <div class="pr-thread">
