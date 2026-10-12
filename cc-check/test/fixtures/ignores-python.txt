@@ -1,0 +1,12 @@
+class IgnoringService:
+    """
+    @cc [owner:spolu,label:product] ignore-python-class-rule
+    Defines a Python class rule that a method may ignore.
+    """
+
+    def bootstrap(self) -> None:
+        """
+        @cc-ignore ignore-python-class-rule
+        Exercises a Python ignore of an enclosing class contract.
+        """
+        return None

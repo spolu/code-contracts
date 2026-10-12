@@ -1,0 +1,13 @@
+package fixture
+
+/*
+ * @cc [owner:spolu,label:product] ignore-go-type-rule
+ * Defines a Go receiver type rule that a method may ignore.
+ */
+type IgnoringService struct{}
+
+/*
+ * @cc-ignore ignore-go-type-rule
+ * Exercises a Go ignore of a receiver type contract.
+ */
+func (IgnoringService) Bootstrap() {}

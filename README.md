@@ -59,14 +59,16 @@ npm install --global @spolu/cc-check
 
 The `cc-check` command-line interface provides:
 
-- `cc-check format [file-like]`: reports malformed `@cc` syntax and duplicate contract IDs in a
-  supported source or `CONTRACTS` file. Without a path, it recursively inspects every supported file
-  in the current directory. It never rewrites files or assesses contract prose or implementation
+- `cc-check format [file-like]`: reports malformed `@cc` syntax, duplicate contract IDs, and
+  `@cc-ignore` directives that do not resolve to an inherited contract in a supported source or
+  `CONTRACTS` file. Without a path, it recursively inspects every supported file in the current
+  directory. It never rewrites files or assesses contract prose or implementation
   compliance.
 - `cc-check list <file-like|location-like>`: lists contracts attached to declarations throughout a
   supported source file, or contracts applicable to the declaration containing a source location
-  and its declaration ancestors. Directory-scoped contracts from ancestor `CONTRACTS` files are
-  included by default; pass `--no-global` to exclude them.
+  and its declaration ancestors, marking contracts ignored at that location. Directory-scoped
+  contracts from ancestor `CONTRACTS` files are included by default; pass `--no-global` to exclude
+  them.
 
 ```text
 cc-check format

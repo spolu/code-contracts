@@ -1,0 +1,5 @@
+/**
+ * @cc-ignore ignore-directory-rule
+ * Exercises a Rust ignore of a directory contract.
+ */
+pub fn bootstrap() {}

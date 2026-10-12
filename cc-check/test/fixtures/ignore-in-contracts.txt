@@ -1,0 +1,5 @@
+@cc [owner:spolu,label:architecture] ignore-directory-rule
+Defines a directory rule.
+
+@cc-ignore ignore-directory-rule
+Directory contracts cannot be ignored from a CONTRACTS file.

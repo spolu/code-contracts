@@ -42,7 +42,8 @@ cc-check list <file-like|location-like>
 
 `format` reports malformed `@cc` directives according to the
 [contracts grammar](https://github.com/spolu/code-contracts#specification-and-grammar) and duplicate
-IDs within the selected files. With a file argument, it inspects every
+IDs within the selected files, and `@cc-ignore` directives that do not resolve to an inherited
+contract. With a file argument, it inspects every
 `@cc` JSDoc-style `/** ... */` comment in a TypeScript source file, every `@cc` triple-quoted
 docstring in a Python source file, every `@cc` line-comment group or block comment in a Go source
 file, every `@cc` Rust doc comment, or every contract in a `CONTRACTS` file. Without an argument, it
@@ -58,14 +59,18 @@ cc-check format CONTRACTS
 cc-check format
 ```
 
-A targeted file with no format or ID-uniqueness issue produces no output. Malformed syntax or a
-duplicate ID produces source-located diagnostics and a non-zero exit status:
+A targeted file with no format, ID-uniqueness, or ignore issue produces no output. Malformed
+syntax, a duplicate ID, or an unresolved ignore produces source-located diagnostics and a non-zero exit status:
 
 ```text
 cc-check: src/example.ts:12:1: error: Invalid @cc directive
 ```
 
-Attached IDs must be unique within a declaration, but may repeat on distinct declarations.
+Attached IDs must be unique within a declaration, but may repeat on distinct declarations. A
+declaration may ignore a given contract once. Each `@cc-ignore` must resolve to a contract on a
+broader declaration or, otherwise or with `from`, to a contract in an ancestor `CONTRACTS` file;
+`CONTRACTS` files cannot contain `@cc-ignore`. Checking ignores of directory contracts requires a
+repository root containing `.git`.
 `CONTRACTS` IDs must be unique along ancestor chains included in the selected files, but may repeat
 in sibling directory branches. A targeted file is the entire inspection scope; an argument-free
 run uses every recursively discovered file.
@@ -94,6 +99,14 @@ cc-check list --no-global src/example.ts:42:10
   scope:declaration function `payInvoice` · owner:spolu · label:product
 
   > `from.balance` is decreased by `invoice.amount` and `invoice.status` is set to `paid`.
+```
+
+Ignores are listed with `⊘` and `kind:ignore`. For a location, a contract ignored by an applicable
+declaration remains listed with `ignored-by:<file>:<line>` naming the ignore:
+
+```text
+◆ database-access-thru-resources:1
+  scope:directory · ignored-by:src/bootstrap.ts:3 · owner:spolu · label:architecture
 ```
 
 Contracts may have multiple owners, notification recipients, and labels. Prefer semicolon-separated
