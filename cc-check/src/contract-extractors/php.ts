@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 
 import type { SyntaxNode, Tree } from "@lezer/common";
-import { parser } from "@lezer/php";
 
+import { parser } from "../../generated/php/parser.js";
 import { parseContracts, type CodeContract } from "../contract.js";
 import type { SourcePosition, SourceRange } from "../file-location.js";
 import type {
@@ -52,22 +52,6 @@ interface PhpDeclaration {
 
 export const isPhpSourceFile = (filePath: string): boolean =>
   extname(filePath).toLowerCase() === ".php";
-
-const BACKED_ENUM_DOUBLE_QUOTED_CASE =
-  /(\bcase[ \t]+[A-Za-z_\x80-\uFFFF][A-Za-z0-9_\x80-\uFFFF]*[ \t]*=[ \t]*)("(?:\\[\s\S]|[^"\\])*")/g;
-
-const parserSource = (source: string): string =>
-  source.replace(
-    BACKED_ENUM_DOUBLE_QUOTED_CASE,
-    (_match, prefix: string, value: string) =>
-      `${prefix}'${value
-        .slice(1, -1)
-        .split("")
-        .map((character) =>
-          character === "\r" || character === "\n" ? character : "x",
-        )
-        .join("")}'`,
-  );
 
 const children = (node: SyntaxNode): SyntaxNode[] => {
   const result: SyntaxNode[] = [];
@@ -427,7 +411,7 @@ export function extractPhpContractDocuments(
     filePath,
     source,
     lines,
-    parser.parse(parserSource(source)),
+    parser.parse(source),
   ).filter((document) => hasPotentialContractDirective(document.source));
 }
 
@@ -490,7 +474,7 @@ const parsePhpFile = async (
 
   const source = await readFile(filePath, "utf8");
   const lines = sourceLines(source);
-  const tree = parser.parse(parserSource(source));
+  const tree = parser.parse(source);
   return {
     source,
     lines,

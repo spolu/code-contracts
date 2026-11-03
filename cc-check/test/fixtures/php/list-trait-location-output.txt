@@ -1,0 +1,11 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-shared-behavior-fixture:63
+  scope:declaration trait `SharedBehavior` · owner:spolu · label:product
+
+  > Represents a trait used to exercise PHP declaration listing.
+
+◆ php-helper-fixture:70
+  scope:declaration method `helper` · owner:spolu · label:product
+
+  > Defines a contract on a trait method.

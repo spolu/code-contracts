@@ -20,6 +20,7 @@
   },
   "files": [
     "dist",
+    "generated/php",
     "README.md"
   ],
   "publishConfig": {
@@ -30,17 +31,19 @@
     "cc-check": "dist/cc-check.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc --project tsconfig.build.json",
+    "build": "npm run clean && npm run build:php-parser && tsc --project tsconfig.build.json",
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run test:integration",
     "clean": "node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx src/cc-check.ts",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
-    "lint": "eslint --cache --cache-location .eslintcache src/",
+    "lint": "eslint --cache --cache-location .eslintcache src/ scripts/",
     "prepack": "npm run check",
     "test": "npm run test:integration",
     "test:integration": "npm run build && node test/integration.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:php-parser": "node scripts/build-php-parser.ts",
+    "predev": "npm run build:php-parser"
   },
   "engines": {
     "node": ">=24.16.0",
@@ -49,14 +52,18 @@
   "dependencies": {
     "@lezer/common": "^1.5.2",
     "@lezer/go": "^1.0.1",
-    "@lezer/php": "^1.0.6",
+    "@lezer/highlight": "^1.2.3",
+    "@lezer/lr": "^1.4.10",
     "@lezer/python": "^1.1.19",
     "@lezer/rust": "^1.0.2",
     "commander": "^15.0.0",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@lezer/generator": "1.8.1",
+    "@lezer/php": "1.0.6",
     "@types/node": "^24.13.3",
+    "diff": "8.0.2",
     "eslint": "^10.9.1",
     "prettier": "^3.9.6",
     "tsx": "^4.23.12",

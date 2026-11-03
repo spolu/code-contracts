@@ -40,32 +40,42 @@
 
   > Represents an interface used to exercise PHP declaration listing.
 
-◆ php-payer-signature-fixture:55
+◆ php-payer-signature-fixture:56
   scope:declaration method-signature `pay` · owner:spolu · label:product
 
   > Defines a contract on an interface method.
 
-◆ php-shared-behavior-fixture:62
+◆ php-shared-behavior-fixture:63
   scope:declaration trait `SharedBehavior` · owner:spolu · label:product
 
   > Represents a trait used to exercise PHP declaration listing.
 
-◆ php-helper-fixture:68
+◆ php-helper-fixture:70
   scope:declaration method `helper` · owner:spolu · label:product
 
   > Defines a contract on a trait method.
 
-◆ php-state-fixture:75
+◆ php-state-fixture:77
   scope:declaration enum `State` · owner:spolu · label:product
 
   > Represents an enum used to exercise PHP declaration listing.
 
-◆ php-paid-case-fixture:81
+◆ php-paid-case-fixture:83
   scope:declaration enum-case `Paid` · owner:spolu · label:product
 
   > Defines a contract on an enum case.
 
-◆ php-report-fixture:88
+◆ php-concatenated-case-fixture:90
+  scope:declaration enum-case `PartiallyPaid` · owner:spolu · label:product
+
+  > Defines a contract on an enum case with a constant expression.
+
+◆ php-later-case-fixture:96
+  scope:declaration enum-case `Unpaid` · owner:spolu · label:product
+
+  > Remains discoverable after enum cases with multiline and concatenated values.
+
+◆ php-report-fixture:103
   scope:declaration function `reportInvoices` · owner:spolu · label:product
 
   > Provides a separate PHP function for whole-file listing.

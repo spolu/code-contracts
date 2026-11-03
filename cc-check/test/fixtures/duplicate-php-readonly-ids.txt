@@ -1,0 +1,10 @@
+<?php
+/**
+ * @cc [owner:spolu,label:product] duplicate-php-readonly-id
+ * First readonly class contract.
+ */
+/**
+ * @cc [owner:spolu,label:product] duplicate-php-readonly-id
+ * Second readonly class contract.
+ */
+readonly class DuplicateReadonlyContracts {}

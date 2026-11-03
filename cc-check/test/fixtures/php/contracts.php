@@ -5,7 +5,7 @@
  * @cc [owner:spolu,label:product] php-invoice-service-fixture
  * Represents a PHP service used by the CLI integration tests.
  */
-final readonly class InvoiceService
+readonly class InvoiceService
 {
     /**
      * @cc [owner:spolu,label:product] php-amount-fixture
@@ -50,6 +50,7 @@ final readonly class InvoiceService
  * @cc [owner:spolu,label:product] php-payer-fixture
  * Represents an interface used to exercise PHP declaration listing.
  */
+#[Service]
 interface Payer
 {
     /**
@@ -63,6 +64,7 @@ interface Payer
  * @cc [owner:spolu,label:product] php-shared-behavior-fixture
  * Represents a trait used to exercise PHP declaration listing.
  */
+#[Service]
 trait SharedBehavior
 {
     /**
@@ -82,7 +84,20 @@ enum State: string
      * @cc [owner:spolu,label:product] php-paid-case-fixture
      * Defines a contract on an enum case.
      */
-    case Paid = "paid";
+    case Paid =
+        "paid";
+
+    /**
+     * @cc [owner:spolu,label:product] php-concatenated-case-fixture
+     * Defines a contract on an enum case with a constant expression.
+     */
+    case PartiallyPaid = "partially" . "-paid";
+
+    /**
+     * @cc [owner:spolu,label:product] php-later-case-fixture
+     * Remains discoverable after enum cases with multiline and concatenated values.
+     */
+    case Unpaid = 'unpaid';
 }
 
 /**

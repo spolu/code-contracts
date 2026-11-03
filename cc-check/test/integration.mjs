@@ -66,6 +66,10 @@ try {
     join(temporaryDirectory, "duplicate-source-ids.php"),
   );
   copyFileSync(
+    join(fixtureDirectory, "duplicate-php-readonly-ids.txt"),
+    join(temporaryDirectory, "duplicate-readonly-ids.php"),
+  );
+  copyFileSync(
     join(fixtureDirectory, "duplicate-rust-source-ids.txt"),
     join(temporaryDirectory, "duplicate-source-ids.rs"),
   );
@@ -219,6 +223,15 @@ try {
         'cc-check: duplicate-source-ids.php:6:1: error: Contract ID "duplicate-php-source-id" is not unique within its declaration\n',
     },
     {
+      name: "format rejects duplicate PHP IDs on a readonly class",
+      arguments: ["format", "duplicate-readonly-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-readonly-ids.php:6:1: error: Contract ID "duplicate-php-readonly-id" is not unique within its declaration\n',
+    },
+    {
       name: "format rejects duplicate Rust IDs on one declaration",
       arguments: ["format", "duplicate-source-ids.rs"],
       workingDirectory: temporaryDirectory,
@@ -343,7 +356,7 @@ try {
       stderr: "",
     },
     {
-      name: "list scopes PHP contracts to a source location",
+      name: "list includes readonly class contracts at a method location",
       arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:45"],
       status: 0,
       stdout: readFileSync(
@@ -370,15 +383,66 @@ try {
       stderr: "",
     },
     {
-      name: "list scopes PHP contracts inside a backed enum value",
+      name: "list scopes PHP contracts inside a multiline backed enum value",
       arguments: [
         "list",
         "--no-global",
-        "test/fixtures/php/contracts.php:85:18",
+        "test/fixtures/php/contracts.php:88:12",
       ],
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "php/list-backed-enum-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list includes attributed interface contracts at a method location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:60"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-interface-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list includes attributed trait contracts at a method location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:74"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-trait-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a concatenated enum value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:94:39",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(
+          fixtureDirectory,
+          "php/list-concatenated-enum-location-output.txt",
+        ),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list preserves PHP enum cases after complex values",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:100:12",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-later-enum-location-output.txt"),
         "utf8",
       ),
       stderr: "",
