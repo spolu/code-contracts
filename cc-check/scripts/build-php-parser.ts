@@ -17,6 +17,11 @@ const outputDirectory = join(projectDirectory, "generated/php");
  * installed version differs or the patch cannot be applied without context mismatches.
  */
 /**
+ * @cc [owner:spolu,label:product] php-parser-keyword-enum-scope
+ * Generated PHP parsers MUST represent keyword-named enum cases with a `Name` child containing
+ * the original name and preserve the complete case and enclosing enum ranges.
+ */
+/**
  * @cc [owner:spolu,label:architecture] php-parser-build-isolation
  * PHP parser generation MUST write only under `generated/php`; upstream dependency files MUST
  * remain unchanged.

@@ -70,6 +70,10 @@ try {
     join(temporaryDirectory, "duplicate-readonly-ids.php"),
   );
   copyFileSync(
+    join(fixtureDirectory, "duplicate-php-after-keyword-ids.txt"),
+    join(temporaryDirectory, "duplicate-after-keyword-ids.php"),
+  );
+  copyFileSync(
     join(fixtureDirectory, "duplicate-rust-source-ids.txt"),
     join(temporaryDirectory, "duplicate-source-ids.rs"),
   );
@@ -113,7 +117,7 @@ try {
       workingDirectory: fixtureDirectory,
       status: 0,
       stdout:
-        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\nphp/contracts.php\npython/contracts.py\nrust/src/contracts.rs\n",
+        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\nphp/contracts.php\nphp/keyword-enums.php\npython/contracts.py\nrust/src/contracts.rs\n",
       stderr: "",
     },
     {
@@ -230,6 +234,15 @@ try {
       stdout: "",
       stderr:
         'cc-check: duplicate-readonly-ids.php:6:1: error: Contract ID "duplicate-php-readonly-id" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects duplicate PHP IDs after a keyword-named enum case",
+      arguments: ["format", "duplicate-after-keyword-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-after-keyword-ids.php:9:5: error: Contract ID "duplicate-php-after-keyword-id" is not unique within its declaration\n',
     },
     {
       name: "format rejects duplicate Rust IDs on one declaration",
@@ -443,6 +456,44 @@ try {
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "php/list-later-enum-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list preserves names and later declarations in PHP keyword enums",
+      arguments: ["list", "--no-global", "test/fixtures/php/keyword-enums.php"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-keyword-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a keyword-named enum case value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/keyword-enums.php:13:18",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-keyword-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts after a keyword-named enum case",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/keyword-enums.php:19",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-after-keyword-location-output.txt"),
         "utf8",
       ),
       stderr: "",

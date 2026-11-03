@@ -33,10 +33,10 @@ Node.js built-ins.
 
 The PHP parser is generated during `npm run build` and before `npm run dev`. The build applies
 `patches/lezer-php.patch` to the pinned `@lezer/php` 1.0.6 grammar to support readonly classes,
-attributes on interfaces and traits, and enum value expressions. It writes the parser and its MIT
-license to `generated/php` without modifying dependencies. Published packages include these generated
-files, so installation does not require a parser build. Remove this patch and generator once an
-upstream release includes the fixes.
+attributes on interfaces and traits, keyword-named enum cases, and enum value expressions. It writes
+the parser and its MIT license to `generated/php` without modifying dependencies. Published packages
+include these generated files, so installation does not require a parser build. Remove this patch and
+generator once an upstream release includes the fixes.
 
 ## Command surface
 

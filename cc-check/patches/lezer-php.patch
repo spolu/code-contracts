@@ -12,4 +12,4 @@ diff --git a/src/php.grammar b/src/php.grammar
 +    Attributes* trait Name DeclarationList
 @@ -171 +171 @@
 -  Attributes* case Name ("=" (String | Integer))? semicolon
-+  Attributes* case Name ("=" expression)? semicolon
++  Attributes* case MemberName ("=" expression)? semicolon
