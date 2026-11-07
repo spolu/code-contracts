@@ -69,6 +69,8 @@ delegated retries MUST retain the originating request ID.
 Publication MUST be skipped if the PR has closed. Otherwise, later head or base changes MUST NOT
 invalidate a completed review; its context, comment locations, and submitted commit MUST use the
 captured comparison.
+The merge base and commentable lines MUST come from GitHub's comparison of the captured base/head,
+including when Git has multiple best merge bases.
 
 @cc [owner:spolu,label:architecture] contract-review-automation-source
 Review handling, prompts, contract tooling, and publication use the selected action revision;

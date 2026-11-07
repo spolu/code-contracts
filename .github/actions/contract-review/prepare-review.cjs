@@ -1,22 +1,9 @@
-const { execFileSync } = require("node:child_process");
 const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
 const { join, resolve } = require("node:path");
 const { reviewMarker } = require("./review-request.cjs");
 
-async function prepareReview({
-  github,
-  context,
-  request,
-  source,
-  actionPath,
-  temp,
-}) {
+async function prepareReview({ github, context, request, actionPath, temp }) {
   reviewMarker(request);
-  const mergeBase = execFileSync(
-    "git",
-    ["merge-base", request.base_sha, request.head_sha],
-    { cwd: source, encoding: "utf8" },
-  ).trim();
   const params = {
     ...context.repo,
     pull_number: request.pull_number,
@@ -25,12 +12,13 @@ async function prepareReview({
   const [comparison, comments, reviews] = await Promise.all([
     github.rest.repos.compareCommitsWithBasehead({
       ...context.repo,
-      basehead: `${mergeBase}...${request.head_sha}`,
+      basehead: `${request.base_sha}...${request.head_sha}`,
       per_page: 1,
     }),
     github.paginate(github.rest.pulls.listReviewComments, params),
     github.paginate(github.rest.pulls.listReviews, params),
   ]);
+  const mergeBase = comparison.data.merge_base_commit.sha;
   const directory = mkdtempSync(join(temp, "contract-review-"));
   const tooling = resolve(actionPath, "../../../cc-check");
   const contextPath = join(directory, "review-context.json");

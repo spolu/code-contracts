@@ -93,13 +93,13 @@ async function publishReview({ github, context, core, review, request }) {
     return;
   }
 
-  const mergeBase = git("merge-base", request.base_sha, request.head_sha);
   const { data: comparison } =
     await github.rest.repos.compareCommitsWithBasehead({
       ...context.repo,
-      basehead: `${mergeBase}...${request.head_sha}`,
+      basehead: `${request.base_sha}...${request.head_sha}`,
       per_page: 1,
     });
+  const mergeBase = comparison.merge_base_commit.sha;
   // The first comparison page includes file patches; missing patches retain source permalinks.
   const diffs = (comparison.files ?? []).map((file) => ({
     ...file,
