@@ -9,6 +9,11 @@ import {
   startGoLocalContractExtractor,
 } from "./go.js";
 import {
+  extractPhpContractDocuments,
+  isPhpSourceFile,
+  startPhpLocalContractExtractor,
+} from "./php.js";
+import {
   extractPythonContractDocuments,
   isPythonSourceFile,
   startPythonLocalContractExtractor,
@@ -34,6 +39,9 @@ export const startLocalContractExtractor: LocalContractExtractorFactory = (
   if (typeScriptScriptKind(filePath) !== undefined) {
     return startTypeScriptLocalContractExtractor();
   }
+  if (isPhpSourceFile(filePath)) {
+    return startPhpLocalContractExtractor();
+  }
   if (isPythonSourceFile(filePath)) {
     return startPythonLocalContractExtractor();
   }
@@ -48,6 +56,7 @@ export const startLocalContractExtractor: LocalContractExtractorFactory = (
 
 export const isSupportedContractSource = (filePath: string): boolean =>
   typeScriptScriptKind(filePath) !== undefined ||
+  isPhpSourceFile(filePath) ||
   isPythonSourceFile(filePath) ||
   isGoSourceFile(filePath) ||
   isRustSourceFile(filePath);
@@ -58,6 +67,9 @@ export const extractSourceContractDocuments = (
 ): ContractDocument[] => {
   if (typeScriptScriptKind(filePath) !== undefined) {
     return extractTypeScriptContractDocuments(filePath, source);
+  }
+  if (isPhpSourceFile(filePath)) {
+    return extractPhpContractDocuments(filePath, source);
   }
   if (isPythonSourceFile(filePath)) {
     return extractPythonContractDocuments(filePath, source);

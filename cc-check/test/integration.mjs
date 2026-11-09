@@ -38,6 +38,10 @@ try {
     join(temporaryDirectory, "malformed.go"),
   );
   copyFileSync(
+    join(fixtureDirectory, "malformed-php-source.txt"),
+    join(temporaryDirectory, "malformed.php"),
+  );
+  copyFileSync(
     join(fixtureDirectory, "malformed-rust-source.txt"),
     join(temporaryDirectory, "malformed.rs"),
   );
@@ -56,6 +60,18 @@ try {
   copyFileSync(
     join(fixtureDirectory, "duplicate-go-source-ids.txt"),
     join(temporaryDirectory, "duplicate-source-ids.go"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-php-source-ids.txt"),
+    join(temporaryDirectory, "duplicate-source-ids.php"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-php-readonly-ids.txt"),
+    join(temporaryDirectory, "duplicate-readonly-ids.php"),
+  );
+  copyFileSync(
+    join(fixtureDirectory, "duplicate-php-after-keyword-ids.txt"),
+    join(temporaryDirectory, "duplicate-after-keyword-ids.php"),
   );
   copyFileSync(
     join(fixtureDirectory, "duplicate-rust-source-ids.txt"),
@@ -101,7 +117,7 @@ try {
       workingDirectory: fixtureDirectory,
       status: 0,
       stdout:
-        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\npython/contracts.py\nrust/src/contracts.rs\n",
+        "CONTRACTS\ncontracts.ts\ngo/contracts.go\nno-contracts.ts\nphp/contracts.php\nphp/keyword-enums.php\npython/contracts.py\nrust/src/contracts.rs\n",
       stderr: "",
     },
     {
@@ -149,6 +165,15 @@ try {
         'cc-check: malformed.go:3:4: error: Contract "missing-prose" has no prose body\n',
     },
     {
+      name: "format rejects malformed PHP contracts",
+      arguments: ["format", "malformed.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: malformed.php:3:4: error: Contract "missing-prose" has no prose body\n',
+    },
+    {
       name: "format rejects malformed Rust contracts",
       arguments: ["format", "malformed.rs"],
       workingDirectory: temporaryDirectory,
@@ -191,6 +216,33 @@ try {
       stdout: "",
       stderr:
         'cc-check: duplicate-source-ids.go:7:1: error: Contract ID "duplicate-go-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects duplicate PHP IDs on one declaration",
+      arguments: ["format", "duplicate-source-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-source-ids.php:6:1: error: Contract ID "duplicate-php-source-id" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects duplicate PHP IDs on a readonly class",
+      arguments: ["format", "duplicate-readonly-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-readonly-ids.php:6:1: error: Contract ID "duplicate-php-readonly-id" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects duplicate PHP IDs after a keyword-named enum case",
+      arguments: ["format", "duplicate-after-keyword-ids.php"],
+      workingDirectory: temporaryDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: duplicate-after-keyword-ids.php:9:5: error: Contract ID "duplicate-php-after-keyword-id" is not unique within its declaration\n',
     },
     {
       name: "format rejects duplicate Rust IDs on one declaration",
@@ -302,6 +354,146 @@ try {
       status: 0,
       stdout: readFileSync(
         join(fixtureDirectory, "go/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list prints every contract in a PHP file",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list includes readonly class contracts at a method location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:45"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts to a promoted property",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:31:25",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(
+          fixtureDirectory,
+          "php/list-promoted-property-location-output.txt",
+        ),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a multiline backed enum value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:88:12",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-backed-enum-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list includes attributed interface contracts at a method location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:60"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-interface-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list includes attributed trait contracts at a method location",
+      arguments: ["list", "--no-global", "test/fixtures/php/contracts.php:74"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-trait-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a concatenated enum value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:94:39",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(
+          fixtureDirectory,
+          "php/list-concatenated-enum-location-output.txt",
+        ),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list preserves PHP enum cases after complex values",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/contracts.php:100:12",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-later-enum-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list preserves names and later declarations in PHP keyword enums",
+      arguments: ["list", "--no-global", "test/fixtures/php/keyword-enums.php"],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-keyword-file-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts inside a keyword-named enum case value",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/keyword-enums.php:13:18",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-keyword-location-output.txt"),
+        "utf8",
+      ),
+      stderr: "",
+    },
+    {
+      name: "list scopes PHP contracts after a keyword-named enum case",
+      arguments: [
+        "list",
+        "--no-global",
+        "test/fixtures/php/keyword-enums.php:19",
+      ],
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "php/list-after-keyword-location-output.txt"),
         "utf8",
       ),
       stderr: "",

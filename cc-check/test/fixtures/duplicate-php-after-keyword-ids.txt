@@ -1,0 +1,14 @@
+<?php
+enum KeywordState: string
+{
+    case New = 'new';
+    /**
+     * @cc [owner:spolu,label:product] duplicate-php-after-keyword-id
+     * First enum case contract.
+     */
+    /**
+     * @cc [owner:spolu,label:product] duplicate-php-after-keyword-id
+     * Second enum case contract.
+     */
+    case Pending = 'pending';
+}

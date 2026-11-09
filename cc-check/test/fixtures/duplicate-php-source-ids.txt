@@ -1,0 +1,10 @@
+<?php
+/**
+ * @cc [owner:spolu,label:product] duplicate-php-source-id
+ * First PHP contract.
+ */
+/**
+ * @cc [owner:spolu,label:product] duplicate-php-source-id
+ * Second PHP contract.
+ */
+function duplicatePhpContracts(): void {}

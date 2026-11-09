@@ -1,0 +1,11 @@
+=> test/fixtures/php/keyword-enums.php <=
+
+◆ php-keyword-state-fixture:3
+  scope:declaration enum `KeywordState` · owner:spolu · label:product
+
+  > Represents a backed enum with a keyword-named case.
+
+◆ php-pending-case-fixture:15
+  scope:declaration enum-case `Pending` · owner:spolu · label:product
+
+  > Remains discoverable after a keyword-named enum case.

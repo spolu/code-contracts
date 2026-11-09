@@ -1,0 +1,15 @@
+diff --git a/src/php.grammar b/src/php.grammar
+--- a/src/php.grammar
++++ b/src/php.grammar
+@@ -118 +118 @@
+-    Attributes* (final | abstract)? class Name BaseClause? ClassInterfaceClause? DeclarationList
++    Attributes* (final | abstract | readonly)* class Name BaseClause? ClassInterfaceClause? DeclarationList
+@@ -121 +121 @@
+-    interface Name BaseClause? DeclarationList
++    Attributes* interface Name BaseClause? DeclarationList
+@@ -124 +124 @@
+-    trait Name DeclarationList
++    Attributes* trait Name DeclarationList
+@@ -171 +171 @@
+-  Attributes* case Name ("=" (String | Integer))? semicolon
++  Attributes* case MemberName ("=" expression)? semicolon

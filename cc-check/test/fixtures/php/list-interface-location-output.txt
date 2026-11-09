@@ -1,0 +1,11 @@
+=> test/fixtures/php/contracts.php <=
+
+◆ php-payer-fixture:49
+  scope:declaration interface `Payer` · owner:spolu · label:product
+
+  > Represents an interface used to exercise PHP declaration listing.
+
+◆ php-payer-signature-fixture:56
+  scope:declaration method-signature `pay` · owner:spolu · label:product
+
+  > Defines a contract on an interface method.
