@@ -34,6 +34,9 @@ recipients. Labels do not identify recipients. Never infer missing owners or not
   directive and LEFT for removals; otherwise use the head directive and RIGHT, even if the
   directive itself is outside the diff hunk. New contracts still require validity and caller checks,
   and violations still notify their `notify` recipients.
+- For each introduced or edited `@cc-ignore`, emit a `contract-change` comment at the head
+  `@cc-ignore` directive with an empty body, notifying the owners of the ignored contract (both old
+  and new targets for a retargeted ignore). Do not notify owners when an ignore is removed.
 - Emit one `violation` comment per distinct violating code element and contract. Name the contract
   ID and its declaration/file (IDs are not repository-global), explain the concrete execution or
   evidence that breaks it, and state the consequence in one short paragraph. Aim for one or two

@@ -526,6 +526,7 @@ const contractsForDeclaration = (
     return contract
       ? [
           {
+            kind: contract.kind,
             id: contract.id,
             attributes: contract.attributes,
             directive: contract.directive,

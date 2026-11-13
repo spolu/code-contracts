@@ -5,7 +5,8 @@ never approve a PR or request changes.
 @cc [owner:spolu,label:product] contract-review-notifications
 For an edited or removed existing contract, the review MUST cc its owners at that contract unless
 the same change was already notified. Edits use both old and new owners; removals use old owners.
-New contracts MUST NOT produce owner notifications.
+New contracts MUST NOT produce owner notifications. An introduced or edited `@cc-ignore` MUST cc
+the owners of the ignored contract at the ignore directive; removed ignores MUST NOT notify owners.
 
 @cc [owner:spolu,label:product] contract-review-violation-recipients
 Each newly reported violation MUST cc the violated contract's `notify` recipients. Owners MUST NOT

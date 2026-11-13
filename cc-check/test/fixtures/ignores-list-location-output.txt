@@ -1,0 +1,23 @@
+=> CONTRACTS <=
+
+◆ ignore-directory-rule:1
+  scope:directory · ignored-by:ignores.ts:10 · owner:spolu · label:architecture
+
+  > Defines a directory rule that nested declarations may ignore.
+
+=> ignores.ts <=
+
+◆ ignore-class-rule:1
+  scope:declaration class `IgnoringService` · ignored-by:ignores.ts:6 · owner:spolu · label:product
+
+  > Defines a class rule that a method may ignore.
+
+⊘ ignore-class-rule:6
+  scope:declaration method `bootstrap` · kind:ignore
+
+  > Exercises an unqualified ignore of an enclosing declaration contract.
+
+⊘ ignore-directory-rule:10
+  scope:declaration method `bootstrap` · kind:ignore · from:CONTRACTS
+
+  > Exercises a qualified ignore of a directory contract.

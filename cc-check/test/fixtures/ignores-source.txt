@@ -1,0 +1,15 @@
+/**
+ * @cc [owner:spolu,label:product] ignore-class-rule
+ * Defines a class rule that a method may ignore.
+ */
+export class IgnoringService {
+  /**
+   * @cc-ignore ignore-class-rule
+   * Exercises an unqualified ignore of an enclosing declaration contract.
+   */
+  /**
+   * @cc-ignore [from:CONTRACTS] ignore-directory-rule
+   * Exercises a qualified ignore of a directory contract.
+   */
+  bootstrap(): void {}
+}

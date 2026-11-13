@@ -1,0 +1,31 @@
+/**
+ * @cc-ignore missing-rule
+ * Targets no inherited contract.
+ */
+export function orphan(): void {}
+
+/**
+ * @cc [owner:spolu,label:product] own-rule
+ * Defines a contract on the ignoring declaration itself.
+ */
+/**
+ * @cc-ignore own-rule
+ * Cannot target a contract on its own declaration.
+ */
+export function ignoresItself(): void {}
+
+/**
+ * @cc-ignore [from:other/CONTRACTS] ignore-directory-rule
+ * Names a CONTRACTS file that does not define the contract.
+ */
+export function wrongSource(): void {}
+
+/**
+ * @cc-ignore ignore-directory-rule
+ * Ignores a directory contract once.
+ */
+/**
+ * @cc-ignore ignore-directory-rule
+ * Ignores the same directory contract again.
+ */
+export function ignoresTwice(): void {}

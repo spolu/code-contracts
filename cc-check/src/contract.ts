@@ -3,16 +3,23 @@ import type { SourceRange } from "./file-location.js";
 const TOKEN_SOURCE = String.raw`[^\s,:\[\]]+`;
 const ATTRIBUTE_PATTERN = new RegExp(`^(${TOKEN_SOURCE}):(${TOKEN_SOURCE})$`);
 const DIRECTIVE_PATTERN = new RegExp(
-  `^@cc +(?:\\[(${TOKEN_SOURCE}:${TOKEN_SOURCE}(?:,${TOKEN_SOURCE}:${TOKEN_SOURCE})*)\\] +)?(${TOKEN_SOURCE})$`,
+  `^@cc(-ignore)? +(?:\\[(${TOKEN_SOURCE}:${TOKEN_SOURCE}(?:,${TOKEN_SOURCE}:${TOKEN_SOURCE})*)\\] +)?(${TOKEN_SOURCE})$`,
 );
-const DIRECTIVE_START_PATTERN = /^@cc(?: |$)/;
+const DIRECTIVE_START_PATTERN = /^@cc(?:-ignore)?(?: |$)/;
 
 export interface ContractAttribute {
   key: string;
   value: string;
 }
 
+/**
+ * `contract` defines a code contract; `ignore` opts the attached declaration out of an inherited
+ * contract with that ID.
+ */
+export type ContractKind = "contract" | "ignore";
+
 export interface ParsedContract {
+  kind: ContractKind;
   id: string;
   attributes: ContractAttribute[];
   directive: string;
@@ -54,13 +61,13 @@ const parseDirective = (
   directive: string,
   sourceName: string,
   line: number,
-): Pick<ParsedContract, "id" | "attributes" | "directive"> => {
+): Pick<ParsedContract, "kind" | "id" | "attributes" | "directive"> => {
   const match = DIRECTIVE_PATTERN.exec(directive);
   if (!match) {
     throw new ContractParseError("Invalid @cc directive", sourceName, line);
   }
 
-  const [, metadata, id] = match;
+  const [, ignore, metadata, id] = match;
   if (!id) {
     throw new ContractParseError("Invalid @cc directive", sourceName, line);
   }
@@ -78,7 +85,7 @@ const parseDirective = (
     return [{ key: attributeMatch[1], value: attributeMatch[2] }];
   });
 
-  return { id, attributes, directive };
+  return { kind: ignore ? "ignore" : "contract", id, attributes, directive };
 };
 
 /**
@@ -169,5 +176,26 @@ export function parseContracts(
     lineIndex = nextDirective;
   }
 
+  return contracts;
+}
+
+/**
+ * @cc [owner:spolu,label:product] directory-contract-ignores
+ * `CONTRACTS` files MUST NOT contain `@cc-ignore` directives; parsing one MUST throw
+ * `ContractParseError` at that directive.
+ */
+export function parseDirectoryContracts(
+  source: string,
+  sourceName: string,
+): ParsedContract[] {
+  const contracts = parseContracts(source, sourceName);
+  const ignore = contracts.find(({ kind }) => kind === "ignore");
+  if (ignore) {
+    throw new ContractParseError(
+      "@cc-ignore is not allowed in CONTRACTS files",
+      sourceName,
+      ignore.startLine,
+    );
+  }
   return contracts;
 }

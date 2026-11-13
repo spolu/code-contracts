@@ -94,6 +94,28 @@ try {
     join(secondSiblingDirectory, "CONTRACTS"),
   );
 
+  const ignoreDirectory = join(temporaryDirectory, "ignores");
+  mkdirSync(join(ignoreDirectory, ".git"), { recursive: true });
+  for (const [fixture, target] of [
+    ["ignore-directory-contracts.txt", "CONTRACTS"],
+    ["ignores-source.txt", "ignores.ts"],
+    ["ignores-python.txt", "ignores.py"],
+    ["ignores-go.txt", "ignores.go"],
+    ["ignores-rust.txt", "ignores.rs"],
+    ["invalid-ignores.txt", "invalid-ignores.ts"],
+  ]) {
+    copyFileSync(
+      join(fixtureDirectory, fixture),
+      join(ignoreDirectory, target),
+    );
+  }
+  const ignoreContractsDirectory = join(temporaryDirectory, "ignore-contracts");
+  mkdirSync(ignoreContractsDirectory);
+  copyFileSync(
+    join(fixtureDirectory, "ignore-in-contracts.txt"),
+    join(ignoreContractsDirectory, "CONTRACTS"),
+  );
+
   const cases = [
     {
       name: "format accepts a compliant directory",
@@ -233,6 +255,70 @@ try {
       workingDirectory: siblingDirectory,
       status: 0,
       stdout: "first/CONTRACTS\nsecond/CONTRACTS\n",
+      stderr: "",
+    },
+    {
+      name: "format accepts ignores of inherited contracts",
+      arguments: ["format", "ignores.ts"],
+      workingDirectory: ignoreDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "format accepts Python ignores of class contracts",
+      arguments: ["format", "ignores.py"],
+      workingDirectory: ignoreDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "format accepts Go ignores of receiver type contracts",
+      arguments: ["format", "ignores.go"],
+      workingDirectory: ignoreDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "format accepts Rust ignores of directory contracts",
+      arguments: ["format", "ignores.rs"],
+      workingDirectory: ignoreDirectory,
+      status: 0,
+      stdout: "",
+      stderr: "",
+    },
+    {
+      name: "format rejects unresolved and duplicate ignores",
+      arguments: ["format", "invalid-ignores.ts"],
+      workingDirectory: ignoreDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        'cc-check: invalid-ignores.ts:1:1: error: Ignore of "missing-rule" does not resolve to an inherited contract\n' +
+        'invalid-ignores.ts:11:1: error: Ignore of "own-rule" does not resolve to an inherited contract\n' +
+        'invalid-ignores.ts:17:1: error: Ignore of "ignore-directory-rule" does not resolve to an inherited contract\n' +
+        'invalid-ignores.ts:27:1: error: Ignore of "ignore-directory-rule" is not unique within its declaration\n',
+    },
+    {
+      name: "format rejects ignores in CONTRACTS files",
+      arguments: ["format", "CONTRACTS"],
+      workingDirectory: ignoreContractsDirectory,
+      status: 1,
+      stdout: "",
+      stderr:
+        "cc-check: CONTRACTS:4:1: error: @cc-ignore is not allowed in CONTRACTS files\n",
+    },
+    {
+      name: "list marks contracts ignored at a source location",
+      arguments: ["list", "ignores.ts:14"],
+      workingDirectory: ignoreDirectory,
+      status: 0,
+      stdout: readFileSync(
+        join(fixtureDirectory, "ignores-list-location-output.txt"),
+        "utf8",
+      ),
       stderr: "",
     },
     {

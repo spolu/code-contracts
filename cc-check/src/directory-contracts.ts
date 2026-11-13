@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { dirname, join, parse, resolve } from "node:path";
+import { dirname, join, parse, relative, resolve, sep } from "node:path";
 
 import {
-  parseContracts,
+  parseDirectoryContracts,
   type CodeContract,
   type ParsedContract,
 } from "./contract.js";
@@ -11,6 +11,8 @@ import {
 export interface DirectoryContract {
   contract: CodeContract;
   contractsFilePath: string;
+  /** `/`-separated path of the `CONTRACTS` file relative to the repository root. */
+  repositoryPath: string;
 }
 
 const findRepositoryRoot = (filePath: string): string => {
@@ -46,6 +48,7 @@ const locateContract = (
   contract: ParsedContract,
   contractsFilePath: string,
 ): CodeContract => ({
+  kind: contract.kind,
   id: contract.id,
   attributes: contract.attributes,
   directive: contract.directive,
@@ -77,9 +80,13 @@ export async function discoverDirectoryContracts(
     }
 
     const source = await readFile(contractsFilePath, "utf8");
-    for (const contract of parseContracts(source, contractsFilePath)) {
+    const repositoryPath = relative(repositoryRoot, contractsFilePath)
+      .split(sep)
+      .join("/");
+    for (const contract of parseDirectoryContracts(source, contractsFilePath)) {
       contracts.push({
         contractsFilePath,
+        repositoryPath,
         contract: locateContract(contract, contractsFilePath),
       });
     }

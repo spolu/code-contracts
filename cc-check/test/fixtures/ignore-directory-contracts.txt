@@ -1,0 +1,2 @@
+@cc [owner:spolu,label:architecture] ignore-directory-rule
+Defines a directory rule that nested declarations may ignore.

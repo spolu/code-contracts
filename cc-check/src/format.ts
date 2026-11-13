@@ -12,6 +12,7 @@ import {
 import {
   ContractParseError,
   parseContracts,
+  parseDirectoryContracts,
   type CodeContract,
   type ParsedContract,
 } from "./contract.js";
@@ -21,6 +22,15 @@ import {
   isSupportedContractSource,
   startLocalContractExtractor,
 } from "./contract-extractors/index.js";
+import {
+  discoverDirectoryContracts,
+  type DirectoryContract,
+} from "./directory-contracts.js";
+import { resolveIgnores } from "./ignores.js";
+import type {
+  DeclarationContracts,
+  LocalContractExtractor,
+} from "./local-contracts.js";
 
 export interface FormatCommandOptions {
   workingDirectory?: string;
@@ -141,8 +151,26 @@ const duplicateDeclarationIdErrors = (
 ): ContractParseError[] => {
   const errors: ContractParseError[] = [];
   const ids = new Set<string>();
+  const ignores = new Set<string>();
 
   for (const contract of contracts) {
+    if (contract.kind === "ignore") {
+      const from = contract.attributes.find(({ key }) => key === "from");
+      const target = `${from?.value ?? ""}#${contract.id}`;
+      if (ignores.has(target)) {
+        errors.push(
+          new ContractParseError(
+            `Ignore of "${contract.id}" is not unique within its declaration`,
+            contract.source.filePath,
+            contract.source.start.line,
+            contract.source.start.column,
+          ),
+        );
+      }
+      ignores.add(target);
+      continue;
+    }
+
     if (ids.has(contract.id)) {
       errors.push(
         new ContractParseError(
@@ -154,6 +182,65 @@ const duplicateDeclarationIdErrors = (
       );
     }
     ids.add(contract.id);
+  }
+
+  return errors;
+};
+
+const sameRange = (
+  left: DeclarationContracts,
+  right: DeclarationContracts,
+): boolean => {
+  const { start, end } = left.declaration.range;
+  const other = right.declaration.range;
+  return (
+    start.line === other.start.line &&
+    start.column === other.start.column &&
+    end.line === other.end.line &&
+    end.column === other.end.column
+  );
+};
+
+const unresolvedIgnoreErrors = async (
+  filePath: string,
+  extractor: LocalContractExtractor,
+  declarations: DeclarationContracts[],
+): Promise<ContractParseError[]> => {
+  const errors: ContractParseError[] = [];
+  let directories: DirectoryContract[] | undefined;
+
+  for (const declaration of declarations) {
+    if (!declaration.contracts.some(({ kind }) => kind === "ignore")) {
+      continue;
+    }
+
+    const { start } = declaration.declaration.range;
+    const path = await extractor.declarationsAt({
+      filePath,
+      line: start.line,
+      column: start.column,
+    });
+    const index = path.findIndex((candidate) =>
+      sameRange(candidate, declaration),
+    );
+    directories ??= await discoverDirectoryContracts(filePath);
+
+    for (const { ignore, target } of resolveIgnores(
+      directories,
+      index < 0 ? [declaration] : path,
+      Math.max(index, 0),
+    )) {
+      if (!target) {
+        errors.push(
+          new ContractParseError(
+            `Ignore of "${ignore.id}" does not resolve to an inherited contract`,
+            ignore.source.filePath,
+            ignore.source.start.line,
+            ignore.source.start.column,
+          ),
+        );
+      }
+    }
   }
 
   return errors;
@@ -242,7 +329,7 @@ const inspectFormatFile = async (
   if (basename(filePath) === "CONTRACTS") {
     try {
       return {
-        directoryContracts: parseContracts(source, filePath),
+        directoryContracts: parseDirectoryContracts(source, filePath),
         errors: [],
         filePath,
       };
@@ -262,9 +349,12 @@ const inspectFormatFile = async (
   const extractor = await startLocalContractExtractor(filePath);
   const declarations = await extractor.declarationsInFile(filePath);
   return {
-    errors: declarations.flatMap(({ contracts }) =>
-      duplicateDeclarationIdErrors(contracts),
-    ),
+    errors: [
+      ...declarations.flatMap(({ contracts }) =>
+        duplicateDeclarationIdErrors(contracts),
+      ),
+      ...(await unresolvedIgnoreErrors(filePath, extractor, declarations)),
+    ],
     filePath,
   };
 };
@@ -285,7 +375,13 @@ const inspectFormatFile = async (
  * @cc [owner:spolu,label:product] format-contract-id-uniqueness
  * Within the files selected for inspection, `format` rejects repeated IDs attached to one
  * declaration and repeated `CONTRACTS` IDs along an ancestor chain; IDs on distinct declarations
- * or sibling directory branches may repeat.
+ * or sibling directory branches may repeat. A declaration MUST NOT repeat an ignore with the same
+ * ID and `from` value.
+ */
+/**
+ * @cc [owner:spolu,label:product] format-ignore-resolution
+ * `format` rejects each `@cc-ignore` that does not resolve, per `ignore-resolution`, to a contract
+ * inherited from a broader declaration or an ancestor `CONTRACTS` file of the source file.
  */
 /**
  * @cc [owner:spolu,label:product] format-progress-output
@@ -294,7 +390,7 @@ const inspectFormatFile = async (
  */
 /**
  * @cc [owner:spolu,label:product] format-result
- * Grammar or ID uniqueness failures reject `format` with source-relative
+ * Grammar, ID uniqueness, or ignore-target failures reject `format` with source-relative
  * `<path>:<line>:<column>: error: <description>` diagnostics and a non-zero exit status.
  */
 /**
@@ -303,8 +399,8 @@ const inspectFormatFile = async (
  */
 /**
  * @cc [owner:spolu,label:product] format-no-semantic-validation
- * `format` performs structural grammar, directive-cardinality, and ID-uniqueness checks only; it
- * never assesses contract prose or whether code complies with a contract.
+ * `format` performs structural grammar, directive-cardinality, ID-uniqueness, and ignore-target
+ * checks only; it never assesses contract or ignore prose or whether code complies with a contract.
  */
 export async function runFormatCommand(
   input?: string,

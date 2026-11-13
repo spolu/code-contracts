@@ -7,6 +7,7 @@ import {
   type DirectoryContract,
 } from "./directory-contracts.js";
 import { parseFileOrLocationLike } from "./file-location.js";
+import { resolveIgnores } from "./ignores.js";
 import type {
   DeclarationContracts,
   LocalContractExtractorFactory,
@@ -19,6 +20,7 @@ type DirectoryContractDiscovery = (
 interface DisplayContract {
   contract: CodeContract;
   scope: string;
+  ignoredBy?: CodeContract;
 }
 
 export interface ListCommandOptions {
@@ -55,12 +57,20 @@ const writeSourceHeader = (
 
 const writeContract = (
   entry: DisplayContract,
+  workingDirectory: string,
   writeLine: (line: string) => void,
 ): void => {
-  const { contract } = entry;
-  writeLine(`◆ ${contract.id}:${contract.source.start.line}`);
+  const { contract, ignoredBy } = entry;
+  const marker = contract.kind === "ignore" ? "⊘" : "◆";
+  writeLine(`${marker} ${contract.id}:${contract.source.start.line}`);
   const details = [
     `scope:${entry.scope}`,
+    ...(contract.kind === "ignore" ? ["kind:ignore"] : []),
+    ...(ignoredBy
+      ? [
+          `ignored-by:${displayPath(ignoredBy.source.filePath, workingDirectory)}:${ignoredBy.source.start.line}`,
+        ]
+      : []),
     ...contract.attributes.map(
       (attribute) => `${attribute.key}:${attribute.value}`,
     ),
@@ -88,8 +98,15 @@ const groupBySourceFile = (
 /**
  * @cc [owner:spolu,label:product] list-output
  * Output MUST group contracts under `=> <relative-file> <=` headers. Each entry MUST show
- * `◆ <id>:<line>`, scope, metadata, and quoted prose without the `@cc` directive. When no contracts
- * apply, the command MUST print nothing.
+ * `◆ <id>:<line>`, scope, metadata, and quoted prose without the `@cc` directive. Ignores MUST
+ * instead show `⊘ <id>:<line>` and `kind:ignore`. When no contracts apply, the command MUST print
+ * nothing.
+ */
+/**
+ * @cc [owner:spolu,label:product] list-ignored-contracts
+ * For a location, contracts targeted by an ignore on an applicable declaration MUST remain listed
+ * with `ignored-by:<relative-file>:<line>` naming that ignore. File-wide listings MUST NOT mark
+ * contracts as ignored.
  */
 /**
  * @cc [owner:spolu,label:product] list-scope-order
@@ -124,6 +141,19 @@ export async function runListCommand(
     ...globalContracts(directories),
     ...localContracts(declarations),
   ];
+  if (target.position) {
+    const ignoredBy = new Map<CodeContract, CodeContract>();
+    declarations.forEach((_, index) => {
+      for (const resolved of resolveIgnores(directories, declarations, index)) {
+        if (resolved.target && !ignoredBy.has(resolved.target)) {
+          ignoredBy.set(resolved.target, resolved.ignore);
+        }
+      }
+    });
+    for (const entry of contracts) {
+      entry.ignoredBy = ignoredBy.get(entry.contract);
+    }
+  }
 
   [...groupBySourceFile(contracts)].forEach(([filePath, group], groupIndex) => {
     if (groupIndex > 0) {
@@ -134,7 +164,7 @@ export async function runListCommand(
       if (contractIndex > 0) {
         writeLine("");
       }
-      writeContract(contract, writeLine);
+      writeContract(contract, workingDirectory, writeLine);
     });
   });
 }
